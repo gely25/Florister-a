@@ -1,0 +1,499 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+/* ── HERO ── */
+.hero {
+  position: relative;
+  height: clamp(360px, 52vw, 540px);
+  overflow: hidden;
+  background: linear-gradient(135deg, #b8d8e8 0%, #7bbdd4 45%, #5a9ab8 100%);
+}
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, rgba(30,20,20,0.45) 0%, rgba(30,20,20,0.05) 65%);
+}
+.hero-content {
+  position: relative; height: 100%;
+  max-width: var(--max-w); margin: 0 auto; padding: 0 48px;
+  display: flex; flex-direction: column; justify-content: center; gap: 20px;
+}
+.hero-eyebrow {
+  font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(255,255,255,0.75); font-weight: 600;
+}
+.hero-title {
+  font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3.6rem);
+  font-style: italic; font-weight: 400; color: white;
+  line-height: 1.15; max-width: 520px;
+}
+.hero-sub {
+  font-size: 1rem; color: rgba(255,255,255,0.82);
+  max-width: 380px; line-height: 1.7;
+}
+.hero-ctas { display: flex; gap: 12px; }
+.hero-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 28px; border-radius: 8px;
+  font-family: var(--sans); font-size: 0.875rem; font-weight: 700;
+  text-decoration: none; border: none; cursor: pointer;
+  transition: all 0.25s var(--ease);
+}
+.hero-btn-primary { background: var(--rose); color: white; }
+.hero-btn-primary:hover { background: var(--rose-dk); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(160,90,90,0.4); }
+.hero-btn-ghost { background: rgba(255,255,255,0.15); color: white; border: 1.5px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px); }
+.hero-btn-ghost:hover { background: rgba(255,255,255,0.28); }
+.hero-dots {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px;
+}
+.hero-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); transition: all 0.3s; cursor: pointer; }
+.hero-dot.active { background: white; width: 22px; border-radius: 4px; }
+
+/* ── TABS ── */
+.tabs-wrap { border-bottom: 2px solid var(--blush); }
+.tabs-inner { max-width: var(--max-w); margin: 0 auto; padding: 0 48px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.tabs-inner::-webkit-scrollbar { display: none; }
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--sans); font-size: 0.875rem; font-weight: 500;
+  color: var(--muted); padding: 14px 18px; white-space: nowrap;
+  position: relative; transition: color 0.2s;
+}
+.tab-btn::after {
+  content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+  height: 2px; background: var(--rose);
+  transform: scaleX(0); transition: transform 0.25s var(--ease);
+}
+.tab-btn.active, .tab-btn:hover { color: var(--rose); }
+.tab-btn.active::after { transform: scaleX(1); }
+
+/* ── SECTION SHELL ── */
+.section { max-width: var(--max-w); margin: 0 auto; padding: 72px 48px; }
+.section-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 36px; }
+.section-head-left { display: flex; flex-direction: column; gap: 6px; }
+.section-eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rose); }
+.section-title { font-family: var(--serif); font-size: clamp(1.7rem,2.8vw,2.4rem); font-weight: 400; font-style: italic; color: var(--text); }
+.section-see-all { font-size: 0.82rem; font-weight: 600; color: var(--rose); text-decoration: none; letter-spacing: 0.05em; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+.section-see-all:hover { border-color: var(--rose); }
+
+/* ── CAROUSEL ── */
+.carousel { position: relative; }
+.carousel-track {
+  display: flex; gap: 22px;
+  overflow-x: auto; scroll-snap-type: x mandatory;
+  scrollbar-width: none; scroll-behavior: smooth;
+}
+.carousel-track::-webkit-scrollbar { display: none; }
+.carousel-btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 42px; height: 42px; border-radius: 50%;
+  background: white; border: 1px solid var(--blush);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(180,120,120,0.12);
+  transition: all 0.25s var(--ease); z-index: 10; color: var(--text);
+}
+.carousel-btn:hover { background: var(--rose); color: white; border-color: var(--rose); }
+.carousel-btn:disabled { opacity: 0.3; pointer-events: none; }
+.carousel-prev { left: -20px; } .carousel-next { right: -20px; }
+
+/* ── PRODUCT CARD ── */
+.product-card {
+  flex: 0 0 230px; scroll-snap-align: start;
+  border-radius: var(--radius); background: white;
+  overflow: hidden; text-decoration: none; color: inherit;
+  border: 1px solid #f5eaea;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.product-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(200,80,80,0.13); }
+.card-img {
+  width: 100%; height: 210px; overflow: hidden;
+  background: var(--rose-lt); position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s var(--ease); }
+.product-card:hover .card-img img { transform: scale(1.05); }
+.card-img i { width: 40px; height: 40px; color: var(--rose); opacity: 0.3; }
+
+.card-body { padding: 16px 14px; }
+.card-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.card-name { font-size: 0.92rem; font-weight: 600; color: var(--text); margin: 6px 0 4px; line-height: 1.35; }
+.card-stars { color: var(--gold); font-size: 0.78rem; letter-spacing: 1px; }
+.card-price { font-size: 1rem; font-weight: 700; color: var(--rose); margin-top: 8px; }
+
+/* ── BANNER ANIMADO ── */
+.banner-wrap { background: var(--rose-lt); margin: 16px 0; overflow: hidden; }
+.banner {
+  max-width: var(--max-w); margin: 0 auto;
+  padding: 80px 48px;
+  display: grid;
+  grid-template-columns: 240px 1fr 240px;
+  align-items: center;
+  justify-items: center;
+  gap: 48px;
+}
+
+/* Side carousels */
+.bside { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.bside-viewport {
+  width: 220px; height: 380px;
+  border-radius: 22px; overflow: hidden;
+  position: relative;
+  box-shadow: 0 12px 40px rgba(180,100,100,0.22);
+  background: var(--blush);
+}
+.bside-track {
+  display: flex; height: 100%;
+  transition: transform 600ms cubic-bezier(0.4,0,0.2,1);
+}
+.bside-track img {
+  width: 220px; height: 380px;
+  object-fit: cover; flex-shrink: 0;
+}
+.bside-dots { display: flex; gap: 7px; align-items: center; }
+.bside-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #d8b8b8; transition: all 0.3s; cursor: pointer;
+}
+.bside-dot.active { background: var(--rose); transform: scale(1.4); }
+
+/* Center */
+.bcenter { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0; }
+.bflower-wrap { width: 140px; height: 140px; margin-bottom: 22px; }
+.bcenter-title { font-family: var(--serif); font-size: 2.4rem; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.bcenter-desc { font-size: 0.95rem; color: #666; line-height: 1.75; max-width: 300px; margin-bottom: 30px; }
+.bcenter-btn {
+  display: inline-block;
+  padding: 13px 38px;
+  background: none;
+  border: 2px solid var(--text);
+  font-family: var(--sans); font-size: 0.82rem;
+  font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text); text-decoration: none; cursor: pointer;
+  transition: all 0.3s var(--ease);
+}
+.bcenter-btn:hover { background: var(--text); color: white; }
+
+/* Petal SVG keyframes */
+@keyframes petalFallTop    { 0%{opacity:1;transform:rotate(0deg)   scale(1) translate(0,0)}   100%{opacity:0;transform:rotate(40deg)  scale(0.3) translate(18px,55px)} }
+@keyframes petalFallRight  { 0%{opacity:1;transform:rotate(90deg)  scale(1) translate(0,0)}   100%{opacity:0;transform:rotate(138deg) scale(0.3) translate(18px,55px)} }
+@keyframes petalFallBottom { 0%{opacity:1;transform:rotate(180deg) scale(1) translate(0,0)}   100%{opacity:0;transform:rotate(222deg) scale(0.3) translate(18px,55px)} }
+@keyframes petalFallLeft   { 0%{opacity:1;transform:rotate(270deg) scale(1) translate(0,0)}   100%{opacity:0;transform:rotate(312deg) scale(0.3) translate(18px,55px)} }
+@keyframes petalGrowTop    { 0%{opacity:0;transform:rotate(0deg)   scale(0)} 100%{opacity:1;transform:rotate(0deg)   scale(1)} }
+@keyframes petalGrowRight  { 0%{opacity:0;transform:rotate(90deg)  scale(0)} 100%{opacity:1;transform:rotate(90deg)  scale(1)} }
+@keyframes petalGrowBottom { 0%{opacity:0;transform:rotate(180deg) scale(0)} 100%{opacity:1;transform:rotate(180deg) scale(1)} }
+@keyframes petalGrowLeft   { 0%{opacity:0;transform:rotate(270deg) scale(0)} 100%{opacity:1;transform:rotate(270deg) scale(1)} }
+.fc-petal { transform-origin: 0px 0px; }
+
+/* ── SERVICES ── */
+.services-bg { background: white; }
+.services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+.service-card {
+  display: flex; gap: 20px; padding: 28px;
+  background: white; border-radius: var(--radius); border: 1px solid var(--blush);
+  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.service-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(180,100,100,0.10); }
+.service-thumb {
+  width: 100px; height: 110px; border-radius: 12px; flex-shrink: 0;
+  background: var(--rose-lt); display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.service-thumb i { width: 32px; height: 32px; color: var(--rose); opacity: 0.3; }
+.service-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.service-body { display: flex; flex-direction: column; gap: 8px; }
+.service-title { font-family: var(--serif); font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.service-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.7; flex: 1; }
+.service-btn {
+  align-self: flex-start; padding: 8px 20px; border-radius: 20px;
+  background: var(--rose-lt); color: var(--rose);
+  font-size: 0.8rem; font-weight: 700; text-decoration: none;
+  border: 1px solid var(--blush); transition: all 0.2s; cursor: pointer;
+  font-family: var(--sans);
+}
+.service-btn:hover { background: var(--rose); color: white; border-color: var(--rose); }
+
+/* ── ABOUT STRIP ── */
+.about-strip { background: var(--text); color: white; padding: 80px 48px; }
+.about-inner { max-width: var(--max-w); margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.about-img {
+  width: 100%; height: 380px; border-radius: 20px;
+  background: linear-gradient(135deg,#3a4e4a,#2e3e3a);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.about-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 20px; }
+.about-text { display: flex; flex-direction: column; gap: 16px; }
+.about-eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+.about-title { font-family: var(--serif); font-size: clamp(1.8rem,3vw,2.8rem); font-style: italic; font-weight: 400; line-height: 1.2; }
+.about-body { font-size: 1rem; color: rgba(255,255,255,0.72); line-height: 1.85; }
+.about-cta {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 8px; padding: 13px 28px;
+  border: 1.5px solid rgba(255,255,255,0.35); color: white;
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em;
+  text-decoration: none; border-radius: 8px; transition: all 0.25s;
+}
+.about-cta:hover { background: rgba(255,255,255,0.1); border-color: white; }
+
+@media (max-width: 900px) {
+  .hero-content { padding: 0 24px; }
+  .section { padding: 48px 24px; }
+  .banner { grid-template-columns: 1fr; padding: 48px 24px; gap: 32px; }
+  .bside { display: none; }
+  .about-inner { grid-template-columns: 1fr; gap: 40px; }
+  .about-img { height: 280px; }
+}
+@media (max-width: 600px) {
+  .section { padding: 48px 20px; }
+  .hero-content { padding: 0 24px; }
+  .tabs-inner { padding: 0 20px; }
+  .about-strip { padding: 60px 20px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow reveal visible">Florería artesanal · Guayaquil</p>
+    <h1 class="hero-title reveal visible d1">Detalles que<br>duran para siempre</h1>
+    <p class="hero-sub reveal visible d2">Ramos únicos, arreglos personalizados y flores frescas seleccionadas para cada momento especial.</p>
+    <div class="hero-ctas reveal visible d3">
+      <a href="{% url 'bouquet:design' %}" class="hero-btn hero-btn-primary">
+        <i data-lucide="flower-2" style="width: 16px; height: 16px;"></i>
+        Crear mi ramo
+      </a>
+      <a href="#catalogo" class="hero-btn hero-btn-ghost">Ver catálogo</a>
+    </div>
+  </div>
+  <div class="hero-dots">
+    <div class="hero-dot active"></div>
+    <div class="hero-dot"></div>
+    <div class="hero-dot"></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap" id="catalogo">
+  <div class="tabs-inner" id="js-tabs">
+    <button class="tab-btn active" data-cat="all">Todos</button>
+    <button class="tab-btn" data-cat="especiales">Especiales</button>
+    <button class="tab-btn" data-cat="rojos">Ramos Rojos</button>
+    <button class="tab-btn" data-cat="mixtos">Arreglos Mixtos</button>
+    <button class="tab-btn" data-cat="manualidades">Manualidades</button>
+  </div>
+</div>
+
+<!-- PROMOCIONES -->
+<div class="section">
+  <div class="section-head reveal">
+    <div class="section-head-left">
+      <span class="section-eyebrow">✦ Ofertas especiales</span>
+      <h2 class="section-title">Promociones</h2>
+    </div>
+    <a href="#" class="section-see-all">Ver todas →</a>
+  </div>
+  <div class="carousel reveal d1" id="wrap-promo">
+    <button class="carousel-btn carousel-prev" id="prev-promo" disabled aria-label="Anterior">
+      <i data-lucide="chevron-left"></i>
+    </button>
+    <div class="carousel-track" id="track-promo">
+      {% for promo in promotions %}
+      <a href="#" class="product-card">
+        <div class="card-img">
+          {% if promo.image %}
+            <img src="{{ promo.image.url }}" alt="{{ promo.name }}">
+          {% else %}
+            <i data-lucide="image"></i>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <div class="card-label">{{ promo.label }}</div>
+          <div class="card-name">{{ promo.name }}</div>
+          <div class="card-stars">
+              {% for i in "12345" %}
+                {% if forloop.counter <= promo.stars %}★{% endif %}
+              {% endfor %} 
+          </div>
+          <div class="card-price">${{ promo.price }}</div>
+        </div>
+      </a>
+      {% empty %}
+      <div style="text-align: center; width: 100%; color: #aaa; padding: 40px; font-style: italic;">
+          No hay promociones activas.
+      </div>
+      {% endfor %}
+    </div>
+    <button class="carousel-btn carousel-next" id="next-promo" aria-label="Siguiente">
+      <i data-lucide="chevron-right"></i>
+    </button>
+  </div>
+</div>
+
+<!-- PERSONALIZA BANNER -->
+<div class="banner-wrap">
+  <div class="banner reveal">
+
+    <!-- LEFT carousel -->
+    <div class="bside">
+      <div class="bside-viewport">
+        <div class="bside-track" id="btrack-left">
+          <img src="https://images.unsplash.com/photo-1487530811015-780a9c72a7e9?w=400&q=80" onerror="handleImageError(this)" alt="">
+          <img src="https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=400&q=80" onerror="handleImageError(this)" alt="">
+          <img src="https://images.unsplash.com/photo-1490750967868-88df5691cc27?w=400&q=80" onerror="handleImageError(this)" alt="">
+          <img src="https://images.unsplash.com/photo-1455582916367-25f75bfc6710?w=400&q=80" onerror="handleImageError(this)" alt="">
+        </div>
+      </div>
+      <div class="bside-dots" id="bdots-left">
+        <div class="bside-dot active"></div>
+        <div class="bside-dot"></div>
+        <div class="bside-dot"></div>
+        <div class="bside-dot"></div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="bcenter">
+      <div class="bflower-wrap">
+        <svg id="fc-flower" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+          <g transform="translate(55,55)">
+            <g class="fc-petal" id="fcP0" style="transform:rotate(0deg)"><path d="M -6,-7 C -20,-22 -22,-38 0,-46 C 22,-38 20,-22 6,-7 Z" fill="#d2d2d2"/></g>
+          </g>
+          <g transform="translate(55,55)">
+            <g class="fc-petal" id="fcP1" style="transform:rotate(90deg)"><path d="M -6,-7 C -20,-22 -22,-38 0,-46 C 22,-38 20,-22 6,-7 Z" fill="#d2d2d2"/></g>
+          </g>
+          <g transform="translate(55,55)">
+            <g class="fc-petal" id="fcP2" style="transform:rotate(180deg)"><path d="M -6,-7 C -20,-22 -22,-38 0,-46 C 22,-38 20,-22 6,-7 Z" fill="#d2d2d2"/></g>
+          </g>
+          <g transform="translate(55,55)">
+            <g class="fc-petal" id="fcP3" style="transform:rotate(270deg)"><path d="M -6,-7 C -20,-22 -22,-38 0,-46 C 22,-38 20,-22 6,-7 Z" fill="#d2d2d2"/></g>
+          </g>
+          <circle cx="55" cy="55" r="13" fill="#f0a8b0"/>
+        </svg>
+      </div>
+      <h2 class="bcenter-title">Personaliza tu ramo</h2>
+      <p class="bcenter-desc"> Crea tu ramo personalizado, ya sea grande, mediano o pequeño y selecciona las flores que más te gusten con un diseño único.</p>
+      <a href="{% url 'bouquet:design' %}" class="bcenter-btn">Comenzar Ahora</a>
+    </div>
+
+    <!-- RIGHT carousel -->
+    <div class="bside">
+      <div class="bside-viewport">
+        <div class="bside-track" id="btrack-right">
+          <img src="https://images.unsplash.com/photo-1471086569966-db3eebc25a59?w=400&q=80" onerror="handleImageError(this)" alt="">
+          <img src="https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=400&q=80" onerror="handleImageError(this)" alt="">
+          <img src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=400&q=80" onerror="handleImageError(this)" alt="">
+          <img src="https://images.unsplash.com/photo-1599733589046-10b0a9a1e9e1?w=400&q=80" onerror="handleImageError(this)" alt="">
+        </div>
+      </div>
+      <div class="bside-dots" id="bdots-right">
+        <div class="bside-dot active"></div>
+        <div class="bside-dot"></div>
+        <div class="bside-dot"></div>
+        <div class="bside-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAVORITOS -->
+<div class="section">
+  <div class="section-head reveal">
+    <div class="section-head-left">
+      <span class="section-eyebrow">♡ Más queridos</span>
+      <h2 class="section-title">Nuestros Favoritos</h2>
+    </div>
+    <a href="#" class="section-see-all">Ver todos →</a>
+  </div>
+  <div class="carousel reveal d1" id="wrap-fav">
+    <button class="carousel-btn carousel-prev" id="prev-fav" disabled aria-label="Anterior">
+      <i data-lucide="chevron-left"></i>
+    </button>
+    <div class="carousel-track" id="track-fav">
+      {% for flower in featured_flowers %}
+      <a href="#" class="product-card">
+        <div class="card-img">
+            {% if flower.image %}
+              <img src="{{ flower.image.url }}" alt="{{ flower.name }}">
+            {% else %}
+              <i data-lucide="flower-2"></i>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="card-label">{{ flower.get_tier_display }}</div>
+            <div class="card-name">{{ flower.name }}</div>
+            <div class="card-price">${{ flower.price }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <button class="carousel-btn carousel-next" id="next-fav" aria-label="Siguiente">
+      <i data-lucide="chevron-right"></i>
+    </button>
+  </div>
+</div>
+
+<!-- SERVICIOS -->
+<div class="services-bg">
+  <div class="section">
+    <div class="section-head reveal">
+      <div class="section-head-left">
+        <span class="section-eyebrow">✦ Lo que ofrecemos</span>
+        <h2 class="section-title">Servicios Exclusivos</h2>
+      </div>
+    </div>
+    <div class="services-grid">
+      {% for service in services %}
+      <div class="service-card reveal">
+        <div class="service-thumb">
+          {% if service.image %}
+            <img src="{{ service.image.url }}" alt="{{ service.title }}">
+          {% else %}
+            <i data-lucide="{{ service.icon|default:'package' }}"></i>
+          {% endif %}
+        </div>
+        <div class="service-body">
+          <h3 class="service-title">{{ service.title }}</h3>
+          <p class="service-desc">{{ service.description }}</p>
+          <a href="#" class="service-btn">Más información</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT STRIP -->
+<div class="about-strip reveal">
+  <div class="about-inner">
+    <div class="about-img">
+      <img src="https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=700&q=80" alt="Nuestro mensaje">
+    </div>
+    <div class="about-text">
+      <span class="about-eyebrow">Nuestra historia</span>
+      <h2 class="about-title">Más que Flores:<br>Un Mensaje de Vida</h2>
+      <p class="about-body">En Sisart, cada arreglo es una obra de arte diseñada para transmitir emociones profundas. Nos dedicamos a transformar momentos cotidianos en recuerdos eternos a través de la belleza natural y el diseño artesanal.</p>
+      <a href="#" class="about-cta">
+        Conocernos mejor
+        <i data-lucide="arrow-right" style="width: 15px; height: 15px; margin-left: 8px;"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── HELPER: IMAGEN ERROR ── */
+function handleImageError(img) {
+  img.style.display = 'none';
+}
+setTimeout(runCycle, 1000);
+</script>
+{% endblock %}

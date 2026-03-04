@@ -1,0 +1,224 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'bouquet/css/designer.css' %}?v=999">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- 1. Inject Django Data FIRST -->
+<script>
+    var FLOWERS = [
+        {% for flower in flowers %}
+        { 
+            id: {{ flower.id }}, 
+            name: "{{ flower.name|escapejs }}", 
+            type: "{{ flower.tier }}", 
+            p: {{ flower.price }}, 
+            img: "{% if flower.image %}{{ flower.image.url }}{% else %}https://placehold.co/400x600?text={{ flower.name|urlencode }}{% endif %}", 
+            thumb: "{% if flower.thumbnail %}{{ flower.thumbnail.url }}{% elif flower.image %}{{ flower.image.url }}{% else %}https://placehold.co/100x100?text={{ flower.name|urlencode }}{% endif %}" 
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    var SIZE_PRESETS = {
+        {% for size in sizes %}
+        "{{ size.code }}": { l: {{ size.max_large }}, m: {{ size.max_medium }}, s: {{ size.max_small }} }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+    
+    var CSRF_TOKEN = "{{ csrf_token }}";
+    var IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+</script>
+
+<style>
+  /* Override base styles for the app-like feel */
+  .page-wrap { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+  
+  #sizeScreen { 
+    position: fixed !important; top: 67px !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+    width: 100% !important; height: auto !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    background: radial-gradient(ellipse at 50% 0%, #fef5f5 0%, #ffffff 70%) !important;
+    z-index: 9000 !important;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .app { margin-top: 0; height: calc(100vh - 68px); overflow: hidden; position: relative; }
+
+  /* Pink Theme Overrides */
+  :root {
+      --gold: #c97d7d !important;
+      --gold-light: #fdf0f0 !important;
+      --rose: #c97d7d !important;
+  }
+  .sz-title, .sz-name, .sz-confirm, .sz-brand, .sz-pill { color: #c97d7d !important; }
+  .sz-confirm, .sz-card.selected, .sz-card:hover { border-color: #c97d7d !important; }
+  .sz-pill { border-color: rgba(201, 125, 125, 0.3) !important; background: #fdf0f0 !important; }
+  .sz-confirm.ready:hover { background: #c97d7d !important; color: #fff !important; }
+</style>
+<link rel="stylesheet" href="{% static 'bouquet/css/designer.css' %}?v={% now "U" %}">
+{% endblock %}
+
+{% block content %}
+
+<div id="sizeScreen">
+  <div class="sz-brand" style="font-family: var(--serif); font-style: italic; color: var(--rose);">Sisart</div>
+  <h2 class="sz-title">Selecciona el tamaño de tu ramo</h2>
+  <p class="sz-subtitle">Elige una composición para comenzar a diseñar</p>
+
+  <div class="sz-grid">
+    {% for size in sizes %}
+    <div class="sz-card" id="sz-{{ size.code }}" onclick="selectSize('{{ size.code }}')">
+      <div class="sz-icon">💐</div>
+      <div class="sz-name">{{ size.name }}</div>
+      <div class="sz-desc">Una composición equilibrada para tus momentos especiales.</div>
+      <div class="sz-pills">
+        <span class="sz-pill">{{ size.max_large }} grandes</span>
+        <span class="sz-pill">{{ size.max_medium }} medianas</span>
+        <span class="sz-pill">{{ size.max_small }} pequeñas</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <button class="sz-confirm" id="szConfirmBtn" onclick="confirmSize()">Comenzar diseño →</button>
+</div>
+
+<div class="app">
+<div class="steps-bar">
+  <div class="si active" id="s1"><div class="sn">1</div><div class="sl">Fondo</div></div>
+  <div class="sc"></div>
+  <div class="si" id="s2"><div class="sn">2</div><div class="sl">Cuerpo</div></div>
+  <div class="sc"></div>
+  <div class="si" id="s3"><div class="sn">3</div><div class="sl">Frente</div></div>
+</div>
+<div class="workspace">
+  <div class="catalog">
+    <div id="catTitle" style="font-family: var(--serif); margin-bottom:15px; color:var(--rose); font-size:12px; letter-spacing:2px; text-transform: uppercase;">CAPA I: GRANDES</div>
+    <div id="flist" class="clist"></div>
+  </div>
+  <div class="bouquet-area">
+    <div class="stage-outer" id="stage">
+      <div class="wrap-part wrap-back visible" id="wb">
+        <div class="wrap-color"></div>
+        <img src="/media/envoltura.png" class="wrap-texture" draggable="false">
+      </div>
+      <div id="flowers"></div>
+      <div class="wrap-part wrap-front visible" id="wf">
+        <div class="wrap-color"></div>
+        <img src="/media/envoltura.png" class="wrap-texture" draggable="false">
+      </div>
+    </div>
+    
+    <div class="adj-controls" id="controls">
+      <div class="adj-header" id="controlsHeader">
+        <h3 class="adj-title" id="adjTitle">Herramientas</h3>
+        <div class="adj-actions">
+          <button class="adj-btn" onclick="toggleMinimize()" title="Minimizar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button class="adj-btn" onclick="deselectAll()" title="Cerrar">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="adj-content">
+        <div id="fEdit">
+          <div class="arc-container">
+            <svg class="arc-svg" id="arcSvg" viewBox="-70 -10 140 90">
+              <path d="M -60 70 A 70 70 0 0 1 60 70" fill="none" stroke="rgba(242, 122, 133, 0.15)" stroke-width="2"/>
+              <path id="arcFill" d="M 0 0 A 70 70 0 0 1 0 0" fill="none" stroke="var(--rose)" stroke-width="2.5" stroke-linecap="round"/>
+              <line id="arcNeedle" x1="0" y1="70" x2="0" y2="0" stroke="var(--rose-dk)" stroke-width="2" stroke-linecap="round" opacity="0"/>
+              <circle cx="0" cy="70" r="3" fill="var(--rose)" opacity="0.6"/>
+            </svg>
+          </div>
+
+          <div class="dial-wrap">
+            <div class="dial" id="dial"><div class="dial-dot"></div></div>
+            <div style="font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:5px">Dial de Giro</div>
+          </div>
+
+          <div class="scale-box" style="margin-top:12px">
+            <div class="scale-row"><span>ÁNGULO</span><span id="rotValText">0°</span></div>
+            <div class="rot-bar-row">
+              <button class="rot-step-btn" onclick="stepRot(-5)" title="-5°">−</button>
+              <input type="range" id="fRot" min="-180" max="180" step="1" value="0" style="flex:1">
+              <button class="rot-step-btn" onclick="stepRot(5)" title="+5°">+</button>
+            </div>
+          </div>
+
+          <div class="scale-box" style="margin-top:15px">
+            <div class="scale-row"><span>ESCALA</span><span id="scaleValText">1.0x</span></div>
+            <input type="range" id="fScale" min="0.4" max="1.7" step="0.01" value="1">
+          </div>
+
+          <button class="reset-btn" style="margin-top:10px" onclick="resetSelected()">RESTABLECER POSICIÓN</button>
+          <button class="delete-btn" id="deleteBtn" onclick="removeSelected()">✕ ELIMINAR ESTA FLOR</button>
+        </div>
+
+        <div id="wEdit" style="display:none">
+          <div class="adj-title">Ajuste Envoltorio</div>
+          <div class="scale-box">
+            <div class="scale-row"><span>TAMAÑO PAPEL</span><span id="wScaleValText">1.0x</span></div>
+            <input type="range" id="wScale" min="0.8" max="1.4" step="0.01" value="1">
+          </div>
+
+          <div class="color-group">
+            <span class="color-label">Color del Papel</span>
+            <div class="color-grid">
+              <div class="color-swatch active" style="background:#e8dfcc" onclick="setWrapColor('#e8dfcc', this)" title="Natural"></div>
+              <div class="color-swatch" style="background:#f2cada" onclick="setWrapColor('#f2cada', this)" title="Rosa"></div>
+              <div class="color-swatch" style="background:#9eb091" onclick="setWrapColor('#9eb091', this)" title="Verde"></div>
+              <div class="color-swatch" style="background:#90b1c7" onclick="setWrapColor('#90b1c7', this)" title="Azul"></div>
+              <div class="color-swatch" style="background:#8e735b" onclick="setWrapColor('#8e735b', this)" title="Kraft"></div>
+              <div class="color-swatch" style="background:#1a1a1a" onclick="setWrapColor('#1a1a1a', this)" title="Negro"></div>
+              <div class="color-swatch" style="background:#f0f0f0; border:1px solid #ddd" onclick="setWrapColor('#f0f0f0', this)" title="Blanco"></div>
+              <div class="color-swatch" style="background:#7a1d1d" onclick="setWrapColor('#7a1d1d', this)" title="Tinto"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="right-panel">
+
+    <div class="rl">Composición</div>
+    <div id="sum" class="sum-list"></div>
+    <div class="price-box">
+      <div class="price-val" id="pval">$0.00</div>
+    </div>
+    <button class="act-btn" id="nextBtn" onclick="step()">CONTINUAR →</button>
+    <button class="act-btn on" id="finishBtn" style="display:none; background:var(--rose); color:#ffffff; box-shadow:0 10px 20px rgba(201,125,125,0.4);" onclick="finishOrder()">FINALIZAR DISEÑO ✓</button>
+  </div>
+</div>
+</div>
+<div class="done-ov" id="doneOv"><div id="finalView" style="position:relative; width:400px; height:600px"></div></div>
+
+<!-- Checkout Modal -->
+<div id="checkoutModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3>Completa tu Pedido</h3>
+    <p>Para enviar tu diseño, por favor identifícate o continúa como invitado. Ambos guardarán tu diseño en el sistema.</p>
+    
+    <div class="modal-buttons" id="modalButtons">
+       <button class="act-btn" onclick="window.location.href='/login/?next=/bouquet/design/'">Tengo Cuenta</button>
+       <button class="act-btn on" onclick="showGuestForm()">Como Invitado</button>
+    </div>
+    
+    <div id="guestForm" style="display:none; text-align:left; margin-top:15px;">
+       <label>Tu Nombre:</label>
+       <input type="text" id="guestName" placeholder="Ej. Ana Pérez" class="guest-input" style="margin-bottom:15px;" required>
+       
+       <button class="act-btn on" onclick="processOrder(true, true)" id="btnProcessGuest" style="width:100%">Enviar Pedido (WhatsApp)</button>
+       <button class="act-btn" onclick="processOrder(true, false)" id="btnProcessGuestSystem" style="width:100%; margin-top:10px; background: #fafafa; color: #4a4a4a; border: 1px solid #ccc; font-weight: 600;">Solo Guardar y Ver Ticket</button>
+       <button class="reset-btn" onclick="hideCheckoutModal()" style="width:100%; margin-top:10px; background: #fff; color: #a0a0a0; border: none; text-decoration: underline;">Cancelar</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- 2. Load Design Logic SECOND (it will use the variables above) -->
+<script src="{% static 'js/script.js' %}?v=999"></script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sisart — Detalles que duran para siempre{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --rose:    #c97d7d;
+            --rose-dk: #a05c5c;
+            --rose-lt: #f9f0f0;
+            --blush:   #f2dada;
+            --cream:   #fdf9f7;
+            --gold:    #c9a55a;
+            --text:    #2d2323;
+            --muted:   #9e8a8a;
+            --max-w:   1200px;
+            --radius:  16px;
+            --ease:    cubic-bezier(0.4,0,0.2,1);
+            --serif:   'Playfair Display', Georgia, serif;
+            --sans:    'DM Sans', system-ui, sans-serif;
+        }
+
+        body { font-family: var(--sans); background: var(--cream); color: var(--text); line-height: 1.6; }
+        
+        .page-wrap {
+            max-width: 100%;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Nav & Footer Base */
+        footer { 
+            background: var(--text); 
+            color: rgba(255,255,255,0.7); 
+            text-align: center; 
+            padding: 24px 20px; 
+            font-size: 0.85rem; 
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* Reveal Animation Global */
+        .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s var(--ease), transform 0.65s var(--ease); }
+        .reveal.visible { opacity: 1; transform: none; }
+        .d1 { transition-delay: 0.1s; } .d2 { transition-delay: 0.2s; } .d3 { transition-delay: 0.3s; }
+
+        @media (max-width: 600px) {
+            .page-wrap { padding: 0; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    {% include 'partials/navbar.html' %}
+
+    <div class="page-wrap">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <div style="font-family: var(--serif); font-size: 1.5rem; color: #fff; font-style: italic; margin-bottom: 20px;">Sisart</div>
+        <p>&copy; {% now "Y" %} — Detalles que duran para siempre</p>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        lucide.createIcons();
+        
+        /* SCROLL REVEAL */
+        const ro = new IntersectionObserver(entries => {
+            entries.forEach(e => { 
+                if (e.isIntersecting) { 
+                    e.target.classList.add('visible'); 
+                    ro.unobserve(e.target); 
+                } 
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+    </script>
+
+</body>
+</html>

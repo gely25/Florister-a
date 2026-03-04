@@ -1,0 +1,188 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Seguimiento de Pedido | Sisart{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .track-wrap {
+            display: flex; justify-content: center; align-items: center; 
+            min-height: calc(100vh - 68px - 140px);
+            padding: 40px 20px;
+        }
+        .ticket-card { 
+            background: #ffffff; border-radius: 16px; padding: 40px; 
+            box-shadow: 0 10px 40px rgba(242, 122, 133, 0.05); 
+            max-width: 450px; width: 100%; text-align: center; 
+            border: 1px solid var(--border, #eee); 
+            animation: fadeIn 0.5s ease;
+            margin: 0 auto;
+        }
+        .t-brand { color: var(--gold, #d4af37); font-family: var(--serif); font-size: 24px; font-style: italic; margin-bottom: 20px; }
+        .t-title { font-family: var(--serif); color: var(--gold, #d4af37); margin-bottom: 5px; font-size: 24px; }
+        .t-subtitle { color: #888; font-size: 13px; margin-bottom: 25px; }
+        
+        .t-image-container {
+            width: 100%; min-height: 250px; background: var(--cream); 
+            border-radius: 12px; margin-bottom: 20px; display: flex; 
+            align-items: center; justify-content: center; overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+            border: 1px solid #f0f0f0;
+        }
+        .t-image { width: 100%; height: auto; display: block; }
+        
+        .t-info { text-align: left; background: #fdfdfd; border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .t-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #555; }
+        .t-row:last-child { border-bottom: none; }
+        .t-row strong { color: var(--text); font-weight: 600; }
+        .t-total { font-size: 18px; color: var(--gold); font-weight: 700; }
+        
+        .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-delivered { background: #cce5ff; color: #004085; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .btn-back { display: inline-block; padding: 14px 28px; background: var(--gold); color: #fff; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 1px; transition: background 0.3s; text-transform: uppercase; font-family: var(--sans); }
+        .btn-back:hover { background: #b38b4d; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Florist Specific Styles */
+        .staff-panel {
+            background: #fdfaf6; border: 2px dashed #d4af37; border-radius: 12px;
+            padding: 30px; margin-bottom: 30px; text-align: left;
+            animation: slideIn 0.5s ease;
+        }
+        .staff-h { font-family: var(--serif); font-size: 14px; color: #b38b4d; letter-spacing: 2px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .recipe-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
+        .recipe-item { display: flex; align-items: center; gap: 10px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; }
+        .recipe-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+        .recipe-info { font-size: 13px; font-weight: 600; }
+        .recipe-qty { color: var(--gold); }
+        .customer-contact { background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c8e6c9; }
+        .contact-h { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #2e7d32; font-weight: 700; margin-bottom: 5px; }
+        .contact-val { font-size: 14px; color: #1b5e20; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .wa-btn { background: #25d366; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; text-decoration: none; }
+        
+        .status-manager { display: flex; flex-direction: column; gap: 10px; }
+        .status-select { padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; font-size: 13px; }
+        .btn-update { background: #333; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; transition: 0.3s; }
+        .btn-update:hover { background: #000; }
+
+        .florist-login-link { font-size: 11px; color: #ccc; margin-top: 30px; display: block; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="track-wrap">
+<div class="ticket-card">
+    <div class="t-brand">Sisart</div>
+
+    {% if is_staff %}
+    <!-- Florist / Staff View -->
+    <div class="staff-panel">
+        <div class="staff-h">📍 FICHA DE PRODUCCIÓN</div>
+        
+        <div class="recipe-grid">
+            {% for item in recipe %}
+            <div class="recipe-item">
+                <img src="/media/{{ item.flower__image }}" class="recipe-img">
+                <div class="recipe-info">
+                    <span class="recipe-qty">{{ item.total }}x</span> {{ item.flower__name }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="customer-contact">
+            <div class="contact-h">Cliente</div>
+            <div class="contact-val">
+                {{ order.guest_name|default:order.user.get_full_name }}
+                {% if order.guest_phone and order.guest_phone != "N/A" %}
+                <a href="https://wa.me/{{ order.guest_phone|cut:' ' }}" class="wa-btn" target="_blank">Chat WA</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="status-manager">
+            <div class="contact-h">Cambiar Estado</div>
+            <select id="statusSelect" class="status-select">
+                {% for code, label in status_choices %}
+                <option value="{{ code }}" {% if order.status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="updateStatus()" class="btn-update">ACTUALIZAR ESTADO</button>
+        </div>
+    </div>
+    
+    <script>
+    async function updateStatus() {
+        const status = document.getElementById('statusSelect').value;
+        const formData = new FormData();
+        formData.append('status', status);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        try {
+            const res = await fetch(window.location.pathname, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                alert('Estado actualizado correctamente.');
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch(e) {
+            alert('Error de conexión');
+        }
+    }
+    </script>
+    {% endif %}
+
+    <h1 class="t-title">Pedido #{{ order.id }}</h1>
+    <p class="t-subtitle">Hola <strong>{% if order.user %}{{ order.user.first_name }}{% else %}{{ order.guest_name|default:"Invitado" }}{% endif %}</strong>, gracias por tu diseño.</p>
+
+    <div class="t-image-container">
+        {% if order.bouquet_image %}
+        <img src="{{ order.bouquet_image.url }}" alt="Diseño del Ramo" class="t-image">
+        {% else %}
+        <span style="color:#aaa; font-size:13px; font-style:italic;">Generando visualización...</span>
+        {% endif %}
+    </div>
+
+    <div class="t-info">
+        <div class="t-row">
+            <span>Estado:</span>
+            <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+        <div class="t-row">
+            <span>Fecha:</span>
+            <strong>{{ order.created_at|date:"d M Y" }}</strong>
+        </div>
+        <div class="t-row">
+            <span>Total a Pagar:</span>
+            <strong class="t-total">${{ order.final_amount }}</strong>
+        </div>
+    </div>
+    
+    <p style="font-size: 12px; color: #888; margin-bottom: 25px; line-height:1.5;">
+        Guarda este enlace seguro para consultar el estado de tu pedido en cualquier momento.<br>
+        <span style="display:inline-block; margin-top:8px; padding:6px 12px; background:#f5f5f5; border-radius:4px; font-family:monospace; color:#555;">Token: {{ order.tracking_token }}</span>
+    </p>
+
+    <a href="/bouquet/design/" class="btn-back">Volver al Diseñador</a>
+    
+    {% if not is_staff %}
+    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="florist-login-link">Acceso Floristas →</a>
+    {% else %}
+    <a href="{% url 'accounts:logout' %}" class="florist-login-link">Cerrar Sesión Staff</a>
+    {% endif %}
+</div>
+</div>
+{% endblock %}
