@@ -1,0 +1,32 @@
+<aside class="dash-sidebar">
+    <div class="sidebar-header">
+        <div class="user-profile-small">
+            <div class="user-avatar-sm">{{ user.username|first|upper }}</div>
+            <div>
+                <div style="font-size: 0.9rem; font-weight: 700;">{{ user.first_name|default:user.username }}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">{{ user.display_role }}</div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="sidebar-links">
+        {% for item in side_menu %}
+        <li>
+            <a href="{{ item.url }}" class="{% if request.path == item.url %}active{% endif %}">
+                <i data-lucide="{{ item.icon }}"></i> {{ item.name }}
+            </a>
+        </li>
+        {% endfor %}
+        
+        <li style="margin-top: auto; border-top: 1px solid #f9f0f0; padding-top: 12px;">
+            <form action="{% url 'accounts:logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" style="background:none; border:none; width:100%; text-align:left; cursor:pointer;">
+                    <a href="#" style="pointer-events:none; display: flex; align-items: center; gap: 12px; padding: 12px 16px;">
+                        <i data-lucide="log-out"></i> Salir
+                    </a>
+                </button>
+            </form>
+        </li>
+    </ul>
+</aside>

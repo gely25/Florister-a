@@ -1,0 +1,89 @@
+{% extends 'layouts/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Inventario de Flores — Sisart{% endblock %}
+
+{% block dash_content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <header class="mb-5" style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <h1 style="font-family: var(--serif); font-style: italic; color: var(--text);">Inventario de Flores</h1>
+            <p style="color: var(--muted);">Gestiona las flores disponibles para el constructor de ramos.</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{% url 'catalog:price_update' %}" class="btn-outline" style="text-decoration: none; padding: 10px 20px; border: 1px solid var(--rose); color: var(--rose); border-radius: 12px; font-weight: 600;">
+                <i data-lucide="trending-up"></i> Actualizar Precios
+            </a>
+            <a href="{% url 'catalog:flower_create' %}" class="btn-primary" style="text-decoration: none; background: var(--rose); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600;">
+                <i data-lucide="plus"></i> Nueva Flor
+            </a>
+        </div>
+    </header>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 16px; border-radius: 12px; margin-bottom: 24px; {% if message.tags == 'success' %}background: #dcfce7; color: #166534;{% else %}background: #fee2e2; color: #991b1b;{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div style="background: white; border-radius: 16px; border: 1px solid var(--blush); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: var(--rose-lt); border-bottom: 1px solid var(--blush);">
+                    <th style="padding: 16px; font-weight: 600;">Imagen</th>
+                    <th style="padding: 16px; font-weight: 600;">Nombre</th>
+                    <th style="padding: 16px; font-weight: 600;">Categoría (Tier)</th>
+                    <th style="padding: 16px; font-weight: 600;">Precio</th>
+                    <th style="padding: 16px; font-weight: 600;">Estado</th>
+                    <th style="padding: 16px; font-weight: 600; text-align: center;">Destacada</th>
+                    <th style="padding: 16px; font-weight: 600;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for flower in flowers %}
+                <tr style="border-bottom: 1px solid #f9f0f0;">
+                    <td style="padding: 16px;">
+                        {% if flower.image %}
+                            <img src="{{ flower.image.url }}" alt="{{ flower.name }}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px;">
+                        {% else %}
+                            <div style="width: 48px; height: 48px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #9ca3af;">
+                                <i data-lucide="image"></i>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px; font-weight: 500;">{{ flower.name }}</td>
+                    <td style="padding: 16px;">{{ flower.get_tier_display }}</td>
+                    <td style="padding: 16px; font-weight: 700; color: var(--rose);">${{ flower.price|floatformat:2 }}</td>
+                    <td style="padding: 16px;">
+                        {% if flower.is_active %}
+                            <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Activa</span>
+                        {% else %}
+                            <span style="background: #f3f4f6; color: #4b5563; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Inactiva</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px; text-align: center;">
+                        {% if flower.is_featured %}
+                            <i data-lucide="star" style="fill: #f59e0b; color: #f59e0b; width: 20px;"></i>
+                        {% else %}
+                            <i data-lucide="star" style="color: #d1d5db; width: 20px;"></i>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px;">
+                        <div style="display: flex; gap: 12px;">
+                            <a href="{% url 'catalog:flower_update' flower.pk %}" style="color: var(--muted);"><i data-lucide="edit-2" style="width: 18px;"></i></a>
+                            <a href="{% url 'catalog:flower_delete' flower.pk %}" style="color: #ef4444;"><i data-lucide="trash-2" style="width: 18px;"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 40px; text-align: center; color: var(--muted);">No hay flores registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

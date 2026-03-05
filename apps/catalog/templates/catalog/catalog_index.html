@@ -1,0 +1,95 @@
+{% extends 'layouts/dashboard_base.html' %}
+
+{% block title %}Hub de Catálogo — Sisart{% endblock %}
+
+{% block dash_content %}
+<header class="mb-5" style="margin-bottom: 40px;">
+    <h1 style="font-family: var(--serif); font-style: italic; color: var(--text);">Gestión del Catálogo</h1>
+    <p style="color: var(--muted);">Panel central para administrar flores, ramos y servicios adicionales.</p>
+</header>
+
+<div class="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+    
+    <!-- Flores Card -->
+    <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid var(--blush); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #fef2f2; color: #ef4444; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="flower-2"></i>
+                </div>
+                <h3 style="font-family: var(--serif); margin: 0;">Inventario de Flores</h3>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--muted); line-height: 1.5;">Total de especies: <strong>{{ total_flowers }}</strong> ({{ active_flowers }} activas). Administra precios, fotos y stock de cada flor.</p>
+        </div>
+        <div style="margin-top: 24px; display: flex; gap: 12px;">
+            <a href="{% url 'catalog:flower_list' %}" class="btn btn-fill" style="flex: 1; justify-content: center; text-decoration: none;">Gestionar</a>
+            <a href="{% url 'catalog:flower_create' %}" class="btn btn-ghost" title="Añadir Nueva" style="text-decoration: none;"><i data-lucide="plus"></i></a>
+        </div>
+    </div>
+
+    <!-- Ramos Card -->
+    <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid var(--blush); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #fff7ed; color: #f97316; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="image"></i>
+                </div>
+                <h3 style="font-family: var(--serif); margin: 0;">Ramos del Catálogo</h3>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--muted); line-height: 1.5;">Ramos prediseñados: <strong>{{ total_bouquets }}</strong>. Estos son diseños fijos que los clientes pueden comprar directamente sin usar el diseñador.</p>
+        </div>
+        <div style="margin-top: 24px; display: flex; gap: 12px;">
+            <a href="{% url 'catalog:predesigned_list' %}" class="btn btn-fill" style="flex: 1; justify-content: center; text-decoration: none;">Gestionar</a>
+            <a href="{% url 'catalog:predesigned_create' %}" class="btn btn-ghost" title="Añadir Nuevo" style="text-decoration: none;"><i data-lucide="plus"></i></a>
+        </div>
+    </div>
+
+    <!-- Servicios Card -->
+    <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid var(--blush); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="package"></i>
+                </div>
+                <h3 style="font-family: var(--serif); margin: 0;">Otros Servicios</h3>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--muted); line-height: 1.5;">Extras: <strong>{{ total_services }}</strong>. Peluches, tarjetas, chocolates y más. Configura stock y visibilidad de los complementos.</p>
+        </div>
+        <div style="margin-top: 24px; display: flex; gap: 12px;">
+            <a href="{% url 'catalog:service_list' %}" class="btn btn-fill" style="flex: 1; justify-content: center; text-decoration: none;">Gestionar</a>
+            <a href="{% url 'catalog:service_create' %}" class="btn btn-ghost" title="Añadir Nuevo" style="text-decoration: none;"><i data-lucide="plus"></i></a>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 40px; background: #fffaf0; padding: 30px; border-radius: 20px; border: 1px dashed var(--rose);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h4 style="font-family: var(--serif); margin: 0 0 10px 0; color: var(--rose-dk);">Acciones Masivas</h4>
+            <p style="font-size: 0.9rem; color: var(--muted); margin: 0;">Actualiza precios de categorías completas en un solo clic.</p>
+        </div>
+        <a href="{% url 'catalog:price_update' %}" style="background: var(--rose); color: white; border: none; padding: 12px 24px; border-radius: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.25); transition: transform 0.2s;">
+            Ir al Actualizador <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+        </a>
+    </div>
+</div>
+
+<div style="margin-top: 40px;">
+    <h3 style="font-family: var(--serif); margin-bottom: 24px;">Especies Destacadas</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px;">
+        {% for flower in featured_flowers %}
+        <div style="background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden;">
+            {% if flower.image %}
+            <img src="{{ flower.image.url }}" style="width: 100%; height: 120px; object-fit: cover;">
+            {% endif %}
+            <div style="padding: 12px;">
+                <div style="font-size: 0.85rem; font-weight: 700;">{{ flower.name }}</div>
+                <div style="font-size: 0.75rem; color: var(--rose);">${{ flower.price }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: var(--muted); font-size: 0.9rem;">No hay flores marcadas como destacadas aún.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

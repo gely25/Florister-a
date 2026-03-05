@@ -44,7 +44,7 @@ async function finishOrder() {
     isFinal = true;
     if (selected) { selected.classList.remove('selected'); selected = null; }
     document.getElementById('controls').classList.remove('show');
-    
+
     // Prepare data for backend
     const flowersData = flowers.map(f => ({
         flower_id: f.data.id,
@@ -53,12 +53,18 @@ async function finishOrder() {
         scale: f.s,
         rotation: f.r
     }));
-    
+
     const orderData = {
         size_id: selectedSizeKey,
         flowers: flowersData,
+        wrap_data: {
+            color: document.getElementById('wrapColor')?.value || '#e8dfcc',
+            scale: wrapState.s,
+            x: wrapState.x,
+            y: wrapState.y
+        },
         coupon_code: null,
-        guest_data: { name: 'Invitado', email: 'guest@atelier.com', phone: '000000000' } // Placeholder for guest form
+        guest_data: { name: 'Invitado', email: 'guest@atelier.com', phone: '000000000' }
     };
 
     try {

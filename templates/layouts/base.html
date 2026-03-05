@@ -42,6 +42,56 @@
             width: 100%;
         }
 
+        /* ── GLOBAL DASHBOARD LAYOUT ── */
+        .page-with-sidebar {
+            display: flex;
+            min-height: 100vh; 
+            background: #fdfaf8;
+        }
+        
+        .main-container {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── SIDEBAR ── */
+        .dash-sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid var(--blush);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+            transition: all 0.3s var(--ease);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .sidebar-header { padding: 0 24px 24px; border-bottom: 1px solid #f9f0f0; margin-bottom: 20px; }
+        .user-profile-small { display: flex; align-items: center; gap: 12px; }
+        .user-avatar-sm {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--rose-lt); display: flex; align-items: center; justify-content: center;
+            color: var(--rose); font-weight: 700;
+        }
+        .sidebar-links { list-style: none; padding: 0 12px; flex-grow: 1; display: flex; flex-direction: column; }
+        .sidebar-links li { margin-bottom: 4px; }
+        .sidebar-links a {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; border-radius: 12px;
+            color: var(--text); text-decoration: none;
+            font-size: 0.9rem; font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar-links a i { width: 18px; height: 18px; opacity: 0.7; }
+        .sidebar-links a:hover { background: var(--rose-lt); color: var(--rose); }
+        .sidebar-links a.active { background: var(--rose); color: white; }
+        .sidebar-links a.active i { opacity: 1; }
+
         /* Nav & Footer Base */
         footer { 
             background: var(--text); 
@@ -57,18 +107,38 @@
         .reveal.visible { opacity: 1; transform: none; }
         .d1 { transition-delay: 0.1s; } .d2 { transition-delay: 0.2s; } .d3 { transition-delay: 0.3s; }
 
-        @media (max-width: 600px) {
-            .page-wrap { padding: 0; }
+        @media (max-width: 900px) {
+            .page-with-sidebar { display: block; }
+            .dash-sidebar { 
+                width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--blush); 
+                padding: 12px 24px; position: static;
+            }
+            .sidebar-header { display: none; }
+            .sidebar-links { display: flex; flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 8px; }
+            .sidebar-links li { margin-bottom: 0; }
+            .sidebar-links a { white-space: nowrap; padding: 8px 16px; font-size: 0.8rem; }
+            .sidebar-links li:last-child { margin-left: auto; border-top: none; padding-top: 0; }
         }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% if user.is_authenticated %}authenticated{% endif %}">
 
-    {% include 'partials/navbar.html' %}
+    {% if not user.is_authenticated %}
+        {% include 'partials/navbar.html' %}
+    {% endif %}
 
     <div class="page-wrap">
-        {% block content %}{% endblock %}
+        {% block sidebar_layout %}
+            <div class="{% if user.is_authenticated %}page-with-sidebar{% endif %}">
+                {% if user.is_authenticated %}
+                    {% include 'partials/sidebar.html' %}
+                {% endif %}
+                <div class="{% if user.is_authenticated %}main-container{% endif %}">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        {% endblock %}
     </div>
 
     <footer>

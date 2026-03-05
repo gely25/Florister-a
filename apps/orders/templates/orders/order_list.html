@@ -1,0 +1,71 @@
+{% extends 'layouts/dashboard_base.html' %}
+
+{% block title %}Gestión de Pedidos — Sisart{% endblock %}
+
+{% block dash_content %}
+<header class="mb-5" style="margin-bottom: 40px;">
+    <h1 style="font-family: var(--serif); font-style: italic; color: var(--text);">Control de Pedidos</h1>
+    <p style="color: var(--muted);">Monitorea y cambia el estado de las órdenes en tiempo real.</p>
+</header>
+
+<div style="background: white; border-radius: 16px; border: 1px solid var(--blush); overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="background: var(--rose-lt); border-bottom: 1px solid var(--blush);">
+                <th style="padding: 16px; font-weight: 600;">Pedido</th>
+                <th style="padding: 16px; font-weight: 600;">Cliente</th>
+                <th style="padding: 16px; font-weight: 600;">Total</th>
+                <th style="padding: 16px; font-weight: 600;">Estado Actual</th>
+                <th style="padding: 16px; font-weight: 600;">Acciones de Estado</th>
+                <th style="padding: 16px; font-weight: 600;">Detalle</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr style="border-bottom: 1px solid #f9f0f0;">
+                <td style="padding: 16px;">
+                    <div style="font-weight: 700;">#{{ order.id }}</div>
+                    <div style="font-size: 0.75rem; color: var(--muted);">{{ order.created_at|date:"d/m/y H:i" }}</div>
+                </td>
+                <td style="padding: 16px;">
+                    <div style="font-weight: 500;">{{ order.user.get_full_name|default:order.guest_name }}</div>
+                    {% if not order.user %}<span style="font-size: 0.7rem; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px;">Invitado</span>{% endif %}
+                </td>
+                <td style="padding: 16px; font-weight: 700;">${{ order.final_amount }}</td>
+                <td style="padding: 16px;">
+                    <span class="status-badge status-{{ order.status }}" style="padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td style="padding: 16px;">
+                    <form action="{% url 'orders:status_update' order.pk %}" method="post" style="display: flex; gap: 8px;">
+                        {% csrf_token %}
+                        <select name="status" onchange="this.form.submit()" style="padding: 6px; border: 1px solid var(--blush); border-radius: 8px; font-size: 0.8rem;">
+                            {% for code, name in order.STATUS_CHOICES %}
+                                <option value="{{ code }}" {% if order.status == code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </td>
+                <td style="padding: 16px;">
+                    <a href="{% url 'orders:management_detail' order.pk %}" style="color: var(--rose); text-decoration: none; font-weight: 600; font-size: 0.85rem;">Ver Todo</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="padding: 40px; text-align: center; color: var(--muted);">No hay pedidos para gestionar.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .status-pending   { background: #fef3c7; color: #92400e; }
+    .status-confirmed { background: #dcfce7; color: #166534; }
+    .status-preparing { background: #e0f2fe; color: #0369a1; }
+    .status-ready     { background: #f3e8ff; color: #6b21a8; }
+    .status-delivered { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+</style>
+{% endblock %}

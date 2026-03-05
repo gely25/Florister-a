@@ -1,0 +1,594 @@
+{% extends 'layouts/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Mi Panel — Sisart{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --dash-bg: #fdfaf8;
+        --card-shadow: 0 4px 15px rgba(160, 92, 92, 0.05);
+        --accent-gradient: linear-gradient(135deg, #a05c5c 0%, #7a1d1d 100%);
+    }
+
+    .dashboard-container {
+        padding: 10px 0;
+    }
+
+    .welcome-header {
+        margin-bottom: 32px;
+    }
+
+    .welcome-header h1 {
+        font-family: var(--serif);
+        font-size: 2.2rem;
+        color: var(--text);
+        margin-bottom: 4px;
+        font-style: italic;
+    }
+
+    .welcome-header p {
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    /* ── Metric Grid ── */
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--blush);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        position: relative;
+    }
+
+    .metric-info .label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .metric-info .value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .metric-info .subtext {
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+
+    .metric-icon {
+        color: var(--rose-lt);
+        opacity: 0.5;
+    }
+
+    /* ── Hero & Account Row ── */
+    .hero-account-row {
+        display: grid;
+        grid-template-columns: 1.8fr 1fr;
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .hero-banner {
+        background: var(--accent-gradient);
+        border-radius: 20px;
+        padding: 40px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 280px;
+    }
+
+    .hero-banner::before {
+        content: '';
+        position: absolute;
+        right: -50px;
+        bottom: -50px;
+        width: 250px;
+        height: 250px;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flower-2"><path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1m1 8a3 3 0 1 1-3-3m3 3a3 3 0 1 0 3-3m-3 3v-1m-3-3a3 3 0 1 1-3 3m3-3h1m5 0a3 3 0 1 0-3 3m3-3h-1"/></svg>') no-repeat center;
+        background-size: cover;
+        opacity: 0.15;
+        transform: rotate(-15deg);
+    }
+
+    .hero-banner .badge {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        display: block;
+        opacity: 0.9;
+    }
+
+    .hero-banner h2 {
+        font-family: var(--serif);
+        font-size: 2.2rem;
+        margin-bottom: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-banner p {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        max-width: 380px;
+        margin-bottom: 24px;
+        line-height: 1.5;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-create {
+        background: white;
+        color: var(--rose-dk);
+        padding: 12px 28px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        width: fit-content;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+    }
+
+    .account-card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        border: 1px solid var(--blush);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .account-card h3 {
+        font-family: var(--serif);
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: var(--text);
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        font-size: 0.85rem;
+    }
+
+    .info-label { color: var(--muted); }
+    .info-value { font-weight: 600; }
+
+    .points-progress {
+        margin-top: auto;
+        padding-top: 20px;
+    }
+
+    .progress-bar-wrap {
+        height: 6px;
+        background: var(--rose-lt);
+        border-radius: 10px;
+        margin: 12px 0 6px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: var(--accent-gradient);
+        border-radius: 10px;
+    }
+
+    .progress-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.7rem;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .btn-edit-profile {
+        margin-top: 20px;
+        background: #fdf2f2;
+        color: var(--rose-dk);
+        padding: 10px;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+
+    .btn-edit-profile:hover {
+        background: #fce8e8;
+    }
+
+    /* ── Sections ── */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-header h3 {
+        font-family: var(--serif);
+        font-size: 1.3rem;
+        color: var(--text);
+    }
+
+    .section-link {
+        font-size: 0.8rem;
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .section-link:hover { color: var(--rose); text-decoration: underline; }
+
+    /* ── Recent Orders ── */
+    .order-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+
+    .order-item {
+        background: white;
+        padding: 16px 24px;
+        border-radius: 16px;
+        border: 1px solid #f9f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: transform 0.15s;
+    }
+
+    .order-item:hover { transform: translateX(5px); border-color: var(--blush); }
+
+    .order-main-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .order-icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--rose-lt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--rose);
+    }
+
+    .order-details h4 { font-size: 0.95rem; margin-bottom: 2px; }
+    .order-details span { font-size: 0.75rem; color: var(--muted); }
+
+    .order-meta { text-align: right; }
+    .order-price { font-weight: 700; color: var(--text); display: block; }
+    .order-status {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        margin-top: 4px;
+        display: inline-block;
+    }
+
+    .status-process { background: #fff8e6; color: #b47d00; }
+    .status-delivered { background: #e6f9ed; color: #1e7d44; }
+
+    /* ── Favorites ── */
+    .fav-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .fav-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #f9f0f0;
+        transition: all 0.2s;
+    }
+
+    .fav-card:hover { transform: translateY(-5px); border-color: var(--blush); box-shadow: var(--card-shadow); }
+
+    .fav-img {
+        height: 120px;
+        background: #fffafa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+    }
+
+    .fav-content { padding: 16px; }
+    .fav-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+    .fav-price { font-size: 0.85rem; color: var(--rose-dk); font-weight: 700; margin-bottom: 12px; }
+
+    .btn-add-cart {
+        width: 100%;
+        background: #fdf9f7;
+        color: var(--text);
+        border: none;
+        padding: 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-add-cart:hover { background: var(--blush); }
+
+    /* ── Shortcuts ── */
+    .shortcut-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .shortcut-card {
+        background: white;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid #f9f0f0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+    }
+    
+    .shortcut-card:hover { border-color: var(--rose); background: #fffafa; }
+    .shortcut-card div { font-size: 0.85rem; font-weight: 600; }
+    .shortcut-card p { font-size: 0.7rem; color: var(--muted); }
+    .shortcut-icon { color: var(--rose); }
+
+    @media (max-width: 1000px) {
+        .hero-account-row { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="dashboard-container">
+    
+    <!-- Header -->
+    <header class="welcome-header">
+        <h1>Hola, {{ user.first_name|default:user.username }} 🌷</h1>
+        <p>Aquí tienes un resumen de tu actividad. ¡Qué bueno verte de nuevo!</p>
+    </header>
+
+    <!-- Metrics Row -->
+    <div class="metric-grid">
+        <div class="metric-card">
+            <div class="metric-info">
+                <span class="label">Pedidos Totales</span>
+                <span class="value">8</span>
+                <p class="subtext">2 este mes</p>
+            </div>
+            <i data-lucide="shopping-bag" class="metric-icon"></i>
+        </div>
+        <div class="metric-card">
+            <div class="metric-info">
+                <span class="label">Puntos Acumulados</span>
+                <span class="value">150</span>
+                <p class="subtext">50 pts para nivel Gold</p>
+            </div>
+            <i data-lucide="star" class="metric-icon"></i>
+        </div>
+        <div class="metric-card">
+            <div class="metric-info">
+                <span class="label">Ramos Favoritos</span>
+                <span class="value">4</span>
+                <p class="subtext">Guardados por ti</p>
+            </div>
+            <i data-lucide="heart" class="metric-icon"></i>
+        </div>
+        <div class="metric-card">
+            <div class="metric-info">
+                <span class="label">Descuento Activo</span>
+                <span class="value">10%</span>
+                <p class="subtext">En tu próximo pedido</p>
+            </div>
+            <i data-lucide="gift" class="metric-icon"></i>
+        </div>
+    </div>
+
+    <!-- Hero & Account Row -->
+    <div class="hero-account-row">
+        <!-- Banner -->
+        <div class="hero-banner">
+            <span class="badge">Oferta Exclusiva</span>
+            <h2>¡Diseña algo especial hoy!</h2>
+            <p>Crea un ramo único con nuestra herramienta de diseño y obtén un 10% de descuento en tu próximo pedido.</p>
+            <a href="{% url 'bouquet:design' %}" class="btn-create">
+                <i data-lucide="palette" style="width: 18px; height: 18px;"></i>
+                <span>Crear mi ramo</span>
+            </a>
+        </div>
+
+        <!-- Account overview -->
+        <div class="account-card">
+            <h3>Tu cuenta</h3>
+            <div class="info-row">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ user.email|default:"No registrado" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Nivel</span>
+                <span class="info-value" style="color: var(--muted);">
+                    <i data-lucide="award" style="width: 12px; height: 12px; vertical-align: middle;"></i>
+                    Silver
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Puntos</span>
+                <span class="info-value" style="color: var(--rose-dk);">150 pts</span>
+            </div>
+            
+            <div class="points-progress">
+                <div class="progress-labels">
+                    <span>Silver</span>
+                    <span>Gold en 50 pts</span>
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" style="width: 75%;"></div>
+                </div>
+            </div>
+
+            <a href="{% url 'dahsboard:placeholder' %}" class="btn-edit-profile">Editar perfil →</a>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="section-header">
+        <h3>Pedidos recientes</h3>
+        <a href="{% url 'orders:history' %}" class="section-link">Ver todos →</a>
+    </div>
+    <div class="order-list">
+        <div class="order-item">
+            <div class="order-main-info">
+                <div class="order-icon-box">🌷</div>
+                <div class="order-details">
+                    <h4>Ramo de Peonías Blancas</h4>
+                    <span>#2041 · 28 Feb 2026</span>
+                </div>
+            </div>
+            <div class="order-meta">
+                <span class="order-price">$85.00</span>
+                <span class="order-status status-process">En camino</span>
+            </div>
+        </div>
+        <div class="order-item">
+            <div class="order-main-info">
+                <div class="order-icon-box">💐</div>
+                <div class="order-details">
+                    <h4>Arreglo Primaveral Mixto</h4>
+                    <span>#2038 · 20 Feb 2026</span>
+                </div>
+            </div>
+            <div class="order-meta">
+                <span class="order-price">$62.00</span>
+                <span class="order-status status-delivered">Entregado</span>
+            </div>
+        </div>
+        <div class="order-item">
+            <div class="order-main-info">
+                <div class="order-icon-box">🌹</div>
+                <div class="order-details">
+                    <h4>Rosas Eternas x 12</h4>
+                    <span>#2031 · 10 Feb 2026</span>
+                </div>
+            </div>
+            <div class="order-meta">
+                <span class="order-price">$110.00</span>
+                <span class="order-status status-delivered">Entregado</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorites / Recommended -->
+    <div class="section-header">
+        <h3>Tus favoritos</h3>
+        <a href="{% url 'dahsboard:placeholder' %}" class="section-link">Ver catálogo →</a>
+    </div>
+    <div class="fav-grid">
+        <div class="fav-card">
+            <div class="fav-img">🌷</div>
+            <div class="fav-content">
+                <div class="fav-title">Tulipanes Holandeses</div>
+                <div class="fav-price">$45.00</div>
+                <button class="btn-add-cart">+ Añadir al carrito</button>
+            </div>
+        </div>
+        <div class="fav-card">
+            <div class="fav-img">🌻</div>
+            <div class="fav-content">
+                <div class="fav-title">Girasoles de Campo</div>
+                <div class="fav-price">$38.00</div>
+                <button class="btn-add-cart">+ Añadir al carrito</button>
+            </div>
+        </div>
+        <div class="fav-card">
+            <div class="fav-img">🌺</div>
+            <div class="fav-content">
+                <div class="fav-title">Orquídeas Phalaenopsis</div>
+                <div class="fav-price">$95.00</div>
+                <button class="btn-add-cart">+ Añadir al carrito</button>
+            </div>
+        </div>
+        <div class="fav-card">
+            <div class="fav-img">🌸</div>
+            <div class="fav-content">
+                <div class="fav-title">Lirios Blancos</div>
+                <div class="fav-price">$55.00</div>
+                <button class="btn-add-cart">+ Añadir al carrito</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Shortcuts Grid -->
+    <div class="shortcut-grid">
+        <a href="{% url 'dahsboard:placeholder' %}" class="shortcut-card">
+            <i data-lucide="grid" class="shortcut-icon"></i>
+            <div>Ver catálogo</div>
+            <p>Explora más de 50 arreglos</p>
+        </a>
+        <a href="{% url 'bouquet:design' %}" class="shortcut-card">
+            <i data-lucide="palette" class="shortcut-icon"></i>
+            <div>Diseña tu ramo</div>
+            <p>Personaliza cada detalle</p>
+        </a>
+        <a href="{% url 'dahsboard:placeholder' %}" class="shortcut-card">
+            <i data-lucide="tag" class="shortcut-icon"></i>
+            <div>Ver promociones</div>
+            <p>3 descuentos disponibles</p>
+        </a>
+        <a href="{% url 'orders:track_search' %}" class="shortcut-card">
+            <i data-lucide="truck" class="shortcut-icon"></i>
+            <div>Rastrear pedido</div>
+            <p>Tu pedido va en camino</p>
+        </a>
+    </div>
+
+</div>
+{% endblock %}

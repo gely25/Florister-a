@@ -1,25 +1,33 @@
 def get_menu_for_user(user):
     """
     Returns a list of menu items based on the user's role.
-    Each item is a dict with 'name', 'url', and 'icon'.
     """
+    from django.urls import reverse
+
     if not user.is_authenticated:
         return [
-            {'name': 'Construir Ramo', 'url': '/bouquet/design/', 'icon': 'bouquet'},
-            {'name': 'Login', 'url': '/accounts/login/', 'icon': 'login'},
+            {'name': 'Inicio', 'url': '/', 'icon': 'home'},
+            {'name': 'Diseñador', 'url': reverse('bouquet:design'), 'icon': 'flower'},
         ]
 
-    if user.is_seller():
+    if user.is_seller:
         return [
-            {'name': 'Gestión de Pedidos', 'url': '/dashboard/orders/', 'icon': 'shopping_bag'},
-            {'name': 'Editor de Catálogo', 'url': '/dashboard/catalog/', 'icon': 'flower'},
-            {'name': 'Descuentos', 'url': '/dashboard/discounts/', 'icon': 'tag'},
-            {'name': 'Reportes', 'url': '/dashboard/reports/', 'icon': 'chart'},
+            {'name': 'Inicio', 'url': '/', 'icon': 'home'},
+            {'name': 'Catálogo', 'url': reverse('catalog:index'), 'icon': 'grid'},
+            {'name': 'Resumen', 'url': reverse('dahsboard:seller_dashboard'), 'icon': 'layout-dashboard'},
+            {'name': 'Gestión de Pedidos', 'url': reverse('orders:management_list'), 'icon': 'shopping-bag'},
+            {'name': 'Inventario Flores', 'url': reverse('catalog:flower_list'), 'icon': 'flower-2'},
+            {'name': 'Ramos Catálogo', 'url': reverse('catalog:predesigned_list'), 'icon': 'image'},
+            {'name': 'Otros Servicios', 'url': reverse('catalog:service_list'), 'icon': 'package'},
+            {'name': 'Descuentos y Promos', 'url': reverse('discounts:discount_list'), 'icon': 'tag'},
+            {'name': 'Diseños Clientes', 'url': reverse('bouquet:bouquet_list'), 'icon': 'flower'},
         ]
     
     # Default is Customer
     return [
-        {'name': 'Mi Perfil', 'url': '/accounts/profile/', 'icon': 'user'},
-        {'name': 'Mis Pedidos', 'url': '/orders/history/', 'icon': 'history'},
-        {'name': 'Nuevo Ramo', 'url': '/bouquet/design/', 'icon': 'plus'},
+        {'name': 'Inicio', 'url': '/', 'icon': 'home'},
+        {'name': 'Mi Perfil', 'url': reverse('dahsboard:client_dashboard'), 'icon': 'user'},
+        {'name': 'Mis Pedidos', 'url': reverse('orders:history'), 'icon': 'history'},
+        {'name': 'Diseña tu ramo', 'url': reverse('bouquet:design'), 'icon': 'flower'},
+        {'name': 'Promociones', 'url': reverse('dahsboard:placeholder'), 'icon': 'gift'},
     ]

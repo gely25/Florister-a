@@ -70,20 +70,40 @@ nav {
         <i data-lucide="flower"></i>
         Diseñador
       </a></li>
-      <li><a href="#">
-        <i data-lucide="star"></i>
-        Ocasiones
-      </a></li>
+      
+      {% if not user.is_authenticated %}
+        <li><a href="{% url 'orders:track_search' %}" class="{% if '/orders/track/' in request.path %}active{% endif %}">
+          <i data-lucide="search"></i>
+          Seguimiento
+        </a></li>
+      {% endif %}
+
+      {% if user.is_authenticated %}
+        {% if user.is_seller %}
+          <li><a href="{% url 'dahsboard:seller_dashboard' %}" class="{% if '/dashboard/seller/' in request.path %}active{% endif %}">
+            <i data-lucide="layout-dashboard"></i>
+            Panel Vendedor
+          </a></li>
+        {% else %}
+          <li><a href="{% url 'dahsboard:client_dashboard' %}" class="{% if '/dashboard/client/' in request.path %}active{% endif %}">
+            <i data-lucide="user"></i>
+            Mi Perfil
+          </a></li>
+        {% endif %}
+      {% endif %}
     </ul>
 
     <div class="nav-actions">
       {% if user.is_authenticated %}
         <div class="user-info">
-            {% if user.is_staff %}<span class="staff-badge">Staff</span>{% endif %}
+            {% if user.is_seller %}<span class="staff-badge">Vendedor</span>{% endif %}
             <span>{{ user.first_name|default:user.username }}</span>
-            <a href="{% url 'accounts:logout' %}" class="btn btn-ghost" title="Cerrar Sesión">
-                <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
-            </a>
+            <form action="{% url 'accounts:logout' %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost" title="Cerrar Sesión">
+                    <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+                </button>
+            </form>
         </div>
       {% else %}
         <a href="{% url 'accounts:login' %}" class="btn btn-ghost">

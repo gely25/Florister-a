@@ -2,12 +2,14 @@ from django.db import models
 from django.conf import settings
 from apps.bouquet.models import Bouquet
 from apps.discounts.models import Coupon
-import secrets
+import uuid
 
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pendiente'),
         ('confirmed', 'Confirmado'),
+        ('preparing', 'En Preparación'),
+        ('ready', 'Listo para Entrega'),
         ('delivered', 'Entregado'),
         ('cancelled', 'Cancelado'),
     ]
@@ -25,7 +27,7 @@ class Order(models.Model):
     guest_phone = models.CharField(max_length=20, null=True, blank=True)
     
     # Guest and Auth Order Tracking and Image
-    tracking_token = models.CharField(max_length=12, unique=True, db_index=True, blank=True)
+    tracking_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     bouquet_image = models.ImageField(upload_to='orders/bouquets/', null=True, blank=True)
     
     bouquet = models.OneToOneField(Bouquet, on_delete=models.CASCADE)
@@ -40,8 +42,6 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if not self.tracking_token:
-            self.tracking_token = secrets.token_hex(6).upper()
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -18,8 +18,8 @@
             animation: fadeIn 0.5s ease;
             margin: 0 auto;
         }
-        .t-brand { color: var(--gold, #d4af37); font-family: var(--serif); font-size: 24px; font-style: italic; margin-bottom: 20px; }
-        .t-title { font-family: var(--serif); color: var(--gold, #d4af37); margin-bottom: 5px; font-size: 24px; }
+        .t-brand { color: var(--rose, #c97d7d); font-family: var(--serif); font-size: 24px; font-style: italic; margin-bottom: 20px; }
+        .t-title { font-family: var(--serif); color: var(--rose, #c97d7d); margin-bottom: 5px; font-size: 24px; }
         .t-subtitle { color: #888; font-size: 13px; margin-bottom: 25px; }
         
         .t-image-container {
@@ -35,16 +35,18 @@
         .t-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #555; }
         .t-row:last-child { border-bottom: none; }
         .t-row strong { color: var(--text); font-weight: 600; }
-        .t-total { font-size: 18px; color: var(--gold); font-weight: 700; }
+        .t-total { font-size: 18px; color: var(--rose); font-weight: 700; }
         
         .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-confirmed { background: #d4edda; color: #155724; }
-        .status-delivered { background: #cce5ff; color: #004085; }
-        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .status-pending { background: #fee2e2; color: #991b1b; }
+        .status-confirmed { background: #fdf0f0; color: #c97d7d; }
+        .status-preparing { background: #fef3c7; color: #92400e; }
+        .status-ready { background: #dcfce7; color: #166534; }
+        .status-delivered { background: #f0f0f0; color: #666; }
+        .status-cancelled { background: #000; color: #fff; }
         
-        .btn-back { display: inline-block; padding: 14px 28px; background: var(--gold); color: #fff; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 1px; transition: background 0.3s; text-transform: uppercase; font-family: var(--sans); }
-        .btn-back:hover { background: #b38b4d; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
+        .btn-back { display: inline-block; padding: 14px 28px; background: var(--rose); color: #fff; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 1px; transition: all 0.3s; text-transform: uppercase; font-family: var(--sans); }
+        .btn-back:hover { background: var(--rose-dk); box-shadow: 0 5px 15px rgba(201, 125, 125, 0.3); transform: translateY(-1px); }
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -127,7 +129,7 @@
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
         try {
-            const res = await fetch(window.location.pathname, {
+            const res = await fetch("{% url 'orders:update_status' order.id %}", {
                 method: 'POST',
                 body: formData
             });
@@ -145,38 +147,67 @@
     </script>
     {% endif %}
 
-    <h1 class="t-title">Pedido #{{ order.id }}</h1>
-    <p class="t-subtitle">Hola <strong>{% if order.user %}{{ order.user.first_name }}{% else %}{{ order.guest_name|default:"Invitado" }}{% endif %}</strong>, gracias por tu diseño.</p>
+    {% if not order %}
+        <div class="search-form-wrap">
+            <h1 class="t-title">Seguimiento de Pedido</h1>
+            <p class="t-subtitle">Ingresa tu código de seguimiento (token) para ver el estado de tu ramo.</p>
+            
+            <form method="POST" action="{% url 'orders:track_order_empty' %}" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                {% csrf_token %}
+                <input type="text" name="token" placeholder="Ej: A72XQ..." required 
+                       style="padding: 14px; border-radius: 8px; border: 1.5px solid var(--blush); font-family: inherit; font-size: 1rem; text-align: center; text-transform: uppercase;">
+                
+                {% if error %}
+                    <p style="color: #991b1b; font-size: 0.85rem; background: #fee2e2; padding: 10px; border-radius: 6px;">
+                        <i data-lucide="alert-circle" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 5px;"></i>
+                        {{ error }}
+                    </p>
+                {% endif %}
 
-    <div class="t-image-container">
-        {% if order.bouquet_image %}
-        <img src="{{ order.bouquet_image.url }}" alt="Diseño del Ramo" class="t-image">
-        {% else %}
-        <span style="color:#aaa; font-size:13px; font-style:italic;">Generando visualización...</span>
-        {% endif %}
-    </div>
+                <button type="submit" class="btn-back" style="width: 100%; border: none; cursor: pointer;">
+                    Buscar Pedido
+                </button>
+            </form>
+        </div>
+    {% else %}
+        <h1 class="t-title">Pedido #{{ order.id }}</h1>
+        <p class="t-subtitle">Hola <strong>{% if order.user %}{{ order.user.first_name }}{% else %}{{ order.guest_name|default:"Invitado" }}{% endif %}</strong>, gracias por tu diseño.</p>
 
-    <div class="t-info">
-        <div class="t-row">
-            <span>Estado:</span>
-            <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+        <div class="t-image-container">
+            {% if order.bouquet_image %}
+            <img src="{{ order.bouquet_image.url }}" alt="Diseño del Ramo" class="t-image">
+            {% else %}
+            <span style="color:#aaa; font-size:13px; font-style:italic;">Generando visualización...</span>
+            {% endif %}
         </div>
-        <div class="t-row">
-            <span>Fecha:</span>
-            <strong>{{ order.created_at|date:"d M Y" }}</strong>
-        </div>
-        <div class="t-row">
-            <span>Total a Pagar:</span>
-            <strong class="t-total">${{ order.final_amount }}</strong>
-        </div>
-    </div>
-    
-    <p style="font-size: 12px; color: #888; margin-bottom: 25px; line-height:1.5;">
-        Guarda este enlace seguro para consultar el estado de tu pedido en cualquier momento.<br>
-        <span style="display:inline-block; margin-top:8px; padding:6px 12px; background:#f5f5f5; border-radius:4px; font-family:monospace; color:#555;">Token: {{ order.tracking_token }}</span>
-    </p>
 
-    <a href="/bouquet/design/" class="btn-back">Volver al Diseñador</a>
+        <div class="t-info">
+            <div class="t-row">
+                <span>Estado:</span>
+                <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+            <div class="t-row">
+                <span>Fecha:</span>
+                <strong>{{ order.created_at|date:"d M Y" }}</strong>
+            </div>
+            <div class="t-row">
+                <span>Total a Pagar:</span>
+                <strong class="t-total">${{ order.final_amount|floatformat:2 }}</strong>
+            </div>
+        </div>
+        
+        <p style="font-size: 12px; color: #888; margin-bottom: 25px; line-height:1.5;">
+            Guarda este enlace seguro para consultar el estado de tu pedido en cualquier momento.<br>
+            <span style="display:inline-block; margin-top:8px; padding:6px 12px; background:#f5f5f5; border-radius:4px; font-family:monospace; color:#555;">Token: {{ order.tracking_token }}</span>
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="{% url 'orders:track_search' %}" class="btn btn-outline" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+    <i data-lucide="search" style="width: 18px;"></i> Rastrear otro pedido
+</a>
+            <a href="/bouquet/design/" class="btn-back">Volver al Diseñador</a>
+        </div>
+    {% endif %}
     
     {% if not is_staff %}
     <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="florist-login-link">Acceso Floristas →</a>

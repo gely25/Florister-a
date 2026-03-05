@@ -1,0 +1,43 @@
+{% extends 'layouts/dashboard_base.html' %}
+
+{% block title %}Catálogo de Ramos — Sisart{% endblock %}
+
+{% block dash_content %}
+<div style="max-width: 1100px; margin: 0 auto;">
+    <header class="mb-5" style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <h1 style="font-family: var(--serif); font-style: italic; color: var(--text);">Ramos Pre-diseñados</h1>
+            <p style="color: var(--muted);">Opciones listas para comprar que aparecen en el catálogo principal.</p>
+        </div>
+        <a href="{% url 'catalog:predesigned_create' %}" class="btn-primary" style="text-decoration: none; background: var(--rose); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600;">
+            <i data-lucide="plus"></i> Nuevo Ramo
+        </a>
+    </header>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+        {% for bouquet in bouquets %}
+        <div style="background: white; border-radius: 16px; border: 1px solid var(--blush); overflow: hidden; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+            {% if bouquet.image %}
+                <img src="{{ bouquet.image.url }}" alt="{{ bouquet.name }}" style="width: 100%; height: 200px; object-fit: cover;">
+            {% endif %}
+            <div style="padding: 20px;">
+                <h3 style="font-family: var(--serif); margin-bottom: 8px;">{{ bouquet.name }}</h3>
+                <div style="font-weight: 700; color: var(--rose); font-size: 1.2rem; margin-bottom: 16px;">${{ bouquet.price|floatformat:2 }}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem; color: var(--muted);">Stock: {{ bouquet.stock }}</span>
+                    <div style="display: flex; gap: 12px;">
+                        <a href="{% url 'catalog:predesigned_update' bouquet.pk %}" style="color: var(--muted);"><i data-lucide="edit-2" style="width: 18px;"></i></a>
+                        <a href="{% url 'catalog:predesigned_delete' bouquet.pk %}" style="color: #ef4444;"><i data-lucide="trash-2" style="width: 18px;"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% if not bouquet.is_active %}
+                <div style="position: absolute; top: 12px; right: 12px; background: #f3f4f6; color: #4b5563; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700;">INACTIVO</div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--muted);">No hay ramos pre-diseñados en el catálogo.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

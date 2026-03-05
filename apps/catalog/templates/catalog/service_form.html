@@ -1,0 +1,48 @@
+{% extends 'layouts/dashboard_base.html' %}
+
+{% block title %}{% if object %}Editar{% else %}Nuevo{% endif %} Servicio — Sisart{% endblock %}
+
+{% block dash_content %}
+<header class="mb-5" style="margin-bottom: 40px;">
+    <h1 style="font-family: var(--serif); font-style: italic; color: var(--text);">{% if object %}Editar: {{ object.title }}{% else %}Nuevo Servicio/Producto{% endif %}</h1>
+    <p style="color: var(--muted);">Define los detalles del producto adicional.</p>
+</header>
+
+<div style="max-width: 600px; margin: 0 auto; background: white; padding: 32px; border-radius: 16px; border: 1px solid var(--blush); box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: var(--text);">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div style="color: #ef4444; font-size: 0.8rem; margin-top: 4px;">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <div style="margin-top: 32px; display: flex; gap: 16px;">
+            <button type="submit" style="background: var(--rose); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                Guardar Cambios
+            </button>
+            <a href="{% url 'catalog:service_list' %}" style="text-decoration: none; color: var(--muted); padding: 12px; font-weight: 500;">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    input[type="text"], input[type="number"], select, textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--blush);
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 0.95rem;
+    }
+    input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+    }
+</style>
+{% endblock %}

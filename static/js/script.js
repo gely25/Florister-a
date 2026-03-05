@@ -287,14 +287,29 @@ function updateArc(a) {
 
 function updateUI() {
     const pval = document.getElementById('pval');
-    if (pval) pval.innerText = `$${total}.00`;
-    const sum = document.getElementById('sum'); if (!sum) return;
+    if (pval) pval.innerText = `$${total.toFixed(2)}`;
+
+    const sum = document.getElementById('sum');
+    if (!sum) return;
     sum.innerHTML = '';
+
+    // Group flowers by name
+    const counts = {};
+    const icons = {};
     flowers.forEach(f => {
-        const d = document.createElement('div'); d.className = 'ri';
-        d.innerHTML = `<img src="${f.data.thumb}" onerror="if(!this.dataset.tried){this.dataset.tried=true; this.src=this.src.replace('.webp','.png');}else{this.src='https://placehold.co/100x100?text=Error'; this.onerror=null;}"><span>${f.data.name}</span>`;
+        const name = (f.data.name || "Flor").trim();
+        counts[name] = (counts[name] || 0) + 1;
+        icons[name] = f.data.thumb;
+    });
+
+    Object.keys(counts).forEach(name => {
+        const d = document.createElement('div');
+        d.className = 'ri';
+        const displayCount = counts[name] > 1 ? `: ${counts[name]}` : '';
+        d.innerHTML = `<img src="${icons[name]}" onerror="if(!this.dataset.tried){this.dataset.tried=true; this.src=this.src.replace('.webp','.png');}else{this.src='https://placehold.co/100x100?text=Error'; this.onerror=null;}"><span>${name}${displayCount}</span>`;
         sum.appendChild(d);
     });
+
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) {
         if (flowers.filter(f => f.tier === tier).length >= CONFIG[tier].n) nextBtn.classList.add('on');

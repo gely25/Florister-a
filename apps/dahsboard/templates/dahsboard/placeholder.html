@@ -1,0 +1,19 @@
+{% extends 'layouts/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Próximamente — Sisart{% endblock %}
+
+{% block dash_content %}
+<div style="text-align: center; padding: 80px 20px;">
+    <div style="width: 80px; height: 80px; background: var(--rose-lt); color: var(--rose); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+        <i data-lucide="construction" style="width: 40px; height: 40px;"></i>
+    </div>
+    <h1 style="font-family: var(--serif); font-size: 2.5rem; margin-bottom: 16px; color: var(--text);">Módulo en desarrollo</h1>
+    <p style="color: var(--muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 32px;">
+        Estamos trabajando para traerte todas las herramientas necesarias. Este módulo estará disponible muy pronto.
+    </p>
+    <a href="{% url 'dahsboard:index' %}" class="btn" style="background: var(--rose); color: white; padding: 12px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; display: inline-block;">
+        Volver al Panel
+    </a>
+</div>
+{% endblock %}

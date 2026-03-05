@@ -1,0 +1,59 @@
+{% extends 'layouts/dashboard_base.html' %}
+
+{% block title %}Otros Servicios — Sisart{% endblock %}
+
+{% block dash_content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <header class="mb-5" style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <h1 style="font-family: var(--serif); font-style: italic; color: var(--text);">Otros Servicios y Productos</h1>
+            <p style="color: var(--muted);">Gestiona peluches, tarjetas, chocolates y servicios adicionales.</p>
+        </div>
+        <a href="{% url 'catalog:service_create' %}" class="btn-primary" style="text-decoration: none; background: var(--rose); color: white; padding: 10px 20px; border-radius: 12px; font-weight: 600;">
+            <i data-lucide="plus"></i> Nuevo Servicio
+        </a>
+    </header>
+
+    <div style="background: white; border-radius: 16px; border: 1px solid var(--blush); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: var(--rose-lt); border-bottom: 1px solid var(--blush);">
+                    <th style="padding: 16px; font-weight: 600;">Icono</th>
+                    <th style="padding: 16px; font-weight: 600;">Título</th>
+                    <th style="padding: 16px; font-weight: 600;">Precio</th>
+                    <th style="padding: 16px; font-weight: 600;">Stock</th>
+                    <th style="padding: 16px; font-weight: 600;">Estado</th>
+                    <th style="padding: 16px; font-weight: 600;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr style="border-bottom: 1px solid #f9f0f0;">
+                    <td style="padding: 16px; font-size: 1.5rem;">{{ service.icon }}</td>
+                    <td style="padding: 16px; font-weight: 500;">{{ service.title }}</td>
+                    <td style="padding: 16px; font-weight: 700; color: var(--rose);">${{ service.price|floatformat:2 }}</td>
+                    <td style="padding: 16px;">{{ service.stock }}</td>
+                    <td style="padding: 16px;">
+                        {% if service.is_active %}
+                            <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Activo</span>
+                        {% else %}
+                            <span style="background: #f3f4f6; color: #4b5563; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 16px;">
+                        <div style="display: flex; gap: 12px;">
+                            <a href="{% url 'catalog:service_update' service.pk %}" style="color: var(--muted);"><i data-lucide="edit-2" style="width: 18px;"></i></a>
+                            <a href="{% url 'catalog:service_delete' service.pk %}" style="color: #ef4444;"><i data-lucide="trash-2" style="width: 18px;"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 40px; text-align: center; color: var(--muted);">No hay servicios registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

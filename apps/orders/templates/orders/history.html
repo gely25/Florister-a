@@ -1,0 +1,58 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Mis Pedidos | Sisart{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 900px; margin: 0 auto; padding: 40px 20px;">
+    <header class="mb-5" style="margin-bottom: 40px;">
+        <h1 style="font-family: var(--serif); font-style: italic; color: var(--text);">Historial de Pedidos</h1>
+        <p style="color: var(--muted);">Consulta el progreso de tus diseños exclusivos.</p>
+    </header>
+
+    {% if orders %}
+        <div class="orders-list" style="display: flex; flex-direction: column; gap: 20px;">
+            {% for order in orders %}
+                <div class="order-card" style="background: white; border: 1px solid var(--blush); border-radius: 16px; padding: 25px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="width: 80px; height: 80px; background: var(--cream); border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            {% if order.bouquet_image %}
+                                <img src="{{ order.bouquet_image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <i data-lucide="flower" style="color: var(--rose);"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.1rem;">Pedido #{{ order.id }}</h3>
+                            <p style="margin: 5px 0; color: var(--muted); font-size: 0.85rem;">{{ order.created_at|date:"d M Y" }}</p>
+                            <span class="status-badge status-{{ order.status }}" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; 
+                            {% if order.status == 'pending' %} background: #fee2e2; color: #991b1b; 
+                            {% elif order.status == 'confirmed' %} background: #fdf0f0; color: #c97d7d;
+                            {% elif order.status == 'preparing' %} background: #fef3c7; color: #92400e;
+                            {% elif order.status == 'ready' %} background: #dcfce7; color: #166534;
+                            {% else %} background: #f0f0f0; color: #666; {% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 700; color: var(--rose); font-size: 1.2rem; margin-bottom: 10px;">${{ order.final_amount|floatformat:2 }}</div>
+                        <a href="{% url 'orders:track_order' order.tracking_token %}" class="btn btn-ghost" style="padding: 6px 15px; font-size: 0.8rem;">Ver Detalles</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 60px; background: white; border-radius: 16px; border: 1px solid var(--blush);">
+            <i data-lucide="shopping-cart" style="width: 48px; height: 48px; color: var(--blush); margin-bottom: 20px;"></i>
+            <h3 style="color: var(--text);">Aún no tienes pedidos</h3>
+            <p style="color: var(--muted); margin-bottom: 30px;">Comienza a diseñar tu primer ramo ahora mismo.</p>
+            <a href="{% url 'bouquet:design' %}" class="btn btn-fill">Diseñar Ramo</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

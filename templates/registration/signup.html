@@ -150,8 +150,9 @@
         }
     </style>
 {% endblock %}
-</head>
-{% block content %}
+
+{% block sidebar_layout %}
+    {% block content %}
 <div class="register-wrap">
     <div class="register-card">
         <i data-lucide="user-plus" class="brand-icon"></i>
@@ -228,4 +229,5 @@
         </a>
     </div>
 </div>
+    {% endblock %}
 {% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'layouts/dashboard_base.html' %}
+
+{% block title %}Eliminar Descuento — Sisart{% endblock %}
+
+{% block dash_content %}
+<div style="max-width: 500px; margin: 40px auto; text-align: center; background: white; padding: 40px; border-radius: 20px; border: 1px solid var(--blush); box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+    <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+        <i data-lucide="trash-2" style="width: 32px; height: 32px;"></i>
+    </div>
+    
+    <h1 style="font-family: var(--serif); margin-bottom: 16px;">¿Eliminar descuento?</h1>
+    <p style="color: var(--muted); margin-bottom: 32px;">Estás a punto de eliminar el descuento <strong>{{ object.name }}</strong>. Esta acción no se puede deshacer.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button type="submit" style="background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                Sí, eliminar definitivamente
+            </button>
+            <a href="{% url 'discounts:discount_list' %}" style="text-decoration: none; color: var(--text); background: var(--blush); padding: 12px 24px; border-radius: 12px; font-weight: 600;">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>算盤 Soroban · Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e; --paper: #faf8f5; --blush: #f2c4ce; --sakura: #e8a0b4;
+  --mist: #c8d8e8; --moss: #a8c5a0; --gold: #d4a853; --lavender: #c5b8d8;
+  --cream: #f5f0e8; --rod: #b07850; --frame: #c8905a; --frame-dark: #120808;
+  --sidebar-w: 240px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Zen Kaku Gothic New',sans-serif; background:var(--paper); color:var(--ink); height:100vh; overflow:hidden; }
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(242,196,206,.12) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(197,184,216,.10) 0%, transparent 45%);
+}
+.petal {
+  position:fixed; width:9px; height:9px; border-radius:50% 0 50% 0;
+  opacity:0; pointer-events:none; z-index:1; animation:fall linear infinite;
+}
+.petal:nth-child(1){background:var(--blush);left:8%;animation-duration:9s;animation-delay:0s}
+.petal:nth-child(2){background:var(--sakura);left:22%;animation-duration:12s;animation-delay:2s}
+.petal:nth-child(3){background:#f5d0dc;left:40%;animation-duration:8s;animation-delay:5s}
+.petal:nth-child(4){background:var(--blush);left:60%;animation-duration:10s;animation-delay:1s}
+.petal:nth-child(5){background:var(--lavender);left:75%;animation-duration:13s;animation-delay:3.5s}
+.petal:nth-child(6){background:var(--sakura);left:90%;animation-duration:9s;animation-delay:7s}
+@keyframes fall {
+  0%{opacity:0;top:-20px;transform:rotate(0deg) translateX(0)}
+  10%{opacity:.6} 90%{opacity:.4}
+  100%{opacity:0;top:110vh;transform:rotate(720deg) translateX(60px)}
+}
+@keyframes flicker{0%{transform:scale(1) rotate(-2deg)}100%{transform:scale(1.06) rotate(2deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* SHELL */
+.shell {
+  position:relative; z-index:2;
+  display:grid; grid-template-columns:var(--sidebar-w) 1fr;
+  height:100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  background:var(--ink); display:flex; flex-direction:column;
+  padding:32px 0 24px; overflow:hidden; position:relative;
+}
+.sidebar::after {
+  content:'算'; position:absolute; bottom:-30px; right:-20px;
+  font-family:'Noto Serif JP',serif; font-size:180px; opacity:.03;
+  color:white; pointer-events:none;
+}
+.sb-logo { padding:0 28px 36px; border-bottom:1px solid rgba(255,255,255,.06); margin-bottom:28px; }
+.sb-logo-kanji { font-family:'Noto Serif JP',serif; font-size:10px; letter-spacing:4px; color:var(--sakura); font-weight:300; display:block; margin-bottom:4px; }
+.sb-logo-main  { font-size:26px; font-weight:900; color:white; letter-spacing:-.5px; }
+.sb-logo-main span { color:var(--sakura); }
+.sb-nav { flex:1; padding:0 16px; display:flex; flex-direction:column; gap:4px; }
+.sb-item {
+  display:flex; align-items:center; gap:14px; padding:12px 16px;
+  border-radius:14px; cursor:pointer; transition:all .2s;
+  color:rgba(255,255,255,.4); font-size:14px; font-weight:700;
+}
+.sb-item:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.75); }
+.sb-item.active { background:rgba(232,160,180,.15); color:var(--blush); }
+.sb-item.active .sb-icon { background:var(--sakura); }
+.sb-icon {
+  width:36px; height:36px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:17px; background:rgba(255,255,255,.07); flex-shrink:0; transition:all .2s;
+}
+.sb-divider { height:1px; background:rgba(255,255,255,.06); margin:12px 16px; }
+.sb-user {
+  margin:0 16px; padding:14px 16px; background:rgba(255,255,255,.05);
+  border-radius:14px; display:flex; align-items:center; gap:12px;
+  cursor:pointer; transition:all .2s;
+}
+.sb-user:hover { background:rgba(255,255,255,.08); }
+.sb-avatar {
+  width:38px; height:38px; border-radius:50%;
+  background:linear-gradient(135deg,var(--blush),var(--lavender));
+  display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
+}
+.sb-user-name  { font-size:13px; font-weight:700; color:white; }
+.sb-user-level { font-size:10px; color:rgba(255,255,255,.4); letter-spacing:1px; margin-top:1px; }
+
+/* MAIN */
+.main { display:flex; flex-direction:column; overflow:hidden; }
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px 36px 0; flex-shrink:0;
+}
+.topbar-sub { font-size:11px; color:var(--sakura); letter-spacing:3px; font-family:'Noto Serif JP',serif; font-weight:300; display:block; }
+.topbar-h1  { font-size:28px; font-weight:900; letter-spacing:-.5px; margin-top:2px; }
+.topbar-pills { display:flex; align-items:center; gap:14px; }
+.t-pill {
+  display:flex; align-items:center; gap:8px; border-radius:99px; padding:8px 16px;
+}
+.t-pill.fire { background:rgba(255,200,80,.1); border:1px solid rgba(255,200,80,.25); }
+.t-pill.xp   { background:rgba(232,160,180,.1); border:1px solid rgba(232,160,180,.25); }
+.t-pill .pnum { font-size:16px; font-weight:900; }
+.t-pill.fire .pnum { color:var(--gold); }
+.t-pill.xp   .pnum { color:var(--sakura); }
+.t-pill .plbl { font-size:11px; opacity:.6; }
+.t-fire { font-size:20px; animation:flicker 2s infinite alternate; }
+
+/* SCREENS */
+.screens { flex:1; overflow:hidden; }
+.screen  { display:none; height:100%; overflow-y:auto; padding:20px 36px 36px; }
+.screen::-webkit-scrollbar { width:5px; }
+.screen::-webkit-scrollbar-thumb { background:rgba(0,0,0,.1); border-radius:99px; }
+.screen.active { display:block; animation:fadeIn .3s ease; }
+
+/* ======================== HOME ======================== */
+.home-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr 300px;
+  grid-template-rows:auto auto;
+  gap:18px; margin-top:8px;
+}
+.continue-card {
+  grid-column:1/3;
+  background:linear-gradient(135deg,var(--blush) 0%,var(--lavender) 100%);
+  border-radius:22px; padding:26px 30px; cursor:pointer;
+  transition:all .2s; position:relative; overflow:hidden;
+  display:flex; align-items:center; gap:28px;
+}
+.continue-card:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(232,160,180,.3); }
+.continue-card::after { content:''; position:absolute; right:-30px; bottom:-30px; width:140px; height:140px; border-radius:50%; background:rgba(255,255,255,.12); }
+.cc-left { flex:1; }
+.cc-tag   { font-size:10px; letter-spacing:2.5px; font-weight:700; color:rgba(255,255,255,.75); margin-bottom:7px; }
+.cc-title { font-size:22px; font-weight:900; color:var(--ink); margin-bottom:14px; }
+.cc-bar   { background:rgba(255,255,255,.4); border-radius:99px; height:6px; max-width:280px; margin-bottom:6px; }
+.cc-fill  { height:100%; border-radius:99px; background:white; width:65%; }
+.cc-pct   { font-size:11px; color:rgba(26,26,46,.65); font-weight:600; }
+.cc-right { font-size:58px; filter:drop-shadow(0 4px 10px rgba(0,0,0,.1)); }
+
+.streak-big {
+  grid-column:3; grid-row:1/3;
+  background:var(--ink); border-radius:22px; padding:26px 22px;
+  color:white; position:relative; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.streak-big::before { content:'火'; position:absolute; right:-10px; bottom:-20px; font-family:'Noto Serif JP',serif; font-size:130px; opacity:.03; }
+.sb2-lbl  { font-size:10px; opacity:.5; letter-spacing:2px; margin-bottom:6px; }
+.sb2-num  { font-size:58px; font-weight:900; line-height:1; }
+.sb2-num span { font-size:16px; font-weight:300; opacity:.6; margin-left:4px; }
+.sb2-fire { font-size:48px; filter:drop-shadow(0 0 14px rgba(255,200,0,.5)); animation:flicker 2s infinite alternate; margin:10px 0; }
+.sb2-days { display:flex; gap:5px; margin-top:6px; }
+.sb2-day  { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+.sb2-dot  { width:100%; height:5px; border-radius:3px; background:rgba(255,255,255,.15); }
+.sb2-dot.done  { background:var(--gold); }
+.sb2-dot.today { background:var(--blush); animation:pulse 1.5s infinite; }
+.sb2-day-lbl { font-size:9px; opacity:.35; }
+.sb2-div { height:1px; background:rgba(255,255,255,.08); margin:18px 0; }
+.sb2-badge-lbl { font-size:10px; opacity:.4; letter-spacing:1.5px; margin-bottom:10px; }
+.sb2-badges { display:flex; flex-wrap:wrap; gap:7px; }
+.sb2-badge {
+  width:42px; height:42px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center; font-size:20px;
+  background:rgba(255,255,255,.07); cursor:pointer; transition:transform .2s;
+}
+.sb2-badge:hover { transform:scale(1.1); }
+.sb2-badge.locked { filter:grayscale(1) opacity(.3); }
+
+.quick-lessons {
+  grid-column:1/3;
+  display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+}
+.ql {
+  background:white; border-radius:18px; padding:18px 16px;
+  cursor:pointer; transition:all .2s cubic-bezier(.34,1.56,.64,1);
+  border:1.5px solid rgba(0,0,0,.05); position:relative; overflow:hidden;
+}
+.ql:hover { transform:translateY(-4px); box-shadow:0 10px 24px rgba(0,0,0,.09); }
+.ql.locked { opacity:.45; cursor:not-allowed; }
+.ql.locked:hover { transform:none; box-shadow:none; }
+.ql-icon { font-size:28px; margin-bottom:10px; display:block; }
+.ql-name { font-size:13px; font-weight:700; margin-bottom:2px; }
+.ql-sub  { font-size:11px; color:#999; }
+.ql-stars { position:absolute; top:13px; right:13px; font-size:11px; }
+.ql.done .ql-stars::after    { content:'★★★'; color:var(--gold); }
+.ql.partial .ql-stars::after { content:'★★☆'; color:var(--gold); }
+.ql.new .ql-stars::after     { content:'☆☆☆'; color:#ddd; }
+.ql.locked .ql-stars::after  { content:'🔒'; font-size:12px; }
+.ql-accent { position:absolute; bottom:0;left:0;right:0; height:3px; border-radius:0 0 18px 18px; }
+
+/* ======================== PRACTICE ======================== */
+.practice-layout {
+  display:grid; grid-template-columns:1fr 390px; gap:24px; align-items:start;
+}
+.practice-header p  { font-size:11px; color:var(--sakura); letter-spacing:3px; font-family:'Noto Serif JP',serif; margin-bottom:4px; }
+.practice-header h2 { font-size:21px; font-weight:900; margin-bottom:18px; }
+.display-value {
+  background:var(--frame-dark); border-radius:16px; padding:14px 22px;
+  border:2px solid rgba(200,144,90,.2); box-shadow:inset 0 2px 10px rgba(0,0,0,.3);
+  margin-bottom:16px; display:flex; align-items:center; gap:14px;
+}
+.display-num {
+  font-size:52px; font-weight:900; color:#e0c080; letter-spacing:-2px;
+  font-variant-numeric:tabular-nums; transition:all .3s; flex:1;
+  text-shadow:0 0 22px rgba(224,192,128,.4);
+}
+.display-label { font-size:10px; color:rgba(200,144,90,.5); letter-spacing:2px; font-family:'Noto Serif JP',serif; }
+
+/* SOROBAN */
+.soroban-wrap {
+  background:var(--frame-dark); border-radius:20px; padding:16px 12px 18px;
+  border:6px solid var(--frame); margin-bottom:16px;
+  box-shadow:0 10px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+  position:relative;
+}
+.soroban-divider {
+  position:absolute; left:12px; right:12px; top:50%; height:7px;
+  background:linear-gradient(to bottom,var(--frame),#a06828,var(--frame));
+  border-radius:4px; z-index:5; transform:translateY(-50%);
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.soroban { display:flex; gap:7px; justify-content:center; align-items:stretch; position:relative; }
+.column  { display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; width:40px; }
+.column::before {
+  content:''; position:absolute; top:0; bottom:0; left:50%; transform:translateX(-50%);
+  width:5px; background:linear-gradient(to right,#7a5030,var(--rod),#c09060,var(--rod),#7a5030);
+  border-radius:99px; z-index:1; box-shadow:1px 0 4px rgba(0,0,0,.3);
+}
+.bead {
+  width:34px; height:24px; cursor:pointer; z-index:2; position:relative;
+  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  clip-path:polygon(15% 0%,85% 0%,100% 25%,100% 75%,85% 100%,15% 100%,0% 75%,0% 25%);
+}
+.bead.heaven { background:linear-gradient(160deg,#e8e8ee 0%,#d0d0d8 30%,#b8b8c4 60%,#a0a0b0 100%); box-shadow:0 3px 8px rgba(0,0,0,.5),inset 0 1px 2px rgba(255,255,255,.6); }
+.bead.earth  { background:linear-gradient(160deg,#a03838 0%,#7a2020 35%,#601818 65%,#4a1010 100%); box-shadow:0 3px 8px rgba(0,0,0,.5),inset 0 1px 2px rgba(180,80,80,.3); }
+.bead.heaven.active { transform:translateY(12px); background:linear-gradient(160deg,#f4f4f8 0%,#dcdce4 30%,#c4c4d0 60%,#b0b0c0 100%); box-shadow:0 5px 14px rgba(0,0,0,.6),inset 0 1px 3px rgba(255,255,255,.8); }
+.bead.earth.active  { transform:translateY(-12px); background:linear-gradient(160deg,#c04040 0%,#962828 35%,#781e1e 65%,#5c1414 100%); box-shadow:0 5px 16px rgba(160,40,40,.5),inset 0 1px 3px rgba(200,100,100,.4); }
+.bead:hover { filter:brightness(1.15); }
+.bead.heaven.active:hover { transform:translateY(12px) scale(1.04); }
+.bead.earth.active:hover  { transform:translateY(-12px) scale(1.04); }
+.heaven-zone { display:flex; flex-direction:column; gap:3px; padding-bottom:16px; }
+.earth-zone  { display:flex; flex-direction:column; gap:3px; padding-top:16px; }
+.col-label   { font-size:11px; color:rgba(200,144,90,.65); font-weight:700; letter-spacing:1px; margin-top:7px; font-family:'Noto Serif JP',serif; }
+
+.abacus-btns { display:flex; gap:8px; }
+.btn-clean {
+  padding:11px 18px; border:1.5px solid rgba(0,0,0,.1); border-radius:11px;
+  background:white; font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px; font-weight:700;
+  color:var(--ink); cursor:pointer; transition:all .2s;
+}
+.btn-clean:hover { background:var(--cream); }
+.btn-start {
+  flex:1; padding:11px 18px; border:none; border-radius:11px;
+  background:var(--ink); color:white; font-family:'Zen Kaku Gothic New',sans-serif;
+  font-size:12px; font-weight:700; cursor:pointer; transition:all .2s;
+}
+.btn-start:hover { background:#2a2a4a; transform:translateY(-1px); }
+.btn-start.pink { background:var(--sakura); }
+.btn-start.pink:hover { background:#d888a4; }
+.hint { font-size:11px; color:#bbb; font-family:'Noto Serif JP',serif; letter-spacing:1px; margin-top:9px; text-align:center; }
+
+/* EXERCISE PANEL */
+.ep {
+  background:white; border-radius:22px; border:1.5px solid rgba(0,0,0,.06);
+  box-shadow:0 4px 20px rgba(0,0,0,.06); overflow:hidden; position:sticky; top:0;
+}
+.ep-head {
+  background:var(--ink); padding:20px 22px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.ep-head-title { font-size:13px; font-weight:700; color:white; }
+.ep-head-badge {
+  font-size:10px; letter-spacing:1.5px; color:var(--sakura);
+  background:rgba(232,160,180,.12); padding:4px 10px;
+  border-radius:99px; border:1px solid rgba(232,160,180,.2);
+}
+.ep-body { padding:22px; }
+
+/* idle */
+.ep-idle { text-align:center; padding:12px 0; }
+.ep-idle-icon  { font-size:44px; margin-bottom:10px; }
+.ep-idle-title { font-size:15px; font-weight:700; margin-bottom:5px; }
+.ep-idle-desc  { font-size:12px; color:#999; margin-bottom:18px; line-height:1.55; }
+.ep-type-btns  { display:flex; flex-direction:column; gap:7px; }
+.ep-tbn {
+  padding:12px 14px; border-radius:13px; border:1.5px solid rgba(0,0,0,.07);
+  background:var(--paper); font-family:'Zen Kaku Gothic New',sans-serif;
+  font-size:13px; font-weight:700; cursor:pointer; transition:all .2s;
+  text-align:left; display:flex; align-items:center; gap:10px; color:var(--ink);
+}
+.ep-tbn:hover { border-color:var(--sakura); background:rgba(232,160,180,.07); transform:translateX(3px); }
+.ep-tbn .tbn-i  { font-size:18px; }
+.ep-tbn .tbn-n  { font-size:12px; font-weight:700; display:block; }
+.ep-tbn .tbn-d  { font-size:10px; color:#aaa; display:block; margin-top:1px; }
+
+/* active */
+.ep-active { display:none; }
+.ep-prog-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.ep-dots { display:flex; gap:5px; }
+.ep-dot { width:22px; height:5px; border-radius:3px; background:rgba(0,0,0,.08); transition:all .3s; }
+.ep-dot.done    { background:var(--moss); }
+.ep-dot.current { background:var(--sakura); }
+.ep-step-lbl { font-size:10px; color:#bbb; letter-spacing:1px; font-weight:700; }
+.ep-op {
+  font-size:42px; font-weight:900; color:var(--ink); letter-spacing:-1px;
+  margin-bottom:10px; line-height:1.15; white-space:pre-line;
+}
+.ep-inst {
+  display:flex; align-items:center; gap:7px; font-size:11px; color:#888;
+  margin-bottom:14px; background:rgba(0,0,0,.03); padding:9px 12px; border-radius:11px;
+}
+.ep-ab-frame {
+  background:var(--frame-dark); border-radius:14px; padding:10px 8px 12px;
+  border:5px solid var(--frame); box-shadow:0 5px 20px rgba(0,0,0,.3); margin-bottom:10px;
+}
+.ep-soroban { display:flex; gap:5px; justify-content:center; align-items:stretch; position:relative; }
+.ep-soroban .soroban-divider { left:8px; right:8px; height:5px; }
+.ep-soroban .column { width:30px; }
+.ep-soroban .column::before { width:4px; }
+.ep-soroban .bead { width:26px; height:19px; }
+.ep-soroban .bead.heaven.active { transform:translateY(8px); }
+.ep-soroban .bead.earth.active  { transform:translateY(-8px); }
+.ep-val {
+  background:var(--frame-dark); border-radius:11px; padding:9px 12px;
+  border:1.5px solid rgba(200,144,90,.2); display:flex; align-items:center;
+  justify-content:center; gap:10px; margin-bottom:12px;
+}
+.ep-val-n { font-size:32px; font-weight:900; color:#e0c080; font-variant-numeric:tabular-nums; text-shadow:0 0 14px rgba(224,192,128,.4); min-width:55px; text-align:center; }
+.ep-val-l { font-size:10px; color:rgba(200,144,90,.5); font-family:'Noto Serif JP',serif; letter-spacing:1px; }
+.ep-ctrls { display:flex; gap:7px; }
+.ep-rst {
+  width:42px; height:42px; border-radius:11px; border:1.5px solid rgba(0,0,0,.1);
+  background:white; font-size:15px; cursor:pointer; transition:all .2s; flex-shrink:0;
+}
+.ep-rst:hover { background:var(--cream); }
+.ep-ver {
+  flex:1; height:42px; border:none; border-radius:11px; background:var(--ink);
+  color:white; font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px;
+  font-weight:700; cursor:pointer; transition:all .2s;
+}
+.ep-ver:hover { background:#2a2a4a; }
+
+/* result */
+.ep-result { display:none; text-align:center; padding:6px 0; }
+.ep-res-icon  { font-size:46px; margin-bottom:7px; }
+.ep-res-title { font-size:21px; font-weight:900; margin-bottom:5px; }
+.ep-res-desc  { font-size:12px; color:#888; margin-bottom:11px; line-height:1.5; }
+.ep-res-xp    { display:inline-block; background:rgba(212,168,83,.12); color:var(--gold); font-weight:700; font-size:12px; padding:5px 13px; border-radius:99px; margin-bottom:16px; border:1px solid rgba(212,168,83,.25); }
+.ep-next { width:100%; padding:12px; border:none; border-radius:11px; background:var(--ink); color:white; font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all .2s; }
+.ep-next:hover { background:#2a2a4a; }
+
+/* done */
+.ep-done { display:none; text-align:center; padding:6px 0; }
+.ep-done-emoji { font-size:50px; margin-bottom:10px; }
+.ep-done-title { font-size:21px; font-weight:900; margin-bottom:3px; }
+.ep-done-sub   { font-size:12px; color:#999; margin-bottom:14px; }
+.ep-done-stats { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:16px; }
+.ep-sbox { background:rgba(0,0,0,.04); border-radius:11px; padding:11px; }
+.ep-sbox .v { font-size:21px; font-weight:900; }
+.ep-sbox .l { font-size:10px; color:#999; margin-top:2px; }
+
+/* ======================== LESSONS ======================== */
+.lessons-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:8px; }
+.level-block { background:white; border-radius:20px; padding:20px 18px; border:1.5px solid rgba(0,0,0,.05); }
+.level-tag { display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:700; letter-spacing:2px; color:#999; background:rgba(0,0,0,.04); border-radius:99px; padding:5px 12px; margin-bottom:14px; }
+.lr {
+  display:flex; align-items:center; gap:12px; padding:12px 12px; border-radius:13px;
+  cursor:pointer; transition:all .2s; border:1.5px solid transparent; margin-bottom:5px;
+}
+.lr:hover { background:var(--paper); border-color:rgba(0,0,0,.05); transform:translateX(3px); }
+.lr.locked { opacity:.4; cursor:not-allowed; }
+.lr.locked:hover { transform:none; background:none; border-color:transparent; }
+.lr-ic { width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0; }
+.lr-info { flex:1; }
+.lr-name { font-size:12px; font-weight:700; margin-bottom:2px; }
+.lr-desc { font-size:10px; color:#999; }
+.lr-xp   { font-size:10px; color:var(--gold); font-weight:700; margin-top:1px; }
+.lr-st   { font-size:17px; }
+
+/* ======================== PROFILE ======================== */
+.profile-layout { display:grid; grid-template-columns:280px 1fr; gap:22px; margin-top:8px; align-items:start; }
+.profile-card { background:var(--ink); border-radius:22px; padding:28px 22px; color:white; position:relative; overflow:hidden; }
+.profile-card::after { content:'人'; position:absolute; bottom:-20px; right:-10px; font-family:'Noto Serif JP',serif; font-size:150px; opacity:.03; }
+.pc-av { width:76px; height:76px; border-radius:50%; background:linear-gradient(135deg,var(--blush),var(--lavender)); display:flex; align-items:center; justify-content:center; font-size:38px; margin-bottom:14px; border:3px solid rgba(255,255,255,.15); }
+.pc-name  { font-size:21px; font-weight:900; margin-bottom:3px; }
+.pc-level { font-size:10px; color:var(--sakura); letter-spacing:2px; font-family:'Noto Serif JP',serif; margin-bottom:22px; }
+.pc-xp-lbl { font-size:10px; opacity:.5; letter-spacing:1px; margin-bottom:5px; }
+.pc-xp-bar { background:rgba(255,255,255,.1); border-radius:99px; height:6px; margin-bottom:5px; overflow:hidden; }
+.pc-xp-fill { height:100%; background:linear-gradient(90deg,var(--sakura),var(--lavender)); border-radius:99px; width:72%; }
+.pc-xp-nums { display:flex; justify-content:space-between; font-size:10px; opacity:.4; margin-bottom:20px; }
+.pc-div { height:1px; background:rgba(255,255,255,.08); margin-bottom:18px; }
+.pc-badge-lbl { font-size:10px; opacity:.4; letter-spacing:1.5px; margin-bottom:10px; }
+.pc-badges { display:flex; flex-wrap:wrap; gap:7px; }
+.pc-badge { width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:19px; background:rgba(255,255,255,.07); cursor:pointer; transition:transform .2s; }
+.pc-badge:hover { transform:scale(1.1); }
+.pc-badge.locked { filter:grayscale(1) opacity(.3); }
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+.stat-card { background:white; border-radius:17px; padding:16px 14px; border:1.5px solid rgba(0,0,0,.05); text-align:center; }
+.stat-icon { font-size:22px; margin-bottom:7px; }
+.stat-val  { font-size:26px; font-weight:900; line-height:1; }
+.stat-lbl  { font-size:10px; color:#999; margin-top:3px; letter-spacing:.5px; }
+.activity-card { background:white; border-radius:17px; padding:18px; border:1.5px solid rgba(0,0,0,.05); }
+.act-title { font-size:13px; font-weight:700; margin-bottom:12px; }
+.act-row { display:flex; justify-content:space-between; font-size:12px; color:#999; padding:8px 0; border-bottom:1px solid rgba(0,0,0,.04); }
+.act-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body>
+<div class="petal"></div><div class="petal"></div><div class="petal"></div>
+<div class="petal"></div><div class="petal"></div><div class="petal"></div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <span class="sb-logo-kanji">そろばん · LEARN</span>
+      <div class="sb-logo-main">Soro<span>ban</span></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-item active" id="sb-home" onclick="showScreen('home')">
+        <div class="sb-icon">🏠</div><span>Inicio</span>
+      </div>
+      <div class="sb-item" id="sb-practice" onclick="showScreen('practice')">
+        <div class="sb-icon">🧮</div><span>Práctica</span>
+      </div>
+      <div class="sb-item" id="sb-lessons" onclick="showScreen('lessons')">
+        <div class="sb-icon">📚</div><span>Lecciones</span>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-item" id="sb-profile" onclick="showScreen('profile')">
+        <div class="sb-icon">🌸</div><span>Perfil</span>
+      </div>
+    </nav>
+    <div class="sb-user" onclick="showScreen('profile')">
+      <div class="sb-avatar">🌸</div>
+      <div>
+        <div class="sb-user-name">Estudiante</div>
+        <div class="sb-user-level">初級 · NIVEL 3</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <span class="topbar-sub" id="topbar-sub">おかえり · BIENVENIDO</span>
+        <h1 class="topbar-h1" id="topbar-h1">Hola, Estudiante 🌸</h1>
+      </div>
+      <div class="topbar-pills">
+        <div class="t-pill fire">
+          <span class="t-fire">🔥</span>
+          <span class="pnum">7</span>
+          <span class="plbl">días racha</span>
+        </div>
+        <div class="t-pill xp">
+          <span>✦</span>
+          <span class="pnum">720</span>
+          <span class="plbl">XP</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="screens">
+
+      <!-- HOME -->
+      <div class="screen active" id="screen-home">
+        <div class="home-grid">
+          <div class="continue-card" onclick="startEx('suma');showScreen('practice')">
+            <div class="cc-left">
+              <div class="cc-tag">LECCIÓN 3 · NIVEL BÁSICO · EN PROGRESO</div>
+              <div class="cc-title">Suma de unidades ✦</div>
+              <div class="cc-bar"><div class="cc-fill"></div></div>
+              <div class="cc-pct">65% completado · 4 min restantes</div>
+            </div>
+            <div class="cc-right">🧮</div>
+          </div>
+
+          <div class="streak-big">
+            <div class="sb2-lbl">RACHA ACTUAL</div>
+            <div class="sb2-num">7 <span>días</span></div>
+            <div class="sb2-fire">🔥</div>
+            <div class="sb2-days">
+              <div class="sb2-day"><div class="sb2-dot done"></div><span class="sb2-day-lbl">L</span></div>
+              <div class="sb2-day"><div class="sb2-dot done"></div><span class="sb2-day-lbl">M</span></div>
+              <div class="sb2-day"><div class="sb2-dot done"></div><span class="sb2-day-lbl">M</span></div>
+              <div class="sb2-day"><div class="sb2-dot done"></div><span class="sb2-day-lbl">J</span></div>
+              <div class="sb2-day"><div class="sb2-dot done"></div><span class="sb2-day-lbl">V</span></div>
+              <div class="sb2-day"><div class="sb2-dot done"></div><span class="sb2-day-lbl">S</span></div>
+              <div class="sb2-day"><div class="sb2-dot today"></div><span class="sb2-day-lbl">D</span></div>
+            </div>
+            <div class="sb2-div"></div>
+            <div class="sb2-badge-lbl">LOGROS</div>
+            <div class="sb2-badges">
+              <div class="sb2-badge">🧮</div><div class="sb2-badge">🔥</div>
+              <div class="sb2-badge">➕</div><div class="sb2-badge">⚡</div>
+              <div class="sb2-badge locked">🏯</div><div class="sb2-badge locked">🌊</div>
+            </div>
+          </div>
+
+          <div class="quick-lessons">
+            <div class="ql done" onclick="startEx('representar');showScreen('practice')">
+              <span class="ql-icon">🔢</span>
+              <div class="ql-name">Números 1–9</div>
+              <div class="ql-sub">Completado</div>
+              <div class="ql-stars"></div>
+              <div class="ql-accent" style="background:var(--moss)"></div>
+            </div>
+            <div class="ql partial" onclick="startEx('suma');showScreen('practice')">
+              <span class="ql-icon">➕</span>
+              <div class="ql-name">Suma básica</div>
+              <div class="ql-sub">En progreso</div>
+              <div class="ql-stars"></div>
+              <div class="ql-accent" style="background:var(--gold)"></div>
+            </div>
+            <div class="ql new" onclick="startEx('decenas');showScreen('practice')">
+              <span class="ql-icon">🔟</span>
+              <div class="ql-name">Decenas</div>
+              <div class="ql-sub">Sin empezar</div>
+              <div class="ql-stars"></div>
+              <div class="ql-accent" style="background:var(--mist)"></div>
+            </div>
+            <div class="ql locked">
+              <span class="ql-icon">✖️</span>
+              <div class="ql-name">Multiplicar</div>
+              <div class="ql-sub">Bloqueado</div>
+              <div class="ql-stars"></div>
+              <div class="ql-accent" style="background:#eee"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRACTICE -->
+      <div class="screen" id="screen-practice">
+        <div class="practice-layout">
+
+          <div>
+            <div class="practice-header">
+              <p>れんしゅう · PRÁCTICA LIBRE</p>
+              <h2>Ábaco Soroban</h2>
+            </div>
+            <div class="display-value">
+              <div class="display-num" id="display-num">0</div>
+              <div class="display-label">valor · 現在の値</div>
+            </div>
+            <div class="soroban-wrap">
+              <div class="soroban" id="soroban"><div class="soroban-divider"></div></div>
+              <div id="col-labels" style="display:flex;justify-content:center;gap:7px;margin-top:7px;"></div>
+            </div>
+            <div class="abacus-btns">
+              <button class="btn-clean" onclick="resetAbacus()">↺ Limpiar</button>
+              <button class="btn-start" onclick="startEx('suma')">✦ Ejercicio de suma</button>
+              <button class="btn-start pink" onclick="startEx('resta')">✦ Ejercicio de resta</button>
+              <button class="btn-start" style="background:var(--lavender);color:var(--ink)" onclick="startEx('representar')">✦ Representar números</button>
+            </div>
+            <div class="hint">Toca las cuentas para moverlas · クリックで動かす</div>
+          </div>
+
+          <!-- EXERCISE PANEL -->
+          <div class="ep">
+            <div class="ep-head">
+              <span class="ep-head-title">算盤 · Panel de Ejercicios</span>
+              <span class="ep-head-badge">INTERACTIVO</span>
+            </div>
+            <div class="ep-body">
+
+              <div id="ep-idle">
+                <div class="ep-idle">
+                  <div class="ep-idle-icon">🎯</div>
+                  <div class="ep-idle-title">¿Listo para practicar?</div>
+                  <div class="ep-idle-desc">Elige un tipo de ejercicio.<br>Resuelve operaciones moviendo las cuentas del ábaco.</div>
+                  <div class="ep-type-btns">
+                    <button class="ep-tbn" onclick="startEx('representar')">
+                      <span class="tbn-i">🔢</span>
+                      <span><span class="tbn-n">Representar números</span><span class="tbn-d">Pon el número indicado en el ábaco</span></span>
+                    </button>
+                    <button class="ep-tbn" onclick="startEx('suma')">
+                      <span class="tbn-i">➕</span>
+                      <span><span class="tbn-n">Sumas</span><span class="tbn-d">Resuelve la suma y muestra el resultado</span></span>
+                    </button>
+                    <button class="ep-tbn" onclick="startEx('resta')">
+                      <span class="tbn-i">➖</span>
+                      <span><span class="tbn-n">Restas</span><span class="tbn-d">Complementos del 5 y 10</span></span>
+                    </button>
+                    <button class="ep-tbn" onclick="startEx('decenas')">
+                      <span class="tbn-i">🔟</span>
+                      <span><span class="tbn-n">Decenas</span><span class="tbn-d">Operaciones con dos dígitos</span></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ep-active" id="ep-active">
+                <div class="ep-prog-row">
+                  <div class="ep-dots" id="ep-dots"></div>
+                  <span class="ep-step-lbl" id="ep-step-lbl">1 / 5</span>
+                </div>
+                <div class="ep-op" id="ep-op">3 + 4</div>
+                <div class="ep-inst"><span>🧮</span><span>Mueve las cuentas para mostrar la respuesta y presiona Verificar</span></div>
+                <div class="ep-ab-frame">
+                  <div class="ep-soroban soroban" id="ep-soroban" style="position:relative">
+                    <div class="soroban-divider"></div>
+                  </div>
+                  <div id="ep-col-labels" style="display:flex;justify-content:center;gap:5px;margin-top:5px;"></div>
+                </div>
+                <div class="ep-val">
+                  <span class="ep-val-n" id="ep-val-n">0</span>
+                  <span class="ep-val-l">en el ábaco</span>
+                </div>
+                <div class="ep-ctrls">
+                  <button class="ep-rst" onclick="resetExAbacus()">↺</button>
+                  <button class="ep-ver" onclick="verifyEx()">Verificar ✦</button>
+                </div>
+              </div>
+
+              <div class="ep-result" id="ep-result">
+                <div class="ep-res-icon"  id="ep-res-icon">✅</div>
+                <div class="ep-res-title" id="ep-res-title">¡Correcto!</div>
+                <div class="ep-res-desc"  id="ep-res-desc"></div>
+                <div class="ep-res-xp"    id="ep-res-xp">+10 XP</div>
+                <button class="ep-next" onclick="nextEx()">Siguiente →</button>
+              </div>
+
+              <div class="ep-done" id="ep-done">
+                <div class="ep-done-emoji">🌸</div>
+                <div class="ep-done-title">¡Sesión completa!</div>
+                <div class="ep-done-sub">Terminaste todos los ejercicios</div>
+                <div class="ep-done-stats" id="ep-done-stats"></div>
+                <button class="ep-next" onclick="closeEx()">Volver al inicio</button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- LESSONS -->
+      <div class="screen" id="screen-lessons">
+        <div style="margin-bottom:18px">
+          <p style="font-size:11px;color:var(--sakura);letter-spacing:3px;font-family:'Noto Serif JP',serif;margin-bottom:3px">カリキュラム · CURRÍCULO</p>
+          <h2 style="font-size:22px;font-weight:900">Tus lecciones</h2>
+        </div>
+        <div class="lessons-grid">
+
+          <div class="level-block">
+            <div class="level-tag">🌱 NIVEL BÁSICO</div>
+            <div class="lr" onclick="startEx('representar');showScreen('practice')">
+              <div class="lr-ic" style="background:rgba(168,197,160,.2)">🔢</div>
+              <div class="lr-info"><div class="lr-name">Representación de números</div><div class="lr-desc">Del 1 al 9 en el ábaco</div><div class="lr-xp">+50 XP obtenidos</div></div>
+              <div class="lr-st">✅</div>
+            </div>
+            <div class="lr" onclick="startEx('decenas');showScreen('practice')">
+              <div class="lr-ic" style="background:rgba(212,168,83,.15)">🔟</div>
+              <div class="lr-info"><div class="lr-name">Decenas y centenas</div><div class="lr-desc">Columnas del soroban</div><div class="lr-xp">+40 XP obtenidos</div></div>
+              <div class="lr-st">✅</div>
+            </div>
+            <div class="lr" onclick="startEx('suma');showScreen('practice')">
+              <div class="lr-ic" style="background:rgba(242,196,206,.3)">➕</div>
+              <div class="lr-info"><div class="lr-name">Suma de unidades</div><div class="lr-desc">Operaciones simples</div><div class="lr-xp">65% · en progreso</div></div>
+              <div class="lr-st">⭐</div>
+            </div>
+          </div>
+
+          <div class="level-block">
+            <div class="level-tag">🌿 NIVEL INTERMEDIO</div>
+            <div class="lr" onclick="startEx('suma');showScreen('practice')">
+              <div class="lr-ic" style="background:rgba(200,216,232,.3)">🔄</div>
+              <div class="lr-info"><div class="lr-name">Suma con acarreo</div><div class="lr-desc">Técnica tomo-no-hō</div><div class="lr-xp">+60 XP disponibles</div></div>
+              <div class="lr-st">⭕</div>
+            </div>
+            <div class="lr" onclick="startEx('resta');showScreen('practice')">
+              <div class="lr-ic" style="background:rgba(197,184,216,.3)">➖</div>
+              <div class="lr-info"><div class="lr-name">Resta básica</div><div class="lr-desc">Complementos del 5 y 10</div><div class="lr-xp">+70 XP disponibles</div></div>
+              <div class="lr-st">⭕</div>
+            </div>
+            <div class="lr locked">
+              <div class="lr-ic" style="background:rgba(0,0,0,.04)">✖️</div>
+              <div class="lr-info"><div class="lr-name">Multiplicación</div><div class="lr-desc">Método directo</div><div class="lr-xp">Completa las anteriores</div></div>
+              <div class="lr-st">🔒</div>
+            </div>
+          </div>
+
+          <div class="level-block">
+            <div class="level-tag">🌸 NIVEL AVANZADO</div>
+            <div class="lr locked">
+              <div class="lr-ic" style="background:rgba(0,0,0,.04)">➗</div>
+              <div class="lr-info"><div class="lr-name">División</div><div class="lr-desc">Técnica avanzada</div><div class="lr-xp">Bloqueado</div></div>
+              <div class="lr-st">🔒</div>
+            </div>
+            <div class="lr locked">
+              <div class="lr-ic" style="background:rgba(0,0,0,.04)">🧠</div>
+              <div class="lr-info"><div class="lr-name">Ábaco mental</div><div class="lr-desc">Visualización sin ábaco</div><div class="lr-xp">Bloqueado</div></div>
+              <div class="lr-st">🔒</div>
+            </div>
+            <div class="lr locked">
+              <div class="lr-ic" style="background:rgba(0,0,0,.04)">⚡</div>
+              <div class="lr-info"><div class="lr-name">Velocidad</div><div class="lr-desc">Cálculo ultra rápido</div><div class="lr-xp">Bloqueado</div></div>
+              <div class="lr-st">🔒</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="screen" id="screen-profile">
+        <div style="margin-bottom:18px">
+          <p style="font-size:11px;color:var(--sakura);letter-spacing:3px;font-family:'Noto Serif JP',serif;margin-bottom:3px">プロフィール · PERFIL</p>
+          <h2 style="font-size:22px;font-weight:900">Tu progreso</h2>
+        </div>
+        <div class="profile-layout">
+          <div class="profile-card">
+            <div class="pc-av">🌸</div>
+            <div class="pc-name">Estudiante</div>
+            <div class="pc-level">初級 · NIVEL BÁSICO</div>
+            <div class="pc-xp-lbl">EXPERIENCIA · XP</div>
+            <div class="pc-xp-bar"><div class="pc-xp-fill"></div></div>
+            <div class="pc-xp-nums"><span>Nivel 3</span><span>720 / 1000 XP</span></div>
+            <div class="pc-div"></div>
+            <div class="pc-badge-lbl">LOGROS</div>
+            <div class="pc-badges">
+              <div class="pc-badge">🧮</div><div class="pc-badge">🔥</div>
+              <div class="pc-badge">➕</div><div class="pc-badge">⚡</div>
+              <div class="pc-badge">🌸</div><div class="pc-badge locked">🏯</div>
+              <div class="pc-badge locked">🌊</div><div class="pc-badge locked">🦋</div>
+            </div>
+          </div>
+          <div>
+            <div class="stats-grid">
+              <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-val">7</div><div class="stat-lbl">días racha</div></div>
+              <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-val">24</div><div class="stat-lbl">estrellas</div></div>
+              <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val">12</div><div class="stat-lbl">lecciones</div></div>
+              <div class="stat-card"><div class="stat-icon">⏱</div><div class="stat-val">3h</div><div class="stat-lbl">práctica</div></div>
+              <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-val">89%</div><div class="stat-lbl">precisión</div></div>
+              <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-val">5</div><div class="stat-lbl">logros</div></div>
+            </div>
+            <div class="activity-card">
+              <div class="act-title">Actividad reciente</div>
+              <div class="act-row"><span>✅ Suma de unidades — Ejercicio 8</span><span>hoy</span></div>
+              <div class="act-row"><span>⭐ Completaste Decenas con ★★★</span><span>ayer</span></div>
+              <div class="act-row"><span>🔥 Racha de 7 días conseguida</span><span>ayer</span></div>
+              <div class="act-row"><span>✅ Números 1-9 — Resultado perfecto</span><span>hace 2d</span></div>
+              <div class="act-row"><span>🧮 Primera sesión de práctica libre</span><span>hace 3d</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const screenMeta = {
+  home:     {sub:'おかえり · BIENVENIDO', h1:'Hola, Estudiante 🌸'},
+  practice: {sub:'れんしゅう · PRÁCTICA',  h1:'Ábaco Soroban'},
+  lessons:  {sub:'カリキュラム · CURRÍCULO',h1:'Tus lecciones'},
+  profile:  {sub:'プロフィール · PERFIL',  h1:'Tu progreso'},
+};
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  const sb=document.getElementById('sb-'+name); if(sb) sb.classList.add('active');
+  const m=screenMeta[name];
+  if(m){document.getElementById('topbar-sub').textContent=m.sub;document.getElementById('topbar-h1').textContent=m.h1;}
+}
+
+// FREE ABACUS
+const COLS=5, PV=[10000,1000,100,10,1], LBL=['M','C','D','U','·'];
+let state=Array.from({length:COLS},()=>({heaven:0,earth:0}));
+function buildSoroban(){
+  const el=document.getElementById('soroban');
+  const dv=el.querySelector('.soroban-divider');
+  el.innerHTML=''; el.appendChild(dv);
+  state.forEach((col,ci)=>{
+    const c=document.createElement('div'); c.className='column';
+    const hz=document.createElement('div'); hz.className='heaven-zone';
+    const hb=document.createElement('div');
+    hb.className='bead heaven'+(col.heaven?' active':'');
+    hb.onclick=()=>{state[ci].heaven^=1;buildSoroban();};
+    hz.appendChild(hb); c.appendChild(hz);
+    const ez=document.createElement('div'); ez.className='earth-zone';
+    for(let i=0;i<4;i++){
+      const eb=document.createElement('div');
+      eb.className='bead earth'+((4-i)<=col.earth?' active':'');
+      const bn=4-i;
+      eb.onclick=()=>{state[ci].earth=state[ci].earth>=bn?bn-1:bn;buildSoroban();};
+      ez.appendChild(eb);
+    }
+    c.appendChild(ez); el.appendChild(c);
+  });
+  const ll=document.getElementById('col-labels'); ll.innerHTML='';
+  LBL.forEach(l=>{
+    const s=document.createElement('span');
+    s.style.cssText='width:40px;text-align:center;display:inline-block;font-size:11px;color:rgba(200,144,90,.65);font-weight:700;font-family:Noto Serif JP,serif;letter-spacing:1px;';
+    s.textContent=l; ll.appendChild(s);
+  });
+  const val=state.reduce((t,c,i)=>t+(c.heaven*5+c.earth)*PV[i],0);
+  const dn=document.getElementById('display-num');
+  dn.textContent=val.toLocaleString();
+  dn.style.color=val>0?'#e0c080':'rgba(200,144,90,.3)';
+  dn.style.textShadow=val>0?'0 0 22px rgba(224,192,128,.4)':'none';
+}
+function resetAbacus(){state=Array.from({length:COLS},()=>({heaven:0,earth:0}));buildSoroban();}
+
+// EXERCISES
+const exSets={
+  suma:[{op:'2 + 3',a:5},{op:'4 + 1',a:5},{op:'3 + 4',a:7},{op:'1 + 6',a:7},{op:'5 + 3',a:8},{op:'2 + 7',a:9},{op:'6 + 3',a:9},{op:'4 + 4',a:8},{op:'1 + 1',a:2},{op:'3 + 3',a:6}],
+  resta:[{op:'9 − 4',a:5},{op:'7 − 3',a:4},{op:'8 − 5',a:3},{op:'6 − 2',a:4},{op:'5 − 1',a:4},{op:'9 − 6',a:3},{op:'8 − 3',a:5},{op:'7 − 4',a:3}],
+  representar:[{op:'Representa\n3',a:3},{op:'Representa\n7',a:7},{op:'Representa\n5',a:5},{op:'Representa\n12',a:12},{op:'Representa\n24',a:24},{op:'Representa\n9',a:9},{op:'Representa\n16',a:16}],
+  decenas:[{op:'10 + 20',a:30},{op:'30 + 15',a:45},{op:'20 + 23',a:43},{op:'40 + 12',a:52},{op:'11 + 11',a:22},{op:'50 − 20',a:30},{op:'45 − 12',a:33}],
+};
+const EX_COLS=5, EX_PV=[10000,1000,100,10,1], EX_LBL=['M','C','D','U','·'];
+let exState=Array.from({length:EX_COLS},()=>({heaven:0,earth:0}));
+let session=[],exIdx=0,correct=0,xp=0;
+
+function showEpView(w){
+  ['idle','active','result','done'].forEach(v=>{
+    document.getElementById('ep-'+v).style.display=v===w?'':'none';
+    if(v==='active') document.getElementById('ep-'+v).style.display=v===w?'block':'none';
+    if(v==='result'||v==='done') document.getElementById('ep-'+v).style.display=v===w?'block':'none';
+  });
+}
+
+function startEx(type){
+  const pool=exSets[type]||exSets.suma;
+  session=[...pool].sort(()=>Math.random()-.5).slice(0,5);
+  exIdx=0; correct=0; xp=0;
+  showEpView('active');
+  updateDots();
+  renderEx();
+  if(!document.getElementById('screen-practice').classList.contains('active'))
+    showScreen('practice');
+}
+
+function updateDots(){
+  const c=document.getElementById('ep-dots'); c.innerHTML='';
+  session.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='ep-dot'+(i<exIdx?' done':i===exIdx?' current':'');
+    c.appendChild(d);
+  });
+  document.getElementById('ep-step-lbl').textContent=`${exIdx+1} / ${session.length}`;
+}
+function renderEx(){
+  document.getElementById('ep-op').textContent=session[exIdx].op;
+  resetExAbacus();
+}
+function buildExSoroban(){
+  const el=document.getElementById('ep-soroban');
+  const dv=el.querySelector('.soroban-divider');
+  el.innerHTML=''; el.appendChild(dv);
+  exState.forEach((col,ci)=>{
+    const c=document.createElement('div'); c.className='column';
+    const hz=document.createElement('div'); hz.className='heaven-zone';
+    const hb=document.createElement('div');
+    hb.className='bead heaven'+(col.heaven?' active':'');
+    hb.onclick=()=>{exState[ci].heaven^=1;buildExSoroban();};
+    hz.appendChild(hb); c.appendChild(hz);
+    const ez=document.createElement('div'); ez.className='earth-zone';
+    for(let i=0;i<4;i++){
+      const eb=document.createElement('div');
+      eb.className='bead earth'+((4-i)<=col.earth?' active':'');
+      const bn=4-i;
+      eb.onclick=()=>{exState[ci].earth=exState[ci].earth>=bn?bn-1:bn;buildExSoroban();};
+      ez.appendChild(eb);
+    }
+    c.appendChild(ez); el.appendChild(c);
+  });
+  const ll=document.getElementById('ep-col-labels'); ll.innerHTML='';
+  EX_LBL.forEach(l=>{
+    const s=document.createElement('span');
+    s.style.cssText='width:30px;text-align:center;display:inline-block;font-size:9px;color:rgba(200,144,90,.6);font-weight:700;font-family:Noto Serif JP,serif;letter-spacing:1px;';
+    s.textContent=l; ll.appendChild(s);
+  });
+  const val=exState.reduce((t,c,i)=>t+(c.heaven*5+c.earth)*EX_PV[i],0);
+  const vn=document.getElementById('ep-val-n');
+  vn.textContent=val.toLocaleString();
+  vn.style.color=val>0?'#e0c080':'rgba(200,144,90,.3)';
+}
+function resetExAbacus(){exState=Array.from({length:EX_COLS},()=>({heaven:0,earth:0}));buildExSoroban();}
+function verifyEx(){
+  const ex=session[exIdx];
+  const ua=exState.reduce((t,c,i)=>t+(c.heaven*5+c.earth)*EX_PV[i],0);
+  const ok=ua===ex.a;
+  if(ok){correct++;xp+=10;}
+  showEpView('result');
+  document.getElementById('ep-res-icon').textContent=ok?'✅':'❌';
+  document.getElementById('ep-res-title').textContent=ok?'¡Correcto!':'Casi...';
+  document.getElementById('ep-res-desc').textContent=ok
+    ?`${ex.op.replace('\n',' ')} = ${ex.a}. ¡Perfecto!`
+    :`La respuesta es ${ex.a}. Pusiste ${ua} en el ábaco.`;
+  document.getElementById('ep-res-xp').textContent=ok?'+10 XP':'Sin XP esta vez';
+}
+function nextEx(){
+  exIdx++;
+  if(exIdx>=session.length){
+    showEpView('done');
+    const pct=Math.round(correct/session.length*100);
+    document.getElementById('ep-done-stats').innerHTML=`
+      <div class="ep-sbox"><div class="v">${correct}/${session.length}</div><div class="l">Correctas</div></div>
+      <div class="ep-sbox"><div class="v" style="color:var(--gold)">${xp}</div><div class="l">XP ganados</div></div>
+      <div class="ep-sbox"><div class="v">${pct}%</div><div class="l">Precisión</div></div>
+      <div class="ep-sbox"><div class="v">${correct>=4?'🌸':correct>=2?'⭐':'💪'}</div><div class="l">${correct>=4?'¡Excelente!':correct>=2?'Bien hecho':'Sigue así'}</div></div>
+    `;
+  } else {
+    updateDots(); showEpView('active'); renderEx();
+  }
+}
+function closeEx(){showEpView('idle');}
+
+// Compat aliases
+function startExerciseSession(t){startEx(t);}
+
+// INIT
+buildSoroban();
+showEpView('idle');
+</script>
+</body>
+</html>

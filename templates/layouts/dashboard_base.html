@@ -1,0 +1,15 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dash-main" style="padding: 40px; width: 100%;">
+    {% block dash_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    lucide.createIcons();
+    {% block dash_js %}{% endblock %}
+</script>
+{% endblock %}

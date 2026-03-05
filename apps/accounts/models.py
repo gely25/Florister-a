@@ -16,8 +16,25 @@ class User(AbstractUser):
         default=CUSTOMER
     )
 
-    def is_seller(self):
-        return self.role == self.SELLER
+    def save(self, *args, **kwargs):
+        if self.is_staff or self.is_superuser:
+            self.role = self.SELLER
+        super().save(*args, **kwargs)
 
+    @property
+    def display_role(self):
+        if self.is_superuser:
+            return "Administrador"
+        if self.is_staff:
+            return "Vendedor"
+        return "Cliente"
+
+    @property
+    def is_seller(self):
+        """Only the shop owner (staff) is the seller."""
+        return self.is_staff
+
+    @property
     def is_customer(self):
-        return self.role == self.CUSTOMER
+        """Everyone else who registers is a customer."""
+        return not self.is_staff and self.role == self.CUSTOMER

@@ -1,0 +1,12 @@
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440001' WHERE id = 4;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440002' WHERE id = 5;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440003' WHERE id = 3;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440004' WHERE id = 7;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440005' WHERE id = 1;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440006' WHERE id = 10;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440007' WHERE id = 13;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440008' WHERE id = 12;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440009' WHERE id = 8;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440010' WHERE id = 2;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440011' WHERE id = 11;
+UPDATE orders_order SET tracking_token = '550e8400-e29b-41d4-a716-446655440012' WHERE id = 6;

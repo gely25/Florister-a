@@ -1,0 +1,44 @@
+{% extends 'layouts/dashboard_base.html' %}
+
+{% block title %}Gestión de Ramos — Sisart{% endblock %}
+
+{% block dash_content %}
+<header class="mb-5" style="margin-bottom: 40px;">
+    <h1 style="font-family: var(--serif); font-style: italic; color: var(--text);">Ramos Diseñados</h1>
+    <p style="color: var(--muted);">Listado de todos los ramos guardados/pedidos por los clientes.</p>
+</header>
+
+<div style="background: white; border-radius: 16px; border: 1px solid var(--blush); overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="background: var(--rose-lt); border-bottom: 1px solid var(--blush);">
+                <th style="padding: 16px; font-weight: 600;">ID</th>
+                <th style="padding: 16px; font-weight: 600;">Fecha</th>
+                <th style="padding: 16px; font-weight: 600;">Tamaño</th>
+                <th style="padding: 16px; font-weight: 600;">Precio Total</th>
+                <th style="padding: 16px; font-weight: 600;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bouquet in bouquets %}
+            <tr style="border-bottom: 1px solid #f9f0f0;">
+                <td style="padding: 16px;">#{{ bouquet.id }}</td>
+                <td style="padding: 16px;">{{ bouquet.created_at|date:"d M Y, H:i" }}</td>
+                <td style="padding: 16px;"><span style="text-transform: capitalize;">{{ bouquet.size.name }}</span></td>
+                <td style="padding: 16px; font-weight: 700; color: var(--rose);">${{ bouquet.total_price|floatformat:2 }}</td>
+                <td style="padding: 16px;">
+                    <div style="display: flex; gap: 12px;">
+                        <a href="{% url 'bouquet:bouquet_detail' bouquet.pk %}" style="color: var(--text); font-weight: 600; font-size: 0.85rem; text-decoration: none;">Ver Detalle</a>
+                        <a href="{% url 'bouquet:bouquet_delete' bouquet.pk %}" style="color: #ef4444;"><i data-lucide="trash-2" style="width: 18px;"></i></a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="padding: 40px; text-align: center; color: var(--muted);">No hay ramos registrados aún.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

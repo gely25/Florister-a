@@ -12,10 +12,9 @@
             --accent: #e8637a;
             --border: #f0e0e0;
         }
-        /* Override base background for this page if needed, or keep base.html cream */
         .login-wrap {
             display: flex; justify-content: center; align-items: center;
-            min-height: calc(100vh - 68px - 140px); /* Adjust for nav and footer */
+            min-height: calc(100vh - 68px - 140px);
             padding: 40px 20px;
         }
         .login-card {
@@ -131,8 +130,9 @@
         }
     </style>
 {% endblock %}
-</head>
-{% block content %}
+
+{% block sidebar_layout %}
+    {% block content %}
 <div class="login-wrap">
     <div class="login-card">
         <i data-lucide="flower" class="brand-icon"></i>
@@ -177,4 +177,5 @@
         </a>
     </div>
 </div>
+    {% endblock %}
 {% endblock %}
