@@ -32,10 +32,10 @@ class Flower(models.Model):
 
 class Service(models.Model):
     title = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) # Added price
     stock = models.PositiveIntegerField(default=999) # Added stock
-    icon = models.CharField(max_length=50, help_text="Emoji o clase de icono (ej: 🧸, 💬)")
+    icon = models.CharField(max_length=50, help_text="Emoji o clase de icono (ej: 🧸, 💬)", blank=True, null=True)
     image = models.ImageField(upload_to='services/', null=True, blank=True)
     is_active = models.BooleanField(default=True) # Added is_active
     order = models.PositiveIntegerField(default=0)

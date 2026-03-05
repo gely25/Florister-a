@@ -84,13 +84,13 @@ class ServiceListView(LoginRequiredMixin, SellerRequiredMixin, ListView):
 
 class ServiceCreateView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
     model = Service
-    fields = ['title', 'description', 'price', 'stock', 'icon', 'image', 'is_active', 'order']
+    fields = ['title', 'description', 'price', 'stock', 'image', 'is_active']
     template_name = 'catalog/service_form.html'
     success_url = reverse_lazy('catalog:service_list')
 
 class ServiceUpdateView(LoginRequiredMixin, SellerRequiredMixin, UpdateView):
     model = Service
-    fields = ['title', 'description', 'price', 'stock', 'icon', 'image', 'is_active', 'order']
+    fields = ['title', 'description', 'price', 'stock', 'image', 'is_active']
     template_name = 'catalog/service_form.html'
     success_url = reverse_lazy('catalog:service_list')
 

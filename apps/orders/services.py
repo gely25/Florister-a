@@ -97,10 +97,8 @@ def create_order(request, *, user=None, guest_data=None, size_code, flowers_data
 
     # 6. Generate WhatsApp Message
     whatsapp_message_text = _generate_whatsapp_message(request, order)
-    whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', '573000000000')
-    whatsapp_url = f"https://wa.me/{whatsapp_number}?text={quote(whatsapp_message_text)}"
 
-    return order, whatsapp_url # Changed to return whatsapp_url instead of whatsapp_message_text
+    return order, whatsapp_message_text 
 
 def _calculate_best_discount(bouquet, coupon_code):
     from django.utils import timezone
@@ -224,6 +222,25 @@ def _generate_bouquet_image_pillow(bouquet, tracking_token, wrap_data=None):
             if not os.path.exists(img_path): continue
             
             f_img = Image.open(img_path).convert('RGBA')
+            
+            # Intelligent Stem Hiding (Gradient Mask)
+            # Replicates CSS: mask-image: linear-gradient(to bottom, black 35%, transparent 68%)
+            w, h = f_img.size
+            # Create a 1-pixel wide mask and resize it to full width
+            col_mask = Image.new('L', (1, h), 255)
+            for y in range(h):
+                if y < 0.35 * h:
+                    alpha = 255
+                elif y > 0.68 * h:
+                    alpha = 0
+                else:
+                    ratio = (y - 0.35 * h) / (0.68 * h - 0.35 * h)
+                    alpha = int(255 * (1 - ratio))
+                col_mask.putpixel((0, y), alpha)
+            
+            mask = col_mask.resize((w, h), Image.NEAREST)
+            f_img.putalpha(ImageChops.multiply(f_img.getchannel('A'), mask))
+
             base_size = 200
             scaled_size = int(base_size * float(item.scale) * (W / 400))
             scaled_size = max(30, min(scaled_size, W))

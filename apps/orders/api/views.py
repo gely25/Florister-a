@@ -44,6 +44,8 @@ class OrderCreateView(View):
         except ValidationError as e:
             return JsonResponse({'error': str(e.message) if hasattr(e, 'message') else str(e)}, status=400)
         except Exception as e:
-            return JsonResponse({'error': 'Error interno del servidor'}, status=500)
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': f'Error interno: {str(e)}'}, status=500)
 
 

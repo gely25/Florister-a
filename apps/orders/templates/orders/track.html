@@ -38,12 +38,12 @@
         .t-total { font-size: 18px; color: var(--rose); font-weight: 700; }
         
         .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-        .status-pending { background: #fee2e2; color: #991b1b; }
-        .status-confirmed { background: #fdf0f0; color: #c97d7d; }
-        .status-preparing { background: #fef3c7; color: #92400e; }
-        .status-ready { background: #dcfce7; color: #166534; }
-        .status-delivered { background: #f0f0f0; color: #666; }
-        .status-cancelled { background: #000; color: #fff; }
+        .status-pending { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; }
+        .status-confirmed { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .status-preparing { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .status-ready { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .status-delivered { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+        .status-cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         
         .btn-back { display: inline-block; padding: 14px 28px; background: var(--rose); color: #fff; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 1px; transition: all 0.3s; text-transform: uppercase; font-family: var(--sans); }
         .btn-back:hover { background: var(--rose-dk); box-shadow: 0 5px 15px rgba(201, 125, 125, 0.3); transform: translateY(-1px); }
@@ -152,7 +152,7 @@
             <h1 class="t-title">Seguimiento de Pedido</h1>
             <p class="t-subtitle">Ingresa tu código de seguimiento (token) para ver el estado de tu ramo.</p>
             
-            <form method="POST" action="{% url 'orders:track_order_empty' %}" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+            <form method="POST" action="{% url 'orders:track_search' %}" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
                 {% csrf_token %}
                 <input type="text" name="token" placeholder="Ej: A72XQ..." required 
                        style="padding: 14px; border-radius: 8px; border: 1.5px solid var(--blush); font-family: inherit; font-size: 1rem; text-align: center; text-transform: uppercase;">

@@ -38,7 +38,7 @@
                     </span>
                 </td>
                 <td style="padding: 16px;">
-                    <form action="{% url 'orders:status_update' order.pk %}" method="post" style="display: flex; gap: 8px;">
+                    <form action="{% url 'orders:update_status' order.pk %}" method="post" style="display: flex; gap: 8px;">
                         {% csrf_token %}
                         <select name="status" onchange="this.form.submit()" style="padding: 6px; border: 1px solid var(--blush); border-radius: 8px; font-size: 0.8rem;">
                             {% for code, name in order.STATUS_CHOICES %}
@@ -61,11 +61,12 @@
 </div>
 
 <style>
-    .status-pending   { background: #fef3c7; color: #92400e; }
-    .status-confirmed { background: #dcfce7; color: #166534; }
-    .status-preparing { background: #e0f2fe; color: #0369a1; }
-    .status-ready     { background: #f3e8ff; color: #6b21a8; }
-    .status-delivered { background: #d1fae5; color: #065f46; }
-    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    /* Pastel Status Colors */
+    .status-pending   { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; } /* Pastel Pink */
+    .status-confirmed { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; } /* Pastel Green */
+    .status-preparing { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; } /* Pastel Yellow */
+    .status-ready     { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; } /* Pastel Blue */
+    .status-delivered { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; } /* Pastel Purple */
+    .status-cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; } /* Pastel Red */
 </style>
 {% endblock %}

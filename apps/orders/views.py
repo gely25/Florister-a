@@ -24,19 +24,45 @@ class OrderStatusUpdateView(LoginRequiredMixin, SellerRequiredMixin, View):
         if new_status in dict(Order.STATUS_CHOICES):
             order.status = new_status
             order.save()
-            return JsonResponse({
-                'status': 'success', 
-                'message': f"Estado actualizado a {order.get_status_display()}."
-            })
-        return JsonResponse({'status': 'error', 'error': 'Estado no válido'}, status=400)
+            messages.success(request, f"Estado del pedido #{order.id} actualizado a {order.get_status_display()}.")
+        else:
+            messages.error(request, 'Estado no válido.')
+            
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            return redirect(referer)
+        return redirect('orders:management_list')
 
 class OrderHistoryView(LoginRequiredMixin, ListView):
     model = Order
     template_name = 'orders/history.html'
     context_object_name = 'orders'
+    paginate_by = 12
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user).order_by('-created_at')
+        queryset = Order.objects.filter(user=self.request.user).order_by('-created_at')
+        
+        # Search functionality
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            if search_query.isdigit():
+                queryset = queryset.filter(id=search_query)
+            else:
+                queryset = queryset.filter(tracking_token__icontains=search_query)
+                
+        # Status filtering
+        status_filter = self.request.GET.get('status', '').strip()
+        if status_filter and status_filter in dict(Order.STATUS_CHOICES):
+            queryset = queryset.filter(status=status_filter)
+            
+        return queryset
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        context['current_status'] = self.request.GET.get('status', '')
+        context['status_choices'] = Order.STATUS_CHOICES
+        return context
 
 class OrderDetailView(DetailView):
     model = Order
@@ -70,10 +96,20 @@ class TrackOrderSearchView(View):
         token = request.GET.get('token')
         if token:
             return redirect('orders:track', token=token.strip())
+        
+        # Authenticated users manage orders in their history
+        if request.user.is_authenticated:
+            return redirect('orders:history')
+            
         return render(request, 'orders/track.html')
 
     def post(self, request):
         token = request.POST.get('token')
         if token:
             return redirect('orders:track', token=token.strip())
+            
+        # Authenticated users manage orders in their history
+        if request.user.is_authenticated:
+            return redirect('orders:history')
+            
         return render(request, 'orders/track.html', {'error': 'Por favor ingresa un código válido.'})

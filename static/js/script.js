@@ -333,10 +333,21 @@ function resetSelected() { if (!selected || !states.has(selected)) return; const
 function setWrapColor(color, el) { document.querySelectorAll('.wrap-part').forEach(w => { w.style.setProperty('--wc', color); }); document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active')); if (el) el.classList.add('active'); }
 function removeSelected() { if (!selected || !states.has(selected)) return; const s = states.get(selected); total -= s.data.p; flowers = flowers.filter(f => f.el !== selected); states.delete(selected); selected.remove(); selected = null; const controls = document.getElementById('controls'); if (controls) controls.classList.remove('show'); updateUI(); }
 
+let isProcessing = false;
+
 function finishOrder() {
+    if (isProcessing) return;
     if (selected) { selected.classList.remove('selected'); selected = null; }
     const controls = document.getElementById('controls');
     if (controls) controls.classList.remove('show');
+
+    const finishBtn = document.getElementById('finishBtn');
+    if (finishBtn) {
+        finishBtn.innerText = 'PROCESANDO...';
+        finishBtn.style.opacity = '0.7';
+        finishBtn.style.pointerEvents = 'none';
+    }
+    isProcessing = true;
 
     if (typeof IS_AUTHENTICATED !== 'undefined' && IS_AUTHENTICATED) {
         processOrder(false); // Logged in
@@ -429,26 +440,41 @@ async function processOrder(isGuest, viaWhatsapp = false) {
             document.getElementById('doneOv').classList.add('show');
 
             setTimeout(() => {
-                if (isGuest) {
-                    if (viaWhatsapp && result.whatsapp_message) {
-                        window.location.href = `https://wa.me/593985991149?text=${encodeURIComponent(result.whatsapp_message)}`;
+                if (!IS_AUTHENTICATED) {
+                    if (result.whatsapp_message) {
+                        // The service returns raw text, we encode it here for guests
+                        const waNumber = '593985991149';
+                        window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(result.whatsapp_message)}`;
                     } else {
-                        // Just forward them to the tracking view stub which outputs json for now
-                        // Alternatively they can be redirected to a beautiful tracking page later
                         window.location.href = `/orders/track/${result.tracking_token || 'guest'}/`;
                     }
                 } else {
-                    window.location.href = '/dashboard/orders/';
+                    // Authenticated users go to their history
+                    window.location.href = '/orders/history/';
                 }
             }, 2000);
         } else {
             alert('Error al crear el pedido: ' + result.error);
             isFinal = false;
+            isProcessing = false;
+            const finishBtn = document.getElementById('finishBtn');
+            if (finishBtn) {
+                finishBtn.innerText = 'FINALIZAR DISEÑO ✓';
+                finishBtn.style.opacity = '1';
+                finishBtn.style.pointerEvents = 'auto';
+            }
         }
     } catch (e) {
         console.error(e);
         alert('Ocurrió un error de conexión.');
         isFinal = false;
+        isProcessing = false;
+        const finishBtn = document.getElementById('finishBtn');
+        if (finishBtn) {
+            finishBtn.innerText = 'FINALIZAR DISEÑO ✓';
+            finishBtn.style.opacity = '1';
+            finishBtn.style.pointerEvents = 'auto';
+        }
     }
 
     if (isGuest) {
