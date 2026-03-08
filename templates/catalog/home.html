@@ -3,6 +3,8 @@
 
 {% block extra_head %}
 <style>
+html { scroll-behavior: smooth; }
+#ramos-catalog, #grid-servicios, #personaliza-banner { scroll-margin-top: 90px; }
 /* ── HERO ── */
 .hero {
   position: relative;
@@ -698,7 +700,7 @@
         <div class="card-body">
             <div class="card-name" style="font-family: var(--serif); font-weight: 700; margin-bottom: 8px;">{{ bouquet.name }}</div>
             <div class="card-price" style="color: var(--rose); font-weight: 700; font-size: 1.1rem; margin-bottom: 12px;">${{ bouquet.price|floatformat:2 }}</div>
-            <button class="card-info-btn" onclick="openProductModal('bouquet',{{ bouquet.id }},'{{ bouquet.name|escapejs }}','Ramo Catálogo','${{ bouquet.price|floatformat:2 }}','{% if bouquet.image %}{{ bouquet.image.url }}{% endif %}','{{ bouquet.description|escapejs }}','','{{ bouquet.stock }}')">
+            <button class="card-info-btn" onclick="openProductModal('predesigned',{{ bouquet.id }},'{{ bouquet.name|escapejs }}','Ramo Catálogo','${{ bouquet.price|floatformat:2 }}','{% if bouquet.image %}{{ bouquet.image.url }}{% endif %}','{{ bouquet.description|escapejs }}','','{{ bouquet.stock }}')">
               Más información
             </button>
         </div>
@@ -865,9 +867,11 @@
 
     <div class="services-grid reveal d2">
       {% for service in services %}
-      <div class="service-card" onclick="openStaticService('{{ service.title|escapejs }}', '{{ service.description|escapejs }}', '{{ service.icon|escapejs }}')">
+      <div class="service-card" onclick="openStaticService('{{ service.title|escapejs }}', '{{ service.description|escapejs }}', '{{ service.icon|escapejs }}', '{% if service.image_icon %}{{ service.image_icon.url }}{% endif %}')">
         <div class="service-emoji">
-          {% if service.icon == '🧸' %}
+          {% if service.image_icon %}
+            <img src="{{ service.image_icon.url }}" alt="{{ service.title }}">
+          {% elif service.icon == '🧸' %}
             <img src="https://em-content.zobj.net/source/apple/354/teddy-bear_1f9f8.png" alt="Icon">
           {% elif service.icon == '✏️' %}
             <img src="https://em-content.zobj.net/source/apple/354/pencil_270f-fe0f.png" alt="Icon">
@@ -1362,7 +1366,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── STATIC SERVICES LOGIC ──
-function openStaticService(title, description, icon) {
+function openStaticService(title, description, icon, imageUrl) {
   const iconMap = {
     '🧸': 'https://em-content.zobj.net/source/apple/354/teddy-bear_1f9f8.png',
     '✏️': 'https://em-content.zobj.net/source/apple/354/pencil_270f-fe0f.png',
@@ -1371,7 +1375,9 @@ function openStaticService(title, description, icon) {
   };
 
   let iconHtml = `<span>${icon || '✨'}</span>`;
-  if (iconMap[icon]) {
+  if (imageUrl) {
+    iconHtml = `<img src="${imageUrl}" style="width:100px;height:100px;object-fit:contain;">`;
+  } else if (iconMap[icon]) {
     iconHtml = `<img src="${iconMap[icon]}" style="width:100px;height:100px;object-fit:contain;">`;
   }
 

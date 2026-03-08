@@ -34,6 +34,7 @@ class Service(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=50, help_text="Emoji o clase de icono (ej: 🧸, 💬)", blank=True, null=True)
+    image_icon = models.ImageField(upload_to='service_icons/', null=True, blank=True, help_text="Imagen 3D o personaliza para el servicio")
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
