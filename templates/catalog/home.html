@@ -31,10 +31,12 @@
   font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3.6rem);
   font-style: italic; font-weight: 400; color: white;
   line-height: 1.15; max-width: 520px;
+  transition: all 0.6s var(--ease);
 }
 .hero-sub {
   font-size: 1rem; color: rgba(255,255,255,0.82);
   max-width: 380px; line-height: 1.7;
+  transition: all 0.6s var(--ease);
 }
 .hero-ctas { display: flex; gap: 12px; }
 .hero-btn {
@@ -397,10 +399,11 @@
 }
 .bside-dots { display: flex; gap: 7px; align-items: center; }
 .bside-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #d8b8b8; transition: all 0.3s; cursor: pointer;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(0,0,0,0.15); transition: all 0.3s; cursor: pointer;
 }
-.bside-dot.active { background: var(--rose); transform: scale(1.4); }
+.bside-dot:hover { background: rgba(0,0,0,0.3); transform: scale(1.1); }
+.bside-dot.active { width: 24px; border-radius: 10px; background: var(--rose); transform: scale(1); }
 
 /* Center */
 .bcenter { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0; }
@@ -419,16 +422,35 @@
 }
 .bcenter-btn:hover { background: var(--text); color: white; }
 
-/* Petal SVG keyframes */
-@keyframes petalFallTop    { 0%{opacity:1;transform:rotate(0deg)   scale(1) translate(0,0)}   100%{opacity:0;transform:rotate(40deg)  scale(0.3) translate(18px,55px)} }
-@keyframes petalFallRight  { 0%{opacity:1;transform:rotate(90deg)  scale(1) translate(0,0)}   100%{opacity:0;transform:rotate(138deg) scale(0.3) translate(18px,55px)} }
-@keyframes petalFallBottom { 0%{opacity:1;transform:rotate(180deg) scale(1) translate(0,0)}   100%{opacity:0;transform:rotate(222deg) scale(0.3) translate(18px,55px)} }
-@keyframes petalFallLeft   { 0%{opacity:1;transform:rotate(270deg) scale(1) translate(0,0)}   100%{opacity:0;transform:rotate(312deg) scale(0.3) translate(18px,55px)} }
-@keyframes petalGrowTop    { 0%{opacity:0;transform:rotate(0deg)   scale(0)} 100%{opacity:1;transform:rotate(0deg)   scale(1)} }
-@keyframes petalGrowRight  { 0%{opacity:0;transform:rotate(90deg)  scale(0)} 100%{opacity:1;transform:rotate(90deg)  scale(1)} }
-@keyframes petalGrowBottom { 0%{opacity:0;transform:rotate(180deg) scale(0)} 100%{opacity:1;transform:rotate(180deg) scale(1)} }
-@keyframes petalGrowLeft   { 0%{opacity:0;transform:rotate(270deg) scale(0)} 100%{opacity:1;transform:rotate(270deg) scale(1)} }
-.fc-petal { transform-origin: 0px 0px; }
+/* FALL */
+@keyframes petalFallTop {
+  0%   { opacity:1;   transform:rotate(0deg)   scale(1)    translate(0px,  0px); }
+  30%  { opacity:0.8; transform:rotate(15deg)  scale(0.88) translate(6px, -8px); }
+  100% { opacity:0;   transform:rotate(40deg)  scale(0.3)  translate(18px,55px); }
+}
+@keyframes petalFallRight {
+  0%   { opacity:1;   transform:rotate(90deg)  scale(1)    translate(0px,  0px); }
+  30%  { opacity:0.8; transform:rotate(108deg) scale(0.88) translate(6px, -8px); }
+  100% { opacity:0;   transform:rotate(138deg) scale(0.3)  translate(18px,55px); }
+}
+@keyframes petalFallBottom {
+  0%   { opacity:1;   transform:rotate(180deg) scale(1)    translate(0px,  0px); }
+  30%  { opacity:0.8; transform:rotate(196deg) scale(0.88) translate(6px, -8px); }
+  100% { opacity:0;   transform:rotate(222deg) scale(0.3)  translate(18px,55px); }
+}
+@keyframes petalFallLeft {
+  0%   { opacity:1;   transform:rotate(270deg) scale(1)    translate(0px,  0px); }
+  30%  { opacity:0.8; transform:rotate(286deg) scale(0.88) translate(6px, -8px); }
+  100% { opacity:0;   transform:rotate(312deg) scale(0.3)  translate(18px,55px); }
+}
+
+/* GROW (sequential staggered) */
+@keyframes petalGrowTop    { 0%{opacity:0;transform:rotate(0deg)  scale(0)}  65%{opacity:1;transform:rotate(0deg)  scale(1.18)} 100%{opacity:1;transform:rotate(0deg)  scale(1)} }
+@keyframes petalGrowRight  { 0%{opacity:0;transform:rotate(90deg) scale(0)}  65%{opacity:1;transform:rotate(90deg) scale(1.18)} 100%{opacity:1;transform:rotate(90deg) scale(1)} }
+@keyframes petalGrowBottom { 0%{opacity:0;transform:rotate(180deg)scale(0)}  65%{opacity:1;transform:rotate(180deg)scale(1.18)} 100%{opacity:1;transform:rotate(180deg)scale(1)} }
+@keyframes petalGrowLeft   { 0%{opacity:0;transform:rotate(270deg)scale(0)}  65%{opacity:1;transform:rotate(270deg)scale(1.18)} 100%{opacity:1;transform:rotate(270deg)scale(1)} }
+
+.fc-petal { transform-origin: 0 0; }
 
 /* ── SERVICES ── */
 .services-bg { background: white; }
@@ -437,6 +459,16 @@
   display: flex; gap: 20px; padding: 28px;
   background: white; border-radius: var(--radius); border: 1px solid var(--blush);
   transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+  cursor: pointer;
+}
+.service-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(240,168,168,0.15); }
+
+.service-emoji {
+  width: 60px; height: 60px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.service-emoji img {
+  width: 100%; height: 100%; object-fit: contain;
 }
 .service-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(180,100,100,0.10); }
 .service-thumb {
@@ -750,6 +782,7 @@
   </div>
 </div>
 
+{% if featured_flowers|length >= 4 %}
 <!-- FAVORITOS -->
 <div class="section">
   <div class="section-head reveal">
@@ -789,6 +822,7 @@
     </button>
   </div>
 </div>
+{% endif %}
 
 
 <!-- SERVICIOS -->
@@ -829,15 +863,25 @@
       </div>
     </div>
 
-    <!-- Services Grid (Prototype Design) -->
     <div class="services-grid reveal d2">
       {% for service in services %}
       <div class="service-card" onclick="openStaticService('{{ service.title|escapejs }}', '{{ service.description|escapejs }}', '{{ service.icon|escapejs }}')">
-        <div class="service-emoji">{{ service.icon|default:'✨' }}</div>
+        <div class="service-emoji">
+          {% if service.icon == '🧸' %}
+            <img src="https://em-content.zobj.net/source/apple/354/teddy-bear_1f9f8.png" alt="Icon">
+          {% elif service.icon == '✏️' %}
+            <img src="https://em-content.zobj.net/source/apple/354/pencil_270f-fe0f.png" alt="Icon">
+          {% elif service.icon == '🚚' %}
+            <img src="https://em-content.zobj.net/source/apple/354/delivery-truck_1f69a.png" alt="Icon">
+          {% elif service.icon == '💬' %}
+            <img src="https://em-content.zobj.net/source/apple/354/speech-balloon_1f4ac.png" alt="Icon">
+          {% else %}
+            <span>{{ service.icon|default:'✨' }}</span>
+          {% endif %}
+        </div>
         <div class="service-content">
           <h3>{{ service.title }}</h3>
           <p>{{ service.description|truncatewords:15 }}</p>
-         
         </div>
       </div>
       {% endfor %}
@@ -973,54 +1017,193 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ── BANNER ANIMATION ── */
+/* ── BANNER ANIMATION (Sequential Logic from index.html) ── */
 let bIndex = 0;
 const totalB = 4;
 const focusColors = ['#f0a8b0', '#b0d0a0', '#e0c080', '#c0a0e0'];
 
-function runCycle() {
+const FALL_DURATION   = 850;
+const PETAL_GAP       = 1600;
+const PAUSE_AFTER_ALL = 600;
+const GROW_STAGGER    = 150;
+const GROW_DURATION   = 520;
+
+const PETAL_DIRS = ['Top', 'Right', 'Bottom', 'Left'];
+const PETAL_IDLE_TRANSFORMS = [
+  'rotate(0deg)', 'rotate(90deg)', 'rotate(180deg)', 'rotate(270deg)'
+];
+
+let activeBannerTimers = [];
+const scheduleBanner = (fn, delay) => { 
+  const id = setTimeout(fn, delay); 
+  activeBannerTimers.push(id); 
+};
+const clearBannerTimers = () => { 
+  activeBannerTimers.forEach(clearTimeout); 
+  activeBannerTimers = []; 
+};
+
+function updateBannerUI(idx) {
   const btrackL = document.getElementById('btrack-left');
   const btrackR = document.getElementById('btrack-right');
   const bdotsL = document.querySelectorAll('#bdots-left .bside-dot');
   const bdotsR = document.querySelectorAll('#bdots-right .bside-dot');
-  const fcCenter = document.querySelector('#fc-flower circle');
   if (!btrackL || !btrackR) return;
 
-  // 1. Animar caída de pétalos
-  const dirs = ['Top', 'Right', 'Bottom', 'Left'];
-  for(let i=0; i<4; i++) {
-    const p = document.getElementById('fcP' + i);
-    if(p) {
-      p.style.animation = 'none';
-      void p.offsetWidth; // trigger reflow
-      p.style.animation = `petalFall${dirs[i]} 0.6s forwards`;
-    }
-  }
-
-  // 2. Mover carruseles laterales
-  bIndex = (bIndex + 1) % totalB;
-  btrackL.style.transform = `translateX(-${bIndex * 220}px)`;
-  btrackR.style.transform = `translateX(-${bIndex * 220}px)`;
-  
-  bdotsL.forEach((d, i) => d.classList.toggle('active', i === bIndex));
-  bdotsR.forEach((d, i) => d.classList.toggle('active', i === bIndex));
-
-  // 3. Crecer pétalos con nuevo color depués de la caída
-  setTimeout(() => {
-    if(fcCenter) fcCenter.setAttribute('fill', focusColors[bIndex]);
-    for(let i=0; i<4; i++) {
-      const p = document.getElementById('fcP' + i);
-      if(p) {
-        p.style.animation = 'none';
-        void p.offsetWidth;
-        p.style.animation = `petalGrow${dirs[i]} 0.5s forwards`;
-      }
-    }
-  }, 600);
-
-  // 4. Se eliminó la rotación del contenedor SVG que causaba que los pétalos cayeran en direcciones incorrectas
+  btrackL.style.transform = `translateX(-${idx * 220}px)`;
+  btrackR.style.transform = `translateX(-${idx * 220}px)`;
+  bdotsL.forEach((d, i) => d.classList.toggle('active', i === idx));
+  bdotsR.forEach((d, i) => d.classList.toggle('active', i === idx));
 }
 
-setInterval(runCycle, 4000);
+function petalFalling(i) {
+  const el = document.getElementById('fcP' + i);
+  if(!el) return;
+  el.style.animation = `petalFall${PETAL_DIRS[i]} ${FALL_DURATION}ms cubic-bezier(0.4,0,0.85,1) forwards`;
+}
+
+function petalFallen(i) {
+  const el = document.getElementById('fcP' + i);
+  if(!el) return;
+  el.style.animation = 'none';
+  el.style.opacity = '0';
+  void el.offsetWidth;
+}
+
+function petalGrowing(i) {
+  const el = document.getElementById('fcP' + i);
+  if(!el) return;
+  el.style.animation = 'none';
+  el.style.opacity = '0';
+  void el.offsetWidth;
+  el.style.animation = `petalGrow${PETAL_DIRS[i]} ${GROW_DURATION}ms cubic-bezier(0.34,1.56,0.64,1) forwards`;
+}
+
+function petalIdle(i) {
+  const el = document.getElementById('fcP' + i);
+  if(!el) return;
+  el.style.animation = 'none';
+  el.style.opacity = '1';
+  el.style.transform = PETAL_IDLE_TRANSFORMS[i];
+  void el.offsetWidth;
+}
+
+function runBannerCycle() {
+  clearBannerTimers();
+  const fcCenter = document.querySelector('#fc-flower circle');
+
+  // Phase 1 - Petals fall one by one, advance carousel exactly at the same time
+  for (let i = 0; i < 4; i++) {
+    const t = i * PETAL_GAP;
+    scheduleBanner(() => {
+      petalFalling(i);
+      bIndex = (i + 1) < totalB ? i + 1 : 0;
+      updateBannerUI(bIndex);
+    }, t);
+    scheduleBanner(() => {
+      petalFallen(i);
+    }, t + FALL_DURATION);
+  }
+
+  // Phase 2 - Regrow staggered
+  const regrowStart = 4 * PETAL_GAP + FALL_DURATION + PAUSE_AFTER_ALL;
+  for (let i = 0; i < 4; i++) {
+    scheduleBanner(() => petalGrowing(i), regrowStart + i * GROW_STAGGER);
+    scheduleBanner(() => petalIdle(i), regrowStart + i * GROW_STAGGER + GROW_DURATION);
+  }
+
+  // Phase 3 - Loop
+  const totalCycle = regrowStart + 4 * GROW_STAGGER + GROW_DURATION + 700;
+  scheduleBanner(runBannerCycle, totalCycle);
+}
+
+// Start cycle
+scheduleBanner(runBannerCycle, 600);
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Helpers
+  const setupDots = (selector, callback) => {
+    document.querySelectorAll(selector).forEach((dot, idx) => {
+      dot.addEventListener('click', () => {
+        callback(idx);
+      });
+    });
+  };
+
+  const jumpToBannerIndex = (idx) => {
+    clearBannerTimers();
+    bIndex = idx;
+    updateBannerUI(bIndex);
+    
+    // Reset flower
+    for(let i=0; i<4; i++) {
+        petalIdle(i);
+    }
+    
+    // Restart cycle after a delay
+    scheduleBanner(runBannerCycle, 5000);
+  };
+
+  setupDots('#bdots-left .bside-dot', jumpToBannerIndex);
+  setupDots('#bdots-right .bside-dot', jumpToBannerIndex);
+
+  // ── HERO CAROUSEL ──
+  const heroSlides = [
+    {
+      title: 'Detalles que<br>duran para siempre',
+      sub: 'Ramos únicos, arreglos personalizados y flores frescas seleccionadas para cada momento especial.'
+    },
+    {
+      title: 'Ramos con<br>Alma y Corazón',
+      sub: 'Creamos experiencias florales diseñadas a tu medida con la frescura de lo natural.'
+    },
+    {
+      title: 'Momentos para<br>el Recuerdo',
+      sub: 'Sorprende a quienes más quieres con detalles que expresan todo lo que sientes.'
+    }
+  ];
+
+  let hIndex = 0;
+  const hDots = document.querySelectorAll('.hero-dot');
+  const hTitle = document.querySelector('.hero-title');
+  const hSub = document.querySelector('.hero-sub');
+  let hInterval = setInterval(nextHero, 5000);
+
+  function goToHero(idx) {
+    hIndex = idx;
+    
+    // Animate out
+    hTitle.style.opacity = '0';
+    hTitle.style.transform = 'translateY(10px)';
+    hSub.style.opacity = '0';
+    hSub.style.transform = 'translateY(10px)';
+    
+    setTimeout(() => {
+      hTitle.innerHTML = heroSlides[hIndex].title;
+      hSub.textContent = heroSlides[hIndex].sub;
+      
+      // Animate in
+      hTitle.style.opacity = '1';
+      hTitle.style.transform = 'translateY(0)';
+      hSub.style.opacity = '1';
+      hSub.style.transform = 'translateY(0)';
+      
+      hDots.forEach((d, i) => d.classList.toggle('active', i === hIndex));
+    }, 400);
+  }
+
+  function nextHero() {
+    goToHero((hIndex + 1) % heroSlides.length);
+  }
+
+  hDots.forEach((dot, i) => {
+    dot.addEventListener('click', () => {
+      clearInterval(hInterval);
+      goToHero(i);
+      hInterval = setInterval(nextHero, 5000);
+    });
+  });
+});
 
 /* ── PRODUCT DETAIL SECTION ── */
 let _pmCurrent = null;
@@ -1180,9 +1363,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── STATIC SERVICES LOGIC ──
 function openStaticService(title, description, icon) {
-  document.getElementById('ssTitle').textContent = (icon || '✨') + ' ' + title;
+  const iconMap = {
+    '🧸': 'https://em-content.zobj.net/source/apple/354/teddy-bear_1f9f8.png',
+    '✏️': 'https://em-content.zobj.net/source/apple/354/pencil_270f-fe0f.png',
+    '🚚': 'https://em-content.zobj.net/source/apple/354/delivery-truck_1f69a.png',
+    '💬': 'https://em-content.zobj.net/source/apple/354/speech-balloon_1f4ac.png'
+  };
+
+  let iconHtml = `<span>${icon || '✨'}</span>`;
+  if (iconMap[icon]) {
+    iconHtml = `<img src="${iconMap[icon]}" style="width:100px;height:100px;object-fit:contain;">`;
+  }
+
+  document.getElementById('ssTitle').textContent = title;
   document.getElementById('ssBody').innerHTML = `
-    <div style="font-size:4rem;text-align:center;margin:12px 0 16px">${icon || '✨'}</div>
+    <div style="text-align:center;margin:12px 0 16px;display:flex;justify-content:center;">${iconHtml}</div>
     <div style="margin-bottom:22px">
       <h3 style="font-family:var(--serif);font-size:1.1rem;margin-bottom:8px">Sobre este servicio</h3>
       <p style="font-size:.9rem;color:#555;line-height:1.7;margin:0">${description}</p>
