@@ -26,8 +26,8 @@ def seller_dashboard(request):
     
     # Low Stock Alerts
     low_flowers = Flower.objects.filter(stock__lt=10).count()
-    low_services = Service.objects.filter(stock__lt=5).count()
-    total_low_stock = low_flowers + low_services
+    low_bouquets = PreDesignedBouquet.objects.filter(stock__lt=5).count()
+    total_low_stock = low_flowers + low_bouquets
 
     # Sales Data
     total_sales_today = Order.objects.filter(status='delivered', updated_at__gte=today_start).aggregate(total=Sum('final_amount'))['total'] or 0

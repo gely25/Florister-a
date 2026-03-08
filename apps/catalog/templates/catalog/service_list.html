@@ -18,10 +18,7 @@
         <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
                 <tr style="background: var(--rose-lt); border-bottom: 1px solid var(--blush);">
-                    <th style="padding: 16px; font-weight: 600;">Imagen</th>
                     <th style="padding: 16px; font-weight: 600;">Título</th>
-                    <th style="padding: 16px; font-weight: 600;">Precio</th>
-                    <th style="padding: 16px; font-weight: 600;">Stock</th>
                     <th style="padding: 16px; font-weight: 600;">Estado</th>
                     <th style="padding: 16px; font-weight: 600;">Acciones</th>
                 </tr>
@@ -29,16 +26,8 @@
             <tbody>
                 {% for service in services %}
                 <tr style="border-bottom: 1px solid #f9f0f0;">
-                    <td style="padding: 16px; width: 80px;">
-                        {% if service.image %}
-                            <img src="{{ service.image.url }}" alt="{{ service.title }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                        {% else %}
-                            <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--muted);"><i data-lucide="image" style="width: 20px;"></i></div>
-                        {% endif %}
-                    </td>
+
                     <td style="padding: 16px; font-weight: 500;">{{ service.title }}</td>
-                    <td style="padding: 16px; font-weight: 700; color: var(--rose);">${{ service.price|floatformat:2 }}</td>
-                    <td style="padding: 16px;">{{ service.stock }}</td>
                     <td style="padding: 16px;">
                         {% if service.is_active %}
                             <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Activo</span>
@@ -55,7 +44,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="padding: 40px; text-align: center; color: var(--muted);">No hay servicios registrados.</td>
+                    <td colspan="3" style="padding: 40px; text-align: center; color: var(--muted);">No hay servicios registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -25,4 +25,10 @@ urlpatterns = [
 
     # Bulk Pricing
     path('flowers/update-prices/', views.BulkPriceUpdateView.as_view(), name='price_update'),
+
+    # Portfolio
+    path('portfolio/', views.PortfolioItemListView.as_view(), name='portfolio_list'),
+    path('portfolio/add/', views.PortfolioItemCreateView.as_view(), name='portfolio_create'),
+    path('portfolio/<int:pk>/edit/', views.PortfolioItemUpdateView.as_view(), name='portfolio_update'),
+    path('portfolio/<int:pk>/delete/', views.PortfolioItemDeleteView.as_view(), name='portfolio_delete'),
 ]

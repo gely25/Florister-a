@@ -18,7 +18,8 @@ def get_menu_for_user(user):
             {'name': 'Gestión de Pedidos', 'url': reverse('orders:management_list'), 'icon': 'shopping-bag'},
             {'name': 'Inventario Flores', 'url': reverse('catalog:flower_list'), 'icon': 'flower-2'},
             {'name': 'Ramos Catálogo', 'url': reverse('catalog:predesigned_list'), 'icon': 'image'},
-            {'name': 'Otros Servicios', 'url': reverse('catalog:service_list'), 'icon': 'package'},
+            {'name': 'Otros Servicios', 'url': reverse('catalog:service_list'), 'icon': 'settings'},
+            {'name': 'Portafolio', 'url': reverse('catalog:portfolio_list'), 'icon': 'camera'},
             {'name': 'Descuentos y Promos', 'url': reverse('discounts:discount_list'), 'icon': 'tag'},
             {'name': 'Diseños Clientes', 'url': reverse('bouquet:bouquet_list'), 'icon': 'flower'},
         ]

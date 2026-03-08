@@ -33,11 +33,8 @@ class Flower(models.Model):
 class Service(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) # Added price
-    stock = models.PositiveIntegerField(default=999) # Added stock
     icon = models.CharField(max_length=50, help_text="Emoji o clase de icono (ej: 🧸, 💬)", blank=True, null=True)
-    image = models.ImageField(upload_to='services/', null=True, blank=True)
-    is_active = models.BooleanField(default=True) # Added is_active
+    is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -45,6 +42,28 @@ class Service(models.Model):
 
     def __str__(self):
         return self.title
+
+class PortfolioItem(models.Model):
+    title = models.CharField(max_length=100, blank=True, help_text="Opcional, de referencia interna")
+    image = models.ImageField(upload_to='portfolio/')
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return self.title or f"Portafolio #{self.id}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and self.order == 0:
+            last_item = PortfolioItem.objects.all().order_by('-order').first()
+            if last_item:
+                self.order = last_item.order + 1
+            else:
+                self.order = 1
+        super().save(*args, **kwargs)
 
 class PreDesignedBouquet(models.Model):
     name = models.CharField(max_length=100)

@@ -89,6 +89,19 @@
     <div class="staff-panel">
         <div class="staff-h">📍 FICHA DE PRODUCCIÓN</div>
         
+        {% if order.item_name %}
+        <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
+            {% if order.item_image %}
+                <img src="{{ order.item_image.url }}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
+            {% else %}
+                <div style="width: 60px; height: 60px; border-radius: 8px; background: #eee; display: flex; align-items: center; justify-content: center;">📦</div>
+            {% endif %}
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; display: block; margin-bottom: 4px;">{{ order.get_item_type_display|default:order.item_type|default:"Producto" }}</span>
+                <strong style="font-size: 15px; color: var(--text);">{{ order.item_name }}</strong>
+            </div>
+        </div>
+        {% else %}
         <div class="recipe-grid">
             {% for item in recipe %}
             <div class="recipe-item">
@@ -97,8 +110,11 @@
                     <span class="recipe-qty">{{ item.total }}x</span> {{ item.flower__name }}
                 </div>
             </div>
+            {% empty %}
+            <div style="font-size:13px; color:#888; grid-column: span 2;">No hay detalles de flores.</div>
             {% endfor %}
         </div>
+        {% endif %}
 
         <div class="customer-contact">
             <div class="contact-h">Cliente</div>
@@ -171,15 +187,30 @@
         </div>
     {% else %}
         <h1 class="t-title">Pedido #{{ order.id }}</h1>
-        <p class="t-subtitle">Hola <strong>{% if order.user %}{{ order.user.first_name }}{% else %}{{ order.guest_name|default:"Invitado" }}{% endif %}</strong>, gracias por tu diseño.</p>
+        <p class="t-subtitle">
+            Hola <strong>{% if order.user %}{{ order.user.first_name }}{% else %}{{ order.guest_name|default:"Invitado" }}{% endif %}</strong>, 
+            {% if order.item_name %}
+                gracias por tu pedido de <strong>{{ order.item_name }}</strong>.
+            {% else %}
+                gracias por tu diseño.
+            {% endif %}
+        </p>
 
         <div class="t-image-container">
-            {% if order.bouquet_image %}
-            <img src="{{ order.bouquet_image.url }}" alt="Diseño del Ramo" class="t-image">
+            {% if order.item_image %}
+                <img src="{{ order.item_image.url }}" alt="{{ order.item_name }}" class="t-image">
+            {% elif order.bouquet_image %}
+                <img src="{{ order.bouquet_image.url }}" alt="Diseño del Ramo" class="t-image">
+            {% elif order.item_name %}
+                <span style="color:#aaa; font-size:13px; font-style:italic;">Sin imagen disponible</span>
             {% else %}
-            <span style="color:#aaa; font-size:13px; font-style:italic;">Generando visualización...</span>
+                <span style="color:#aaa; font-size:13px; font-style:italic;">Generando visualización...</span>
             {% endif %}
         </div>
+
+        {% if order.item_description %}
+        <div style="background: #fdfdfd; border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 0.9rem; line-height: 1.6; color: #555; white-space: pre-wrap;">{{ order.item_description }}</div>
+        {% endif %}
 
         <div class="t-info">
             <div class="t-row">

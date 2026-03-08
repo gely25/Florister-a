@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .api.views import OrderCreateView
+from .api.quick_order import QuickOrderCreateView
 
 app_name = 'orders'
 
@@ -12,4 +13,5 @@ urlpatterns = [
     path('track/', views.TrackOrderSearchView.as_view(), name='track_search'),
     path('track/<str:token>/', views.OrderDetailView.as_view(), name='track'),
     path('create/', OrderCreateView.as_view(), name='create'),
+    path('quick-order/', QuickOrderCreateView.as_view(), name='quick_order'),
 ]

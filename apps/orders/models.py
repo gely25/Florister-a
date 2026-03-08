@@ -30,6 +30,12 @@ class Order(models.Model):
     tracking_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     bouquet_image = models.ImageField(upload_to='orders/bouquets/', null=True, blank=True)
     
+    # Optional fields to identify the ordered product (for quick orders like Services, Promotions)
+    item_type = models.CharField(max_length=50, null=True, blank=True)
+    item_name = models.CharField(max_length=200, null=True, blank=True)
+    item_description = models.TextField(null=True, blank=True)
+    item_image = models.ImageField(upload_to='orders/items/', null=True, blank=True)
+
     bouquet = models.OneToOneField(Bouquet, on_delete=models.CASCADE)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     

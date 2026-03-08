@@ -20,8 +20,11 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        from .models import PortfolioItem
         context['featured_flowers'] = Flower.objects.filter(is_active=True, is_featured=True)[:8]
+        context['portfolio_items'] = PortfolioItem.objects.filter(is_active=True)
         context['services'] = Service.objects.all()
+        context['predesigned_bouquets'] = PreDesignedBouquet.objects.filter(is_active=True)
         context['promotions'] = Promotion.objects.filter(is_active=True)
         return context
 
@@ -84,13 +87,13 @@ class ServiceListView(LoginRequiredMixin, SellerRequiredMixin, ListView):
 
 class ServiceCreateView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
     model = Service
-    fields = ['title', 'description', 'price', 'stock', 'image', 'is_active']
+    fields = ['title', 'description', 'icon', 'is_active', 'order']
     template_name = 'catalog/service_form.html'
     success_url = reverse_lazy('catalog:service_list')
 
 class ServiceUpdateView(LoginRequiredMixin, SellerRequiredMixin, UpdateView):
     model = Service
-    fields = ['title', 'description', 'price', 'stock', 'image', 'is_active']
+    fields = ['title', 'description', 'icon', 'is_active', 'order']
     template_name = 'catalog/service_form.html'
     success_url = reverse_lazy('catalog:service_list')
 
@@ -146,3 +149,28 @@ class BulkPriceUpdateView(LoginRequiredMixin, SellerRequiredMixin, TemplateView)
 
         messages.success(request, "Precios actualizados dinámicamente.")
         return redirect('catalog:flower_list')
+
+# PortfolioItem CRUD
+from .models import PortfolioItem
+
+class PortfolioItemListView(LoginRequiredMixin, SellerRequiredMixin, ListView):
+    model = PortfolioItem
+    template_name = 'catalog/portfolio_list.html'
+    context_object_name = 'items'
+
+class PortfolioItemCreateView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
+    model = PortfolioItem
+    fields = ['title', 'image', 'is_active', 'order']
+    template_name = 'catalog/portfolio_form.html'
+    success_url = reverse_lazy('catalog:portfolio_list')
+
+class PortfolioItemUpdateView(LoginRequiredMixin, SellerRequiredMixin, UpdateView):
+    model = PortfolioItem
+    fields = ['title', 'image', 'is_active', 'order']
+    template_name = 'catalog/portfolio_form.html'
+    success_url = reverse_lazy('catalog:portfolio_list')
+
+class PortfolioItemDeleteView(LoginRequiredMixin, SellerRequiredMixin, DeleteView):
+    model = PortfolioItem
+    template_name = 'catalog/portfolio_confirm_delete.html'
+    success_url = reverse_lazy('catalog:portfolio_list')

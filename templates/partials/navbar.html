@@ -66,6 +66,14 @@ nav {
         <i data-lucide="home"></i>
         Inicio
       </a></li>
+      <li><a href="/#ramos-catalog" class="{% if '#ramos-catalog' in request.path %}active{% endif %}">
+        <i data-lucide="book-open"></i>
+        Catálogo
+      </a></li>
+      <li><a href="/#grid-servicios" class="{% if '#grid-servicios' in request.path %}active{% endif %}">
+        <i data-lucide="briefcase"></i>
+        Servicios
+      </a></li>
       <li><a href="{% url 'bouquet:design' %}" class="{% if '/designer/' in request.path %}active{% endif %}">
         <i data-lucide="flower"></i>
         Diseñador
