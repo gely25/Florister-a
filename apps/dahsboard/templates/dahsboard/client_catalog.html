@@ -1,0 +1,496 @@
+{% extends 'layouts/dashboard_base.html' %}
+{% load static %}
+{% load discount_tags %}
+
+{% block title %}Catálogo de Productos — Sisart{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ── Header & Search ── */
+    .catalog-header {
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .catalog-header h1 {
+        font-family: var(--serif);
+        font-size: 2rem;
+        color: var(--text);
+    }
+    .search-input-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 300px;
+        display: flex;
+        align-items: center;
+    }
+    .search-input-wrap i {
+        position: absolute;
+        left: 14px;
+        color: var(--muted);
+        width: 18px;
+        height: 18px;
+        pointer-events: none;
+        z-index: 10;
+    }
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 42px;
+        border-radius: 14px;
+        border: 1.5px solid var(--blush);
+        background: white;
+        font-family: var(--sans);
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .search-input:focus {
+        border-color: var(--rose);
+    }
+
+    /* ── Tabs ── */
+    .catalog-nav {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 32px;
+        border-bottom: 1px solid var(--blush);
+        padding-bottom: 8px;
+    }
+    .nav-btn {
+        background: none;
+        border: none;
+        padding: 8px 16px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.2s;
+    }
+    .nav-btn:hover {
+        color: var(--rose);
+        background: var(--rose-lt);
+    }
+    .nav-btn.active {
+        color: white;
+        background: var(--rose);
+    }
+
+    /* ── Product Grid ── */
+    .catalog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 24px;
+    }
+    .product-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid var(--blush);
+        overflow: hidden;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        position: relative;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(201, 125, 125, 0.12);
+        border-color: var(--rose);
+    }
+    .card-img-box {
+        height: 220px;
+        background: #fdfaf8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+    }
+    .card-img-box img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .promo-tag {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: var(--rose);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        z-index: 2;
+    }
+    .card-body {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .card-type {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+    }
+    .card-title {
+        font-family: var(--serif);
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+    .card-price {
+        margin-top: auto;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+    .price-old { color: var(--muted); text-decoration: line-through; font-size: 0.85rem; }
+    .price-final { color: var(--rose); font-weight: 800; font-size: 1.25rem; }
+
+    /* ── Detail Modal ── */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9000;
+        background: rgba(45, 35, 35, 0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+        background: white;
+        border-radius: 24px;
+        max-width: 800px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+    }
+    @media (max-width: 700px) {
+        .modal-box { grid-template-columns: 1fr; }
+    }
+    .modal-img-side {
+        background: #fdfaf8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+    }
+    .modal-img-side img {
+        max-width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+    }
+    .modal-info-side {
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+    }
+    .modal-close {
+        align-self: flex-end;
+        cursor: pointer;
+        color: var(--muted);
+        margin-bottom: 10px;
+    }
+    .modal-name {
+        font-family: var(--serif);
+        font-size: 1.8rem;
+        margin-bottom: 12px;
+        color: var(--text);
+    }
+    .modal-price {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--rose);
+        margin-bottom: 20px;
+    }
+    .modal-desc {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        margin-bottom: 24px;
+        flex-grow: 1;
+    }
+    .qty-control {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .qty-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1.5px solid var(--blush);
+        background: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .buy-btn {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        background: var(--rose);
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    .buy-btn:hover {
+        background: var(--rose-dk);
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 80px 40px;
+        background: white;
+        border-radius: 20px;
+        border: 2px dashed var(--blush);
+    }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="reveal">
+    <header class="catalog-header">
+        <div>
+            <h1>Nuestro Catálogo</h1>
+            <p style="color: var(--muted);">Explora nuestros productos y crea pedidos directamente por WhatsApp.</p>
+        </div>
+
+        <form method="get" class="search-input-wrap">
+            <i data-lucide="search"></i>
+            <input type="text" name="q" value="{{ search_query }}" class="search-input" placeholder="Buscar flores o ramos...">
+        </form>
+    </header>
+
+    <div class="catalog-nav">
+        <button class="nav-btn active" data-filter="all">Todos los productos</button>
+        <button class="nav-btn" data-filter="bouquet">Ramos Elaborados</button>
+        <button class="nav-btn" data-filter="flower">Flores Sueltas</button>
+    </div>
+
+    <div class="catalog-grid" id="catalogGrid">
+        {% for item in items %}
+            <div class="product-card product-item" data-type="{{ item.item_type }}"
+                 onclick="openDetails({
+                    id: '{{ item.id|escapejs }}',
+                    type: '{{ item.item_type|escapejs }}',
+                    name: '{{ item.name|escapejs }}{{ item.title|escapejs }}',
+                    price: '{% if item.discount_info.final_price %}{{ item.discount_info.final_price|floatformat:2|escapejs }}{% else %}{{ item.price|floatformat:2|escapejs }}{% endif %}',
+                    desc: '{{ item.description|escapejs }}',
+                    img: '{% if item.image %}{{ item.image.url|escapejs }}{% elif item.image_icon %}{{ item.image_icon.url|escapejs }}{% endif %}',
+                    label: '{% if item.item_type == "flower" %}{{ item.get_tier_display|escapejs }}{% else %}Ramo Elaborado{% endif %}'
+                 })">
+                
+                {% if item.discount_info.has_discount %}
+                    <div class="promo-tag">{{ item.discount_info.discount_label }}</div>
+                {% endif %}
+
+                <div class="card-img-box">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                    {% elif item.image_icon %}
+                        <img src="{{ item.image_icon.url }}" alt="{{ item.title }}">
+                    {% else %}
+                        <div style="font-size: 4rem; opacity: 0.1;">💐</div>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    <div class="card-type">
+                        {% if item.item_type == 'flower' %}{{ item.get_tier_display }}{% else %}Ramo{% endif %}
+                    </div>
+                    <div class="card-title">{{ item.name }}{{ item.title }}</div>
+                    <div class="card-price">
+                        {% if item.discount_info.has_discount %}
+                            <span class="price-old">${{ item.discount_info.original_price|floatformat:2 }}</span>
+                            <span class="price-final">${{ item.discount_info.final_price|floatformat:2 }}</span>
+                        {% else %}
+                            <span class="price-final">${{ item.price|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <i data-lucide="info" style="width: 48px; height: 48px; color: var(--muted); margin-bottom: 16px;"></i>
+                <h2>No se encontraron productos</h2>
+                <p>Intenta con otra búsqueda o filtro.</p>
+                <a href="{% url 'dahsboard:client_catalog' %}" style="color: var(--rose); margin-top: 10px; display: inline-block;">Limpiar búsqueda</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Product Detail Modal -->
+<div class="modal-overlay" id="productModal">
+    <div class="modal-box">
+        <div class="modal-img-side" id="modalImgBox"></div>
+        <div class="modal-info-side">
+            <div class="modal-close" onclick="closeDetails()">
+                <i data-lucide="x"></i>
+            </div>
+            
+            <div class="card-type" id="modalLabel"></div>
+            <h2 class="modal-name" id="modalName"></h2>
+            <div class="modal-price" id="modalPrice"></div>
+            
+            <p class="modal-desc" id="modalDesc"></p>
+
+            <div id="orderControls">
+                <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom:8px;">CANTIDAD</label>
+                <div class="qty-control">
+                    <button class="qty-btn" onclick="updateQty(-1)">-</button>
+                    <span id="qtyNum" style="font-weight:700; font-size:1.1rem; min-width:30px; text-align:center;">1</span>
+                    <button class="qty-btn" onclick="updateQty(1)">+</button>
+                </div>
+
+                <button class="buy-btn" id="confirmBuyBtn">
+                    <i data-lucide="message-circle"></i>
+                    Confirmar por WhatsApp
+                </button>
+            </div>
+            
+            <div id="flowerDesignerLink" style="display:none">
+                <p style="font-size:0.9rem; color:var(--muted); margin-bottom:16px;">Para comprar flores individuales, debes agregarlas a tu ramo personalizado.</p>
+                <a href="{% url 'bouquet:design' %}" class="buy-btn">
+                    <i data-lucide="flower-2"></i>
+                    Ir al Diseñador
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block dash_js %}
+    let currentItem = null;
+    let currentQty = 1;
+
+    function openDetails(data) {
+        currentItem = data;
+        currentQty = 1;
+        
+        document.getElementById('modalName').innerText = data.name;
+        document.getElementById('modalPrice').innerText = '$' + data.price;
+        document.getElementById('modalDesc').innerText = data.desc || 'Sin descripción disponible.';
+        document.getElementById('modalLabel').innerText = data.label;
+        document.getElementById('qtyNum').innerText = '1';
+
+        const imgBox = document.getElementById('modalImgBox');
+        if (data.img && data.img !== 'None') {
+            imgBox.innerHTML = `<img src="${data.img}" alt="${data.name}">`;
+        } else {
+            imgBox.innerHTML = `<div style="font-size:6rem; opacity:0.1;">💐</div>`;
+        }
+
+        // Toggle flow based on type
+        if (data.type === 'flower') {
+            document.getElementById('orderControls').style.display = 'none';
+            document.getElementById('flowerDesignerLink').style.display = 'block';
+        } else {
+            document.getElementById('orderControls').style.display = 'block';
+            document.getElementById('flowerDesignerLink').style.display = 'none';
+        }
+
+        document.getElementById('productModal').classList.add('open');
+        lucide.createIcons();
+    }
+
+    function closeDetails() {
+        document.getElementById('productModal').classList.remove('open');
+    }
+
+    function updateQty(delta) {
+        currentQty = Math.max(1, currentQty + delta);
+        document.getElementById('qtyNum').innerText = currentQty;
+    }
+
+    document.getElementById('confirmBuyBtn').onclick = async () => {
+        const btn = document.getElementById('confirmBuyBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader"></i> Procesando...';
+        lucide.createIcons();
+
+        try {
+            const resp = await fetch('/orders/quick-order/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' 
+                },
+                body: JSON.stringify({
+                    product_type: currentItem.type,
+                    product_id: currentItem.id,
+                    quantity: currentQty
+                })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                const waNumber = '593985991149';
+                window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(res.whatsapp_message)}`, '_blank');
+                window.location.href = `/orders/track/${res.tracking_token}/`;
+            } else {
+                alert('Error: ' + res.error);
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="message-circle"></i> Confirmar por WhatsApp';
+                lucide.createIcons();
+            }
+        } catch(e) {
+            alert('Error de conexión');
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="message-circle"></i> Confirmar por WhatsApp';
+            lucide.createIcons();
+        }
+    };
+
+    // Filter Logic
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.onclick = () => {
+            const filter = btn.getAttribute('data-filter');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.querySelectorAll('.product-item').forEach(item => {
+                if (filter === 'all' || item.getAttribute('data-type') === filter) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        };
+    });
+
+    // Close modal on click outside
+    document.getElementById('productModal').onclick = (e) => {
+        if (e.target.id === 'productModal') closeDetails();
+    };
+{% endblock %}

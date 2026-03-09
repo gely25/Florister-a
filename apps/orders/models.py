@@ -33,6 +33,7 @@ class Order(models.Model):
     # Optional fields to identify the ordered product (for quick orders like Services, Promotions)
     item_type = models.CharField(max_length=50, null=True, blank=True)
     item_name = models.CharField(max_length=200, null=True, blank=True)
+    item_id = models.PositiveIntegerField(null=True, blank=True) # ID of the Promotion, Service or PreDesignedBouquet
     item_description = models.TextField(null=True, blank=True)
     item_image = models.ImageField(upload_to='orders/items/', null=True, blank=True)
 
@@ -47,8 +48,16 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_status = self.status
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+    @property
+    def original_status(self):
+        return self.__original_status
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.status}"

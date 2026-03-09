@@ -1,5 +1,6 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
+{% load discount_tags %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'bouquet/css/designer.css' %}?v=999">
@@ -8,11 +9,12 @@
 <script>
     var FLOWERS = [
         {% for flower in flowers %}
+        {% get_discount_info flower as disc %}
         { 
             id: {{ flower.id }}, 
             name: "{{ flower.name|escapejs }}", 
             type: "{{ flower.tier }}", 
-            p: {{ flower.price }}, 
+            p: {{ disc.final_price|stringformat:".2f" }}, 
             img: "{% if flower.image %}{{ flower.image.url }}{% else %}https://placehold.co/400x600?text={{ flower.name|urlencode }}{% endif %}", 
             thumb: "{% if flower.thumbnail %}{{ flower.thumbnail.url }}{% elif flower.image %}{{ flower.image.url }}{% else %}https://placehold.co/100x100?text={{ flower.name|urlencode }}{% endif %}" 
         }{% if not forloop.last %},{% endif %}
@@ -56,6 +58,92 @@
   }
   .sz-title, .sz-name, .sz-confirm, .sz-brand, .sz-pill { color: #c97d7d !important; }
   .sz-confirm, .sz-card.selected, .sz-card:hover { border-color: #c97d7d !important; }
+
+/* Checkout Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 32px;
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal-box h3 {
+  font-family: var(--serif);
+  color: var(--rose);
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+.sz-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+.modal-box p {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal-buttons button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  border: none;
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+.modal-buttons button:first-child {
+  background: #fdf0f0;
+  color: var(--rose);
+  border: 1.5px solid var(--rose);
+}
+.modal-buttons button:first-child:hover {
+  background: var(--rose);
+  color: #fff;
+}
+.modal-buttons button.on, .modal-buttons button:last-child {
+  background: var(--rose);
+  color: #fff;
+}
+.modal-buttons button:last-child:hover {
+  background: #b56060;
+}
+.guest-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e0c0c0;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+.guest-input:focus {
+  border-color: var(--rose);
+}
 </style>
 <link rel="stylesheet" href="{% static 'bouquet/css/designer.css' %}?v={% now "U" %}">
 {% endblock %}
@@ -73,9 +161,20 @@
       <div class="sz-name">{{ size.name }}</div>
       <div class="sz-desc">Una composición equilibrada para tus momentos especiales.</div>
       <div class="sz-pills">
+        {% if size.code == 'personalizado' %}
+        <div style="font-size: 0.65rem; color: #a05c5c; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Mínimo uno de:</div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap;">
+            <span class="sz-pill" style="background: #fff5f5; border-color: #ffcccc; color: #a05c5c; margin: 0;">1 Grandes</span>
+            <span style="font-size: 0.8rem; color: #cca0a0; font-weight: bold;">/</span>
+            <span class="sz-pill" style="background: #fff5f5; border-color: #ffcccc; color: #a05c5c; margin: 0;">2 Medianas</span>
+            <span style="font-size: 0.8rem; color: #cca0a0; font-weight: bold;">/</span>
+            <span class="sz-pill" style="background: #fff5f5; border-color: #ffcccc; color: #a05c5c; margin: 0;">3 Pequeñas</span>
+        </div>
+        {% else %}
         <span class="sz-pill">{{ size.max_large }} grandes</span>
         <span class="sz-pill">{{ size.max_medium }} medianas</span>
         <span class="sz-pill">{{ size.max_small }} pequeñas</span>
+        {% endif %}
       </div>
     </div>
     {% endfor %}
@@ -183,7 +282,12 @@
   </div>
   <div class="right-panel">
 
-    <div class="rl">Composición</div>
+    <div class="rl" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Composición</span>
+        <button onclick="clearBouquet()" style="background: none; border: 1.5px solid #e0c0c0; color: #a06060; font-size: 0.65rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-weight: 700; transition: all 0.2s;">
+            Limpiar Ramo
+        </button>
+    </div>
     <div id="sum" class="sum-list"></div>
     <div class="price-box">
       <div class="price-val" id="pval">$0.00</div>
@@ -202,8 +306,8 @@
     <p>Para enviar tu diseño, por favor identifícate o continúa como invitado. Ambos guardarán tu diseño en el sistema.</p>
     
     <div class="modal-buttons" id="modalButtons">
-       <button class="act-btn" onclick="window.location.href='/login/?next=/bouquet/design/'">Tengo Cuenta</button>
-       <button class="act-btn on" onclick="showGuestForm()">Como Invitado</button>
+       <button onclick="window.location.href='/accounts/login/?next=/bouquet/design/'">Tengo Cuenta</button>
+       <button class="on" onclick="showGuestForm()">Como Invitado</button>
     </div>
     
     <div id="guestForm" style="display:none; text-align:left; margin-top:15px;">
@@ -215,6 +319,20 @@
        <button class="reset-btn" onclick="hideCheckoutModal()" style="width:100%; margin-top:10px; background: #fff; color: #a0a0a0; border: none; text-decoration: underline;">Cancelar</button>
     </div>
   </div>
+</div>
+
+<!-- Clear Bouquet Modal -->
+<div id="clearModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box" style="max-width:350px; text-align: center;">
+        <div style="font-size:32px; margin-bottom:15px;">🗑️</div>
+        <h3 style="margin-bottom:10px; font-family: var(--serif);">¿Limpiar Ramo?</h3>
+        <p style="font-size:0.9rem; color:#666; margin-bottom:20px; font-family: var(--sans);">Esta acción eliminará todas las flores que has añadido y no se puede deshacer.</p>
+        
+        <div class="modal-buttons" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button onclick="hideClearModal()" style="padding:10px; border:1px dashed #e0c0c0; background:#fff; color:#a06060; font-family: var(--serif); font-size: 0.75rem;">CANCELAR</button>
+            <button onclick="confirmClearBouquet()" style="padding:10px; background:var(--rose); color:#fff; border: none; font-family: var(--serif); font-size: 0.75rem; box-shadow: 0 4px 10px rgba(242, 122, 133, 0.3);">SÍ, LIMPIAR</button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

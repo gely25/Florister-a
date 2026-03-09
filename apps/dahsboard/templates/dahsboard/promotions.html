@@ -1,0 +1,211 @@
+{% extends 'layouts/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Promociones Exclusivas — Sisart{% endblock %}
+
+{% block extra_head %}
+<style>
+    .promos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .promo-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid var(--blush);
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s var(--ease);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        display: flex;
+        flex-direction: column;
+    }
+    .promo-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 32px rgba(200,80,100,0.12);
+        border-color: var(--rose);
+    }
+    .promo-img {
+        width: 100%;
+        height: 240px;
+        object-fit: contain;
+        background: #fdfaf8;
+        padding: 20px;
+        transition: transform 0.4s var(--ease);
+    }
+    .promo-card:hover .promo-img {
+        transform: scale(1.08);
+    }
+    .promo-badge {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: var(--rose);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        z-index: 2;
+        box-shadow: 0 4px 8px rgba(201,125,125,0.3);
+    }
+    .promo-body {
+        padding: 24px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .promo-name {
+        font-family: var(--serif);
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 8px;
+    }
+    .promo-price {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    .price-old {
+        text-decoration: line-through;
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+    .price-new {
+        color: var(--rose);
+        font-weight: 800;
+        font-size: 1.4rem;
+    }
+    .promo-btn {
+        width: 100%;
+        padding: 14px;
+        background: var(--rose);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-family: var(--sans);
+        cursor: pointer;
+        transition: all 0.25s;
+        text-align: center;
+        text-decoration: none;
+    }
+    .promo-btn:hover {
+        background: var(--rose-dk);
+        box-shadow: 0 6px 16px rgba(160,92,92,0.3);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 100px 20px;
+        background: white;
+        border-radius: 24px;
+        border: 2px dashed var(--blush);
+    }
+</style>
+{% endblock %}
+
+{% block dash_content %}
+<div class="reveal">
+    <header style="margin-bottom: 30px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <h1 style="font-family: var(--serif); font-size: 2.2rem; color: var(--text); margin-bottom: 8px;">Promociones para ti</h1>
+            <p style="color: var(--muted); font-size: 1.1rem;">Todo nuestro catálogo con ofertas especiales en un solo lugar.</p>
+        </div>
+
+        <form method="get" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <div style="position: relative;">
+                <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted);"></i>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="¿Qué estás buscando?..." 
+                       style="padding: 10px 12px 10px 40px; border-radius: 12px; border: 1px solid var(--blush); font-family: var(--sans); outline: none; width: 220px;">
+            </div>
+
+            <select name="type" style="padding: 10px 12px; border-radius: 12px; border: 1px solid var(--blush); font-family: var(--sans); outline: none; background: white; cursor: pointer;">
+                <option value="">Todas las Ofertas</option>
+                <option value="flower" {% if current_type == 'flower' %}selected{% endif %}>Flores</option>
+                <option value="bouquet" {% if current_type == 'bouquet' %}selected{% endif %}>Ramos</option>
+                <option value="service" {% if current_type == 'service' %}selected{% endif %}>Servicios</option>
+            </select>
+
+            <button type="submit" class="btn" style="background: var(--rose); color: white; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                Filtrar
+            </button>
+            {% if search_query or current_type %}
+                <a href="{% url 'dahsboard:promotions_list' %}" style="color: var(--muted); font-size: 0.9rem; text-decoration: none;">Limpiar</a>
+            {% endif %}
+        </form>
+    </header>
+
+    {% if page_obj %}
+        <div class="promos-grid">
+            {% for item in page_obj %}
+                <div class="promo-card">
+                    <div class="promo-badge">{{ item.discount_info.discount_label }}</div>
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{% if item.name %}{{ item.name }}{% else %}{{ item.title }}{% endif %}" class="promo-img">
+                    {% else %}
+                        <div class="promo-img" style="display:flex; align-items:center; justify-content:center; font-size:4rem;">💐</div>
+                    {% endif %}
+                    
+                    <div class="promo-body">
+                        <div style="font-size: 0.75rem; color: var(--rose); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
+                            {% if item.item_type == 'flower' %}Flor en Oferta{% elif item.item_type == 'service' %}Servicio en Oferta{% else %}Ramo en Oferta{% endif %}
+                        </div>
+                        <h3 class="promo-name">
+                            {% if item.name %}{{ item.name }}{% else %}{{ item.title }}{% endif %}
+                        </h3>
+                        <div class="promo-price">
+                            <span class="price-old">${{ item.discount_info.original_price|floatformat:2 }}</span>
+                            <span class="price-new">${{ item.discount_info.final_price|floatformat:2 }}</span>
+                        </div>
+                        
+                        {# Action depends on item type #}
+                        {% if item.tier %} {# It's a Flower #}
+                            <a href="{% url 'bouquet:design' %}" class="promo-btn">Diseñar con esta flor</a>
+                        {% else %} {# It's a Bouquet or Promotion #}
+                            <a href="/#ramos-catalog" class="promo-btn">Comprar ahora</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div style="margin-top: 48px; display: flex; justify-content: center; gap: 8px;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}" 
+                   style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--blush); text-decoration: none; color: var(--text); background: white;">Anterior</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span style="padding: 8px 16px; border-radius: 10px; background: var(--rose); color: white; font-weight: 600;">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}" 
+                       style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--blush); text-decoration: none; color: var(--text); background: white;">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}" 
+                   style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--blush); text-decoration: none; color: var(--text); background: white;">Siguiente</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="empty-state">
+            <div style="font-size: 4rem; margin-bottom: 24px;">🔍</div>
+            <h2 style="font-family: var(--serif); font-size: 1.8rem; color: var(--text); margin-bottom: 12px;">Sin resultados</h2>
+            <p style="color: var(--muted); max-width: 400px; margin: 0 auto;">No encontramos productos con descuento que coincidan con tu búsqueda.</p>
+            {% if search_query or current_type %}
+                <a href="{% url 'dahsboard:promotions_list' %}" class="btn" style="background: var(--rose); color: white; margin-top: 24px; display: inline-block; padding: 12px 24px; border-radius: 12px; text-decoration: none;">Ver todas las ofertas</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

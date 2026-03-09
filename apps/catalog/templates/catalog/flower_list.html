@@ -20,11 +20,45 @@
         </div>
     </header>
 
+    <div style="background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--blush); margin-bottom: 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <form method="GET" style="display: flex; gap: 16px; flex: 1; min-width: 300px;">
+            <div style="flex: 1; position: relative;">
+                <i data-lucide="search" style="position: absolute; left: 12px; top: 10px; color: var(--muted); width: 18px; height: 18px;"></i>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Buscar por nombre..." style="width: 100%; padding: 10px 10px 10px 38px; border: 1px solid var(--blush); border-radius: 8px; font-family: var(--sans); outline: none;">
+            </div>
+            <div>
+                <select name="tier" style="padding: 10px 16px; border: 1px solid var(--blush); border-radius: 8px; font-family: var(--sans); outline: none; background: white;">
+                    <option value="">Todas las Categorías</option>
+                    {% for code, name in tier_choices %}
+                        <option value="{{ code }}" {% if current_tier == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <select name="status" style="padding: 10px 16px; border: 1px solid var(--blush); border-radius: 8px; font-family: var(--sans); outline: none; background: white;">
+                    <option value="">Todos los Estados</option>
+                    <option value="active" {% if current_status == 'active' %}selected{% endif %}>Activas</option>
+                    <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>Inactivas</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="padding: 10px 24px; background: var(--rose); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Filtrar
+            </button>
+            {% if search_query or current_tier or current_status %}
+            <a href="?" class="btn-outline" style="padding: 10px 24px; background: transparent; color: var(--rose); border: 1px solid var(--rose); border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center;">
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
     {% if messages %}
         {% for message in messages %}
+            {% if "Estado del pedido" not in message.message %}
             <div style="padding: 16px; border-radius: 12px; margin-bottom: 24px; {% if message.tags == 'success' %}background: #dcfce7; color: #166534;{% else %}background: #fee2e2; color: #991b1b;{% endif %}">
                 {{ message }}
             </div>
+            {% endif %}
         {% endfor %}
     {% endif %}
 
@@ -55,7 +89,19 @@
                     </td>
                     <td style="padding: 16px; font-weight: 500;">{{ flower.name }}</td>
                     <td style="padding: 16px;">{{ flower.get_tier_display }}</td>
-                    <td style="padding: 16px; font-weight: 700; color: var(--rose);">${{ flower.price|floatformat:2 }}</td>
+                    <td style="padding: 16px;">
+                        {% load discount_tags %}
+                        {% get_discount_info flower as disc %}
+                        <div style="font-weight: 700; color: var(--rose);">
+                            {% if disc.has_discount %}
+                                <span style="text-decoration: line-through; color: #9ca3af; font-size: 0.8rem; margin-right: 4px;">${{ flower.price|floatformat:2 }}</span>
+                                <span>${{ disc.final_price|floatformat:2 }}</span>
+                                <div style="background: var(--gold-light); color: var(--rose); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px;">{{ disc.discount_label }}</div>
+                            {% else %}
+                                ${{ flower.price|floatformat:2 }}
+                            {% endif %}
+                        </div>
+                    </td>
                     <td style="padding: 16px;">
                         {% if flower.is_active %}
                             <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">Activa</span>
@@ -79,11 +125,41 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="padding: 40px; text-align: center; color: var(--muted);">No hay flores registradas.</td>
+                    <td colspan="7" style="padding: 60px; text-align: center;">
+                        <i data-lucide="search" style="width: 40px; height: 40px; color: var(--rose); margin-bottom: 16px; opacity: 0.5; display: inline-block;"></i>
+                        {% if search_query or current_tier or current_status %}
+                            <h3 style="font-family: var(--serif); font-size: 1.3rem; margin-bottom: 8px;">Sin resultados</h3>
+                            <p style="color: var(--muted); margin-bottom: 24px;">No hay flores que coincidan con tu búsqueda o filtros.</p>
+                            <a href="?" class="btn-outline" style="padding: 8px 16px; border: 1px solid var(--rose); color: var(--rose); border-radius: 8px; text-decoration: none; font-weight: 600;">Limpiar Filtros</a>
+                        {% else %}
+                            <h3 style="font-family: var(--serif); font-size: 1.3rem; margin-bottom: 8px;">Inventario Vacío</h3>
+                            <p style="color: var(--muted); margin-bottom: 24px;">Aún no hay flores registradas.</p>
+                            <a href="{% url 'catalog:flower_create' %}" class="btn-primary" style="padding: 8px 16px; background: var(--rose); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; border: none; cursor: pointer;">Añadir Flor</a>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
+        </tbody>
         </table>
     </div>
+
+    {% if is_paginated %}
+    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 30px;">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if current_tier %}&tier={{ current_tier }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" style="padding: 8px 14px; border: 1px solid var(--blush); border-radius: 8px; color: var(--text); text-decoration: none; background: white;">&laquo;</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_tier %}&tier={{ current_tier }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" style="padding: 8px 14px; border: 1px solid var(--blush); border-radius: 8px; color: var(--text); text-decoration: none; background: white;">Anterior</a>
+        {% endif %}
+
+        <span style="padding: 8px 14px; border: 1px solid var(--rose); border-radius: 8px; color: white; background: var(--rose); font-weight: 600;">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_tier %}&tier={{ current_tier }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" style="padding: 8px 14px; border: 1px solid var(--blush); border-radius: 8px; color: var(--text); text-decoration: none; background: white;">Siguiente</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_tier %}&tier={{ current_tier }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}" style="padding: 8px 14px; border: 1px solid var(--blush); border-radius: 8px; color: var(--text); text-decoration: none; background: white;">&raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

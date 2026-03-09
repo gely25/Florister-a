@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.db.models import F
-from .models import Flower, Service, Promotion, PreDesignedBouquet
+from .models import Flower, Service, Promotion, PreDesignedBouquet, BouquetSize
 
 class SellerRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -14,8 +14,8 @@ class HomeView(TemplateView):
     template_name = 'catalog/home.html'
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return redirect('dahsboard:index')
+        if request.user.is_authenticated and request.user.is_customer:
+            return redirect('dahsboard:client_catalog')
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -48,7 +48,34 @@ class FlowerListView(LoginRequiredMixin, SellerRequiredMixin, ListView):
     model = Flower
     template_name = 'catalog/flower_list.html'
     context_object_name = 'flowers'
-    ordering = ['name']
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Flower.objects.all().order_by('name')
+        
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+            
+        tier_filter = self.request.GET.get('tier', '').strip()
+        if tier_filter and tier_filter in dict(Flower.TIER_CHOICES):
+            queryset = queryset.filter(tier=tier_filter)
+            
+        status_filter = self.request.GET.get('status', '').strip()
+        if status_filter == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status_filter == 'inactive':
+            queryset = queryset.filter(is_active=False)
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        context['current_tier'] = self.request.GET.get('tier', '')
+        context['current_status'] = self.request.GET.get('status', '')
+        context['tier_choices'] = Flower.TIER_CHOICES
+        return context
 
 class FlowerCreateView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
     model = Flower
@@ -84,6 +111,19 @@ class ServiceListView(LoginRequiredMixin, SellerRequiredMixin, ListView):
     model = Service
     template_name = 'catalog/service_list.html'
     context_object_name = 'services'
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Service.objects.all().order_by('order')
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            queryset = queryset.filter(title__icontains=search_query)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        return context
 
 class ServiceCreateView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
     model = Service
@@ -107,16 +147,44 @@ class PreDesignedBouquetListView(LoginRequiredMixin, SellerRequiredMixin, ListVi
     model = PreDesignedBouquet
     template_name = 'catalog/predesigned_list.html'
     context_object_name = 'bouquets'
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = PreDesignedBouquet.objects.all().order_by('-id')
+        
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+            
+        size_filter = self.request.GET.get('size', '').strip()
+        if size_filter:
+            queryset = queryset.filter(size_id=size_filter)
+            
+        status_filter = self.request.GET.get('status', '').strip()
+        if status_filter == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status_filter == 'inactive':
+            queryset = queryset.filter(is_active=False)
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        context['current_size'] = self.request.GET.get('size', '')
+        context['current_status'] = self.request.GET.get('status', '')
+        context['sizes'] = BouquetSize.objects.all()
+        return context
 
 class PreDesignedBouquetCreateView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
     model = PreDesignedBouquet
-    fields = ['name', 'description', 'price', 'image', 'stock', 'is_active']
+    fields = ['name', 'description', 'price', 'image', 'stock', 'size', 'is_active']
     template_name = 'catalog/predesigned_form.html'
     success_url = reverse_lazy('catalog:predesigned_list')
 
 class PreDesignedBouquetUpdateView(LoginRequiredMixin, SellerRequiredMixin, UpdateView):
     model = PreDesignedBouquet
-    fields = ['name', 'description', 'price', 'image', 'stock', 'is_active']
+    fields = ['name', 'description', 'price', 'image', 'stock', 'size', 'is_active']
     template_name = 'catalog/predesigned_form.html'
     success_url = reverse_lazy('catalog:predesigned_list')
 
@@ -157,6 +225,28 @@ class PortfolioItemListView(LoginRequiredMixin, SellerRequiredMixin, ListView):
     model = PortfolioItem
     template_name = 'catalog/portfolio_list.html'
     context_object_name = 'items'
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = PortfolioItem.objects.all().order_by('order')
+        
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            queryset = queryset.filter(title__icontains=search_query)
+            
+        status_filter = self.request.GET.get('status', '').strip()
+        if status_filter == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status_filter == 'inactive':
+            queryset = queryset.filter(is_active=False)
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        context['current_status'] = self.request.GET.get('status', '')
+        return context
 
 class PortfolioItemCreateView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
     model = PortfolioItem

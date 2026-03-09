@@ -12,8 +12,24 @@
     <form method="post">
         {% csrf_token %}
         
+        {% if form.non_field_errors %}
+            <div style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Info Box for Explanation -->
+        <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+            <p style="font-size: 0.85rem; color: #1e40af; margin: 0; line-height: 1.5;">
+                <strong>Nota Importante:</strong> Elige solo una forma de descuento.
+                <br>• Usa <strong>Porcentaje</strong> para rebajas (ej: 10%).
+                <br>• Usa <strong>Monto Fijo</strong> para rebajas exactas (ej: $5.00).
+                <br><em>No se pueden usar ambos al mismo tiempo para evitar errores de cálculo.</em>
+            </p>
+        </div>
+        
         {% for field in form %}
-            <div style="margin-bottom: 20px;">
+            <div id="div_{{ field.name }}" style="margin-bottom: 20px;">
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: var(--text);">{{ field.label }}</label>
                 {{ field }}
                 {% if field.errors %}
@@ -33,6 +49,55 @@
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const methodSelect = document.querySelector('select[name="discount_method"]');
+        const divPercentage = document.getElementById('div_percentage');
+        const divFixed = document.getElementById('div_fixed_amount');
+        const inputPercentage = document.querySelector('input[name="percentage"]');
+        const inputFixed = document.querySelector('input[name="fixed_amount"]');
+
+        const typeSelect = document.querySelector('select[name="type"]');
+        const divTier = document.getElementById('div_tier_target');
+        const divFlower = document.getElementById('div_flower_target');
+        const divBouquet = document.getElementById('div_bouquet_target');
+        const divPromotion = document.getElementById('div_promotion_target');
+        const divService = document.getElementById('div_service_target');
+
+        function toggleInputs() {
+            if (methodSelect.value === 'percentage') {
+                divPercentage.style.display = 'block';
+                divFixed.style.display = 'none';
+                inputFixed.value = 0;
+            } else {
+                divPercentage.style.display = 'none';
+                divFixed.style.display = 'block';
+                inputPercentage.value = 0;
+            }
+        }
+
+        function toggleTargets() {
+            const type = typeSelect.value;
+            divTier.style.display = (type === 'category') ? 'block' : 'none';
+            divFlower.style.display = (type === 'product') ? 'block' : 'none';
+            divBouquet.style.display = (type === 'bouquet') ? 'block' : 'none';
+            divPromotion.style.display = (type === 'promotion') ? 'block' : 'none';
+            divService.style.display = (type === 'service') ? 'block' : 'none';
+        }
+
+        // Initial state for edit
+        if (parseFloat(inputFixed.value) > 0 && parseInt(inputPercentage.value) === 0) {
+            methodSelect.value = 'fixed';
+        }
+
+        methodSelect.addEventListener('change', toggleInputs);
+        typeSelect.addEventListener('change', toggleTargets);
+
+        toggleInputs();
+        toggleTargets();
+    });
+</script>
 
 <style>
     input[type="text"], input[type="number"], input[type="datetime-local"], select {

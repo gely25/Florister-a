@@ -27,7 +27,7 @@
         </div>
         <div>
             <div style="font-size: 0.8rem; color: var(--muted);">Ventas de Hoy</div>
-            <div style="font-size: 1.5rem; font-weight: 700;">${{ sales_today }}</div>
+            <div style="font-size: 1.5rem; font-weight: 700;">${{ sales_today|floatformat:2 }}</div>
         </div>
     </div>
 
@@ -60,8 +60,12 @@
             <tr style="border-bottom: 1px solid #f9f0f0;">
                 <td style="padding: 12px; font-weight: 600;">#{{ order.id }}</td>
                 <td style="padding: 12px;">{{ order.user.get_full_name|default:order.guest_name }}</td>
-                <td style="padding: 12px;"><span style="font-size: 0.75rem;">{{ order.get_status_display }}</span></td>
-                <td style="padding: 12px; font-weight: 700;">${{ order.final_amount }}</td>
+                <td style="padding: 12px;">
+                    <span class="status-badge status-{{ order.status }}">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td style="padding: 12px; font-weight: 700;">${{ order.final_amount|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </table>

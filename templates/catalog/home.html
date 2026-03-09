@@ -1,5 +1,6 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
+{% load discount_tags %}
 
 {% block extra_head %}
 <style>
@@ -194,29 +195,44 @@ html { scroll-behavior: smooth; }
 .carousel-btn:disabled { opacity: 0.3; pointer-events: none; }
 .carousel-prev { left: -20px; } .carousel-next { right: -20px; }
 
+/* ── GRID LAYOUT ── */
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+.discount-badge {
+  position: absolute; top: 12px; left: 12px;
+  background: var(--rose); color: white;
+  padding: 4px 10px; border-radius: 8px;
+  font-size: 0.75rem; font-weight: 700; z-index: 5;
+}
+.price-old { text-decoration: line-through; color: #9ca3af; font-size: 0.82rem; margin-right: 8px; }
+.price-current { font-weight: 700; color: var(--rose); font-size: 1.1rem; }
+
 /* ── PRODUCT CARD (Refined) ── */
 .product-card {
-  flex: 0 0 230px; scroll-snap-align: start;
-  border-radius: 20px; background: #fff5f5; /* Light pink bg from prototype */
+  scroll-snap-align: start;
+  border-radius: 20px; background: #fff;
   overflow: hidden; text-decoration: none; color: inherit;
   transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
-  border: none;
+  border: 1px solid var(--rose-lt);
+  cursor: pointer;
 }
-.product-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(200,80,100,0.18); }
+.product-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(200,80,100,0.12); border-color: var(--blush); }
 .card-img {
-  width: 100%; height: 210px; overflow: hidden;
-  background: #fce4e4; position: relative;
+  width: 100%; height: 240px; overflow: hidden;
+  background: #fdf9f7; position: relative;
   display: flex; align-items: center; justify-content: center;
   font-size: 3.5rem;
 }
 .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s var(--ease); }
 .product-card:hover .card-img img { transform: scale(1.05); }
 
-.card-body { padding: 16px 14px; }
-.card-label { font-size: 0.67rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.card-name { font-size: 0.9rem; font-weight: 500; color: var(--text); margin: 5px 0 4px; line-height: 1.35; }
-.card-stars { color: var(--gold); font-size: 0.8rem; margin-bottom: 4px; }
-.card-price { font-size: 0.9rem; font-weight: 700; color: var(--rose); margin-top: 5px; }
+.card-body { padding: 20px; }
+.card-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.card-name { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 8px; line-height: 1.3; }
+.card-price { display: flex; align-items: baseline; }
 .card-info-btn {
   width: 100%; margin-top: 10px; background: var(--rose); color: white;
   border: none; border-radius: 8px; padding: 8px;
@@ -608,53 +624,44 @@ html { scroll-behavior: smooth; }
 
 <!-- (Tabs moved to catalog section) -->
 
-<!-- PROMOCIONES (ahora Más vendidos, solo registrados) -->
-{% if user.is_authenticated %}
-<div class="section">
+<!-- MÁS VENDIDOS / PROMOCIONES -->
+{% if promotions %}
+<div class="section" id="wrap-promo-wrap">
   <div class="section-head reveal">
     <div class="section-head-left">
       <span class="section-eyebrow">✦ Lo más pedido</span>
-      <h2 class="section-title">Más vendidos</h2>
+      <h2 class="section-title">Nuestras Ofertas</h2>
     </div>
-    <a href="#" class="section-see-all">Ver todas →</a>
+    <a href="{% url 'dahsboard:promotions_list' %}" class="section-see-all">Ver todas →</a>
   </div>
-  <div class="carousel reveal d1" id="wrap-promo">
-    <button class="carousel-btn carousel-prev" id="prev-promo" disabled aria-label="Anterior">
-      <i data-lucide="chevron-left"></i>
-    </button>
-    <div class="carousel-track" id="track-promo">
-      {% for promo in promotions %}
-      <div class="product-card" style="cursor:default">
-        <div class="card-img">
-          {% if promo.image %}
-            <img src="{{ promo.image.url }}" alt="{{ promo.name }}">
+  <div class="grid-layout reveal d1">
+    {% for promo in promotions|slice:":4" %}
+    <div class="product-card" onclick="openProductModal('promotion', '{{ promo.id }}', '{{ promo.name|escapejs }}', '{{ promo.label|escapejs }}', '{% get_discount_info promo as disc %}{% if disc.has_discount %}${{ disc.final_price|floatformat:2 }}{% else %}${{ promo.price|floatformat:2 }}{% endif %}', '{% if promo.image %}{{ promo.image.url }}{% endif %}', '{{ promo.description|escapejs }}', '{{ promo.stars }}', '{{ promo.stock }}')">
+      <div class="card-img">
+        {% get_discount_info promo as disc %}
+        {% if disc.has_discount %}
+          <div class="discount-badge">{{ disc.discount_label }}</div>
+        {% endif %}
+        {% if promo.image %}
+          <img src="{{ promo.image.url }}" alt="{{ promo.name }}">
+        {% else %}
+          <div style="opacity:0.3">💐</div>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="card-label">{{ promo.label }}</div>
+        <div class="card-name">{{ promo.name }}</div>
+        <div class="card-price">
+          {% if disc.has_discount %}
+            <span class="price-old">${{ promo.price|floatformat:2 }}</span>
+            <span class="price-current">${{ disc.final_price|floatformat:2 }}</span>
           {% else %}
-            <i data-lucide="image"></i>
+            <span class="price-current">${{ promo.price|floatformat:2 }}</span>
           {% endif %}
         </div>
-        <div class="card-body">
-          <div class="card-label">{{ promo.label }}</div>
-          <div class="card-name">{{ promo.name }}</div>
-          <div class="card-stars">
-              {% for i in "12345" %}
-                {% if forloop.counter <= promo.stars %}★{% endif %}
-              {% endfor %}
-          </div>
-          <div class="card-price">${{ promo.price|floatformat:2 }}</div>
-          <button class="card-info-btn" onclick="openProductModal('promotion',{{ promo.id }},'{{ promo.name|escapejs }}','{{ promo.label|escapejs }}','${{ promo.price|floatformat:2 }}','{% if promo.image %}{{ promo.image.url }}{% endif %}','','{% for i in "12345" %}{% if forloop.counter <= promo.stars %}★{% endif %}{% endfor %}','')">
-            Más información
-          </button>
-        </div>
       </div>
-      {% empty %}
-      <div style="text-align: center; width: 100%; color: #aaa; padding: 40px; font-style: italic;">
-          No hay productos destacados aún.
-      </div>
-      {% endfor %}
     </div>
-    <button class="carousel-btn carousel-next" id="next-promo" aria-label="Siguiente">
-      <i data-lucide="chevron-right"></i>
-    </button>
+    {% endfor %}
   </div>
 </div>
 {% endif %}
@@ -669,10 +676,9 @@ html { scroll-behavior: smooth; }
 
   <div class="tabs-wrap reveal" id="js-tabs">
     <button class="tab-btn active" data-cat="all">Todos</button>
-    <button class="tab-btn" data-cat="especiales">Especiales</button>
-    <button class="tab-btn" data-cat="rojos">Ramos Rojos</button>
-    <button class="tab-btn" data-cat="mixtos">Arreglos Mixtos</button>
-    <button class="tab-btn" data-cat="manualidades">Manualidades</button>
+    <button class="tab-btn" data-cat="grande">Grande</button>
+    <button class="tab-btn" data-cat="mediano">Mediano</button>
+    <button class="tab-btn" data-cat="pequeno">Pequeño</button>
   </div>
 
   <div class="section">
@@ -683,14 +689,27 @@ html { scroll-behavior: smooth; }
       <a href="/#ramos-catalog" class="see-all-btn" style="text-decoration: none;">Ver todo el catálogo →</a>
     </div>
 
+  <!-- Mensaje de categoría vacía -->
+  <div id="empty-ramos-msg" style="display: none; text-align: center; padding: 60px 20px; animation: fadeSlideIn 0.4s ease both;">
+    <div style="margin-bottom: 20px; color: var(--rose);">
+      <i data-lucide="star" style="width: 56px; height: 56px; fill: var(--rose); color: var(--rose);"></i>
+    </div>
+    <h3 style="font-family: var(--serif); font-size: 1.5rem; color: var(--text); margin-bottom: 10px;">¡Próximamente!</h3>
+    <p style="color: var(--muted); font-size: 1rem; max-width: 400px; margin: 0 auto; line-height: 1.6;">Estamos preparando nuevos arreglos exclusivos para esta categoría. ¡Vuelve pronto para ver las novedades!</p>
+  </div>
+
   <div class="carousel reveal d1" id="wrap-ramos">
     <button class="carousel-btn carousel-prev" id="prev-ramos" disabled aria-label="Anterior">
       <i data-lucide="chevron-left"></i>
     </button>
     <div class="carousel-track" id="track-ramos">
       {% for bouquet in predesigned_bouquets %}
-      <div class="product-card" style="cursor:default">
+      <div class="product-card" style="cursor:default" data-size="{{ bouquet.size.code|default:'none' }}">
         <div class="card-img">
+            {% get_discount_info bouquet as disc %}
+            {% if disc.has_discount %}
+              <div style="position: absolute; top: 12px; left: 12px; background: var(--rose); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; z-index: 5;">{{ disc.discount_label }}</div>
+            {% endif %}
             {% if bouquet.image %}
               <img src="{{ bouquet.image.url }}" alt="{{ bouquet.name }}">
             {% else %}
@@ -699,8 +718,15 @@ html { scroll-behavior: smooth; }
         </div>
         <div class="card-body">
             <div class="card-name" style="font-family: var(--serif); font-weight: 700; margin-bottom: 8px;">{{ bouquet.name }}</div>
-            <div class="card-price" style="color: var(--rose); font-weight: 700; font-size: 1.1rem; margin-bottom: 12px;">${{ bouquet.price|floatformat:2 }}</div>
-            <button class="card-info-btn" onclick="openProductModal('predesigned',{{ bouquet.id }},'{{ bouquet.name|escapejs }}','Ramo Catálogo','${{ bouquet.price|floatformat:2 }}','{% if bouquet.image %}{{ bouquet.image.url }}{% endif %}','{{ bouquet.description|escapejs }}','','{{ bouquet.stock }}')">
+            <div class="card-price" style="color: var(--rose); font-weight: 700; font-size: 1.1rem; margin-bottom: 12px;">
+              {% if disc.has_discount %}
+                <span style="text-decoration: line-through; color: #9ca3af; font-size: 0.9rem; margin-right: 6px;">${{ bouquet.price|floatformat:2 }}</span>
+                <span>${{ disc.final_price|floatformat:2 }}</span>
+              {% else %}
+                ${{ bouquet.price|floatformat:2 }}
+              {% endif %}
+            </div>
+            <button class="card-info-btn" onclick="openProductModal('predesigned',{{ bouquet.id }},'{{ bouquet.name|escapejs }}','Ramo Catálogo','{% if disc.has_discount %}${{ disc.final_price|floatformat:2 }}{% else %}${{ bouquet.price|floatformat:2 }}{% endif %}','{% if bouquet.image %}{{ bouquet.image.url }}{% endif %}','{{ bouquet.description|escapejs }}','','{{ bouquet.stock }}')">
               Más información
             </button>
         </div>
@@ -784,44 +810,44 @@ html { scroll-behavior: smooth; }
   </div>
 </div>
 
-{% if featured_flowers|length >= 4 %}
 <!-- FAVORITOS -->
-<div class="section">
+{% if featured_flowers %}
+<div class="section" id="wrap-fav-wrap">
   <div class="section-head reveal">
     <div class="section-head-left">
       <span class="section-eyebrow">♡ Más queridos</span>
       <h2 class="section-title">Nuestros Favoritos</h2>
     </div>
-    <a href="#" class="section-see-all">Ver todos →</a>
+    <a href="#ramos-catalog" class="section-see-all">Ver todos →</a>
   </div>
-  <div class="carousel reveal d1" id="wrap-fav">
-    <button class="carousel-btn carousel-prev" id="prev-fav" disabled aria-label="Anterior">
-      <i data-lucide="chevron-left"></i>
-    </button>
-    <div class="carousel-track" id="track-fav">
-      {% for flower in featured_flowers %}
-      <div class="product-card" style="cursor:default">
-        <div class="card-img">
-            {% if flower.image %}
-              <img src="{{ flower.image.url }}" alt="{{ flower.name }}">
-            {% else %}
-              <i data-lucide="flower-2"></i>
-            {% endif %}
-        </div>
-        <div class="card-body">
-            <div class="card-label">{{ flower.get_tier_display }}</div>
-            <div class="card-name">{{ flower.name }}</div>
-            <div class="card-price">${{ flower.price|floatformat:2 }}</div>
-            <button class="card-info-btn" onclick="openProductModal('flower',{{ flower.id }},'{{ flower.name|escapejs }}','{{ flower.get_tier_display|escapejs }}','${{ flower.price|floatformat:2 }}','{% if flower.image %}{{ flower.image.url }}{% endif %}','','','')">
-              Más información
-            </button>
-        </div>
+  <div class="grid-layout reveal d1">
+    {% for flower in featured_flowers|slice:":4" %}
+    <div class="product-card" onclick="openProductModal('flower', '{{ flower.id }}', '{{ flower.name|escapejs }}', '{{ flower.get_tier_display|escapejs }}', '${{ flower.price }}', '{% if flower.image %}{{ flower.image.url }}{% endif %}', '{{ flower.description|escapejs }}', null, '{{ flower.stock }}')">
+      <div class="card-img">
+          {% get_discount_info flower as disc %}
+          {% if disc.has_discount %}
+            <div class="discount-badge">{{ disc.discount_label }}</div>
+          {% endif %}
+          {% if flower.image %}
+            <img src="{{ flower.image.url }}" alt="{{ flower.name }}">
+          {% else %}
+            <div style="opacity:0.3">🌹</div>
+          {% endif %}
       </div>
-      {% endfor %}
+      <div class="card-body">
+          <div class="card-label">{{ flower.get_tier_display }}</div>
+          <div class="card-name">{{ flower.name }}</div>
+          <div class="card-price">
+            {% if disc.has_discount %}
+              <span class="price-old">${{ flower.price|floatformat:2 }}</span>
+              <span class="price-current">${{ disc.final_price|floatformat:2 }}</span>
+            {% else %}
+              <span class="price-current">${{ flower.price|floatformat:2 }}</span>
+            {% endif %}
+          </div>
+      </div>
     </div>
-    <button class="carousel-btn carousel-next" id="next-fav" aria-label="Siguiente">
-      <i data-lucide="chevron-right"></i>
-    </button>
+    {% endfor %}
   </div>
 </div>
 {% endif %}
@@ -858,7 +884,7 @@ html { scroll-behavior: smooth; }
       </button>
     </div>
 
-    <div class="section-head reveal" id="grid-servicios">
+    <div class="section-head reveal" id="servicios-adicionales">
       <div class="section-head-left">
         <span class="section-eyebrow">✦ Lo que ofrecemos</span>
         <h2 class="section-title">Nuestros Servicios</h2>
@@ -980,44 +1006,65 @@ function handleImageError(img) {
 
 /* ── UI SETUP ── */
 document.addEventListener('DOMContentLoaded', () => {
-  // Tabs
+  // Tabs filtering
   const tabs = document.querySelectorAll('.tab-btn');
+  const cards = document.querySelectorAll('#track-ramos .product-card');
   tabs.forEach(t => {
     t.addEventListener('click', () => {
+      const cat = t.getAttribute('data-cat');
       tabs.forEach(btn => btn.classList.remove('active'));
       t.classList.add('active');
+      
+      cards.forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-size') === cat) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      // Show/Hide empty message
+      const visibleCards = Array.from(cards).filter(c => c.style.display !== 'none');
+      const emptyMsg = document.getElementById('empty-ramos-msg');
+      const wrapRamos = document.getElementById('wrap-ramos');
+      
+      if (visibleCards.length === 0) {
+        emptyMsg.style.display = 'block';
+        wrapRamos.style.display = 'none';
+      } else {
+        emptyMsg.style.display = 'none';
+        wrapRamos.style.display = 'block';
+      }
+      
+      // Reset scroll and update buttons if it's the ramos track
+      const trackRamos = document.getElementById('track-ramos');
+      if (trackRamos) {
+        trackRamos.scrollLeft = 0;
+        // Trigger scroll event to update buttons
+        trackRamos.dispatchEvent(new Event('scroll'));
+      }
     });
   });
 
-  // Carousels
+  // Carousels (Only for remaining ones if any, like portfolio)
   function setupCarousel(trackId, prevId, nextId) {
     const track = document.getElementById(trackId);
     const prev = document.getElementById(prevId);
     const next = document.getElementById(nextId);
     if(!track || !prev || !next) return;
-
     const updateBtns = () => {
       prev.disabled = track.scrollLeft <= 10;
       next.disabled = track.scrollLeft >= (track.scrollWidth - track.clientWidth - 10);
     };
-
-    prev.addEventListener('click', () => {
-      track.scrollBy({ left: -260, behavior: 'smooth' });
-      setTimeout(updateBtns, 350);
-    });
-    next.addEventListener('click', () => {
-      track.scrollBy({ left: 260, behavior: 'smooth' });
-      setTimeout(updateBtns, 350);
-    });
-    
+    prev.addEventListener('click', () => { track.scrollBy({ left: -260, behavior: 'smooth' }); setTimeout(updateBtns, 350); });
+    next.addEventListener('click', () => { track.scrollBy({ left: 260, behavior: 'smooth' }); setTimeout(updateBtns, 350); });
     track.addEventListener('scroll', updateBtns, { passive: true });
     window.addEventListener('resize', updateBtns);
     setTimeout(updateBtns, 100);
   }
 
-  setupCarousel('track-promo', 'prev-promo', 'next-promo');
-  setupCarousel('track-fav', 'prev-fav', 'next-fav');
   setupCarousel('track-ramos', 'prev-ramos', 'next-ramos');
+  setupCarousel('track-portfolio', 'prev-portfolio', 'next-portfolio');
 });
 
 /* ── BANNER ANIMATION ── */

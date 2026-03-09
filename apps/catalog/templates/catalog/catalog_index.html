@@ -22,8 +22,8 @@
             <p style="font-size: 0.9rem; color: var(--muted); line-height: 1.5;">Total de especies: <strong>{{ total_flowers }}</strong> ({{ active_flowers }} activas). Administra precios, fotos y stock de cada flor.</p>
         </div>
         <div style="margin-top: 24px; display: flex; gap: 12px;">
-            <a href="{% url 'catalog:flower_list' %}" class="btn btn-fill" style="flex: 1; justify-content: center; text-decoration: none;">Gestionar</a>
-            <a href="{% url 'catalog:flower_create' %}" class="btn btn-ghost" title="Añadir Nueva" style="text-decoration: none;"><i data-lucide="plus"></i></a>
+            <a href="{% url 'catalog:flower_list' %}" class="btn-primary" style="flex: 1; padding: 10px; background: var(--rose); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; border: none;">Gestionar</a>
+            <a href="{% url 'catalog:flower_create' %}" class="btn-outline" title="Añadir Nueva" style="padding: 10px 14px; border: 1px solid var(--rose); color: var(--rose); border-radius: 8px; text-decoration: none; display: flex; align-items: center; justify-content: center;"><i data-lucide="plus"></i></a>
         </div>
     </div>
 
@@ -39,8 +39,8 @@
             <p style="font-size: 0.9rem; color: var(--muted); line-height: 1.5;">Ramos prediseñados: <strong>{{ total_bouquets }}</strong>. Estos son diseños fijos que los clientes pueden comprar directamente sin usar el diseñador.</p>
         </div>
         <div style="margin-top: 24px; display: flex; gap: 12px;">
-            <a href="{% url 'catalog:predesigned_list' %}" class="btn btn-fill" style="flex: 1; justify-content: center; text-decoration: none;">Gestionar</a>
-            <a href="{% url 'catalog:predesigned_create' %}" class="btn btn-ghost" title="Añadir Nuevo" style="text-decoration: none;"><i data-lucide="plus"></i></a>
+            <a href="{% url 'catalog:predesigned_list' %}" class="btn-primary" style="flex: 1; padding: 10px; background: var(--rose); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; border: none;">Gestionar</a>
+            <a href="{% url 'catalog:predesigned_create' %}" class="btn-outline" title="Añadir Nuevo" style="padding: 10px 14px; border: 1px solid var(--rose); color: var(--rose); border-radius: 8px; text-decoration: none; display: flex; align-items: center; justify-content: center;"><i data-lucide="plus"></i></a>
         </div>
     </div>
 
@@ -56,8 +56,8 @@
             <p style="font-size: 0.9rem; color: var(--muted); line-height: 1.5;">Extras: <strong>{{ total_services }}</strong>. Peluches, tarjetas, chocolates y más. Configura stock y visibilidad de los complementos.</p>
         </div>
         <div style="margin-top: 24px; display: flex; gap: 12px;">
-            <a href="{% url 'catalog:service_list' %}" class="btn btn-fill" style="flex: 1; justify-content: center; text-decoration: none;">Gestionar</a>
-            <a href="{% url 'catalog:service_create' %}" class="btn btn-ghost" title="Añadir Nuevo" style="text-decoration: none;"><i data-lucide="plus"></i></a>
+            <a href="{% url 'catalog:service_list' %}" class="btn-primary" style="flex: 1; padding: 10px; background: var(--rose); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; border: none;">Gestionar</a>
+            <a href="{% url 'catalog:service_create' %}" class="btn-outline" title="Añadir Nuevo" style="padding: 10px 14px; border: 1px solid var(--rose); color: var(--rose); border-radius: 8px; text-decoration: none; display: flex; align-items: center; justify-content: center;"><i data-lucide="plus"></i></a>
         </div>
     </div>
 </div>
@@ -84,7 +84,7 @@
             {% endif %}
             <div style="padding: 12px;">
                 <div style="font-size: 0.85rem; font-weight: 700;">{{ flower.name }}</div>
-                <div style="font-size: 0.75rem; color: var(--rose);">${{ flower.price }}</div>
+                <div style="font-size: 0.75rem; color: var(--rose);">${{ flower.price|floatformat:2 }}</div>
             </div>
         </div>
         {% empty %}

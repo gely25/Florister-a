@@ -18,7 +18,30 @@ class BouquetListView(LoginRequiredMixin, SellerRequiredMixin, ListView):
     model = Bouquet
     template_name = 'bouquet/bouquet_list.html'
     context_object_name = 'bouquets'
-    ordering = ['-created_at']
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Bouquet.objects.all().order_by('-created_at')
+        
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            if search_query.isdigit():
+                queryset = queryset.filter(id=search_query)
+            else:
+                queryset = queryset.filter(user__username__icontains=search_query)
+                
+        size_filter = self.request.GET.get('size', '').strip()
+        if size_filter:
+            queryset = queryset.filter(size_id=size_filter)
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        context['current_size'] = self.request.GET.get('size', '')
+        context['sizes'] = BouquetSize.objects.all()
+        return context
 
 class BouquetDetailView(LoginRequiredMixin, SellerRequiredMixin, DetailView):
     model = Bouquet

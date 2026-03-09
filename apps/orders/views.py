@@ -10,7 +10,32 @@ class OrderListView(LoginRequiredMixin, SellerRequiredMixin, ListView):
     model = Order
     template_name = 'orders/order_list.html'
     context_object_name = 'orders'
-    ordering = ['-created_at']
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Order.objects.all().order_by('-created_at')
+        
+        # Search functionality
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            if search_query.isdigit():
+                queryset = queryset.filter(id=search_query)
+            else:
+                queryset = queryset.filter(tracking_token__icontains=search_query)
+                
+        # Status filtering
+        status_filter = self.request.GET.get('status', '').strip()
+        if status_filter and status_filter in dict(Order.STATUS_CHOICES):
+            queryset = queryset.filter(status=status_filter)
+            
+        return queryset
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        context['current_status'] = self.request.GET.get('status', '')
+        context['status_choices'] = Order.STATUS_CHOICES
+        return context
 
 class OrderManagementDetailView(LoginRequiredMixin, SellerRequiredMixin, DetailView):
     model = Order
@@ -37,7 +62,7 @@ class OrderHistoryView(LoginRequiredMixin, ListView):
     model = Order
     template_name = 'orders/history.html'
     context_object_name = 'orders'
-    paginate_by = 12
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = Order.objects.filter(user=self.request.user).order_by('-created_at')
@@ -75,8 +100,17 @@ class OrderDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         order = self.object
-        is_staff = self.request.user.is_authenticated and self.request.user.is_staff
+        user = self.request.user
         
+        # Security: If user is authenticated and order belongs to a user, 
+        # ensure it's their own order or they are staff.
+        is_owner = not order.user or (user.is_authenticated and order.user == user)
+        is_staff = user.is_authenticated and user.is_staff
+        
+        if not is_owner and not is_staff:
+            # Silently redirect to home or show error if they try to peek at others' orders
+            context['unauthorized'] = True
+            
         if is_staff:
             from apps.bouquet.models import BouquetItem
             from django.db.models import Count
@@ -86,6 +120,7 @@ class OrderDetailView(DetailView):
             context['status_choices'] = Order.STATUS_CHOICES
             
         context['is_staff'] = is_staff
+        context['is_owner'] = is_owner
         return context
 
 class TrackOrderSearchView(View):

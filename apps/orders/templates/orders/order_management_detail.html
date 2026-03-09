@@ -28,7 +28,7 @@
                         
                         <h4 style="font-size: 1.5rem; font-weight: 700; color: var(--text); margin-top: 0; margin-bottom: 5px;">{{ order.item_name }}</h4>
                         
-                        <div style="font-size: 1.25rem; font-weight: 600; color: var(--gold); margin-bottom: 20px;">${{ order.final_amount }}</div>
+                        <div style="font-size: 1.25rem; font-weight: 600; color: var(--gold); margin-bottom: 20px;">${{ order.final_amount|floatformat:2 }}</div>
 
                         {% if order.item_description %}
                             <div style="margin-bottom: 10px; font-weight: 600; font-size: 0.9rem; color: var(--text);">Descripción del artículo:</div>
@@ -58,7 +58,7 @@
                     {% endif %}
                     <div>
                         <div style="font-size: 0.85rem; font-weight: 600;">{{ item.flower.name }}</div>
-                        <div style="font-size: 0.75rem; color: var(--muted);">${{ item.price_snapshot }}</div>
+                        <div style="font-size: 0.75rem; color: var(--muted);">${{ item.price_snapshot|floatformat:2 }}</div>
                     </div>
                 </div>
                 {% empty %}
@@ -88,15 +88,15 @@
             <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                     <span>Subtotal:</span>
-                    <span>${{ order.total_amount }}</span>
+                    <span>${{ order.total_amount|floatformat:2 }}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--blush);">
                     <span>Descuento:</span>
-                    <span>-${{ order.discount_amount }}</span>
+                    <span>-${{ order.discount_amount|floatformat:2 }}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
                     <span>Total:</span>
-                    <span style="color: var(--gold);">${{ order.final_amount }}</span>
+                    <span style="color: var(--gold);">${{ order.final_amount|floatformat:2 }}</span>
                 </div>
             </div>
         </div>

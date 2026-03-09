@@ -33,8 +33,9 @@ class Flower(models.Model):
 class Service(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     icon = models.CharField(max_length=50, help_text="Emoji o clase de icono (ej: 🧸, 💬)", blank=True, null=True)
-    image_icon = models.ImageField(upload_to='service_icons/', null=True, blank=True, help_text="Imagen 3D o personaliza para el servicio")
+    image = models.ImageField(upload_to='services/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
@@ -72,6 +73,7 @@ class PreDesignedBouquet(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='pre-designed/')
     stock = models.PositiveIntegerField(default=0)
+    size = models.ForeignKey(BouquetSize, on_delete=models.SET_NULL, null=True, blank=True, related_name='predesigned_bouquets')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

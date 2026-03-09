@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Flower, BouquetSize, Service, Promotion, PortfolioItem
+from .models import Flower, BouquetSize, Service, Promotion, PortfolioItem, PreDesignedBouquet
 
 @admin.register(PortfolioItem)
 class PortfolioItemAdmin(admin.ModelAdmin):
@@ -24,3 +24,7 @@ class ServiceAdmin(admin.ModelAdmin):
 class PromotionAdmin(admin.ModelAdmin):
     list_display = ('name', 'price', 'is_active', 'order')
     list_editable = ('order', 'is_active')
+@admin.register(PreDesignedBouquet)
+class PreDesignedBouquetAdmin(admin.ModelAdmin):
+    list_display = ('name', 'size', 'price', 'stock', 'is_active')
+    list_filter = ('size', 'is_active')

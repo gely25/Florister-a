@@ -58,8 +58,7 @@ class QuickOrderCreateView(View):
                 product = PreDesignedBouquet.objects.get(id=product_id, is_active=True)
                 if product.stock < quantity:
                     return JsonResponse({'error': f'Lo sentimos, soló tenemos {product.stock} unidades de "{product.name}" disponibles.'}, status=400)
-                product.stock -= quantity
-                product.save()
+                # Removed: product.stock -= quantity; product.save()
                 name = product.name
                 price = product.price
                 image_field = product.image
@@ -86,9 +85,16 @@ class QuickOrderCreateView(View):
         if not size_qs:
             return JsonResponse({'error': 'No hay tamaños de ramo configurados en el sistema.'}, status=500)
 
-        total_order_price = price * quantity
+        # Calculate Discount
+        from apps.discounts.services import get_discounted_price_info
+        disc_info = get_discounted_price_info(product)
+        
+        unit_price = disc_info['final_price']
+        total_order_amount = unit_price * quantity
+        total_discount = disc_info['discount_amount'] * quantity
+        original_total = disc_info['original_price'] * quantity
 
-        bouquet = Bouquet.objects.create(size=size_qs, user=user, total_price=total_order_price)
+        bouquet = Bouquet.objects.create(size=size_qs, user=user, total_price=original_total)
 
         order = Order.objects.create(
             user=user,
@@ -98,23 +104,26 @@ class QuickOrderCreateView(View):
             bouquet=bouquet,
             item_type=product_type,
             item_name=name,
+            item_id=product_id,
             item_description=description,
             item_image=image_field,
-            total_amount=total_order_price,
-            discount_amount=Decimal('0.00'),
-            final_amount=total_order_price,
+            total_amount=original_total,
+            discount_amount=total_discount,
+            final_amount=total_order_amount,
         )
 
         # WhatsApp message (friendly, from client to seller)
         client_name = user.get_full_name() if user else (guest_data.get('name', 'Invitado') if guest_data else 'Invitado')
         
+        size_name = product.size.name if product_type == 'predesigned' and hasattr(product, 'size') and product.size else ''
+        size_line = f"\n  Tamano: {size_name}" if size_name else ''
+
         whatsapp_msg = (
-            f"¡Hola! 👋 Me gustaría hacer un pedido.\n\n"
-            f"Soy {client_name}.\n"
-            f"Me interesa adquirir:\n"
-            f"🌸 {quantity}x {note}\n"
-            f"💵 Total: ${total_order_price:.2f}\n\n"
-            f"Mi número de pedido pre-registrado es el #{order.id}. ¿Me podrían ayudar confirmando mi compra, por favor? ✨"
+            f"Hola, soy {client_name} y me gustaria confirmar mi pedido.\n\n"
+            f"*{note}*{size_line}\n"
+            f"  Cantidad: {quantity}\n"
+            f"  Total: ${total_order_amount:.2f}\n\n"
+            f"Mi numero de pedido es el *#{order.id}*. Me podrias confirmar el pedido, por favor?"
         )
 
         return JsonResponse({
@@ -122,5 +131,5 @@ class QuickOrderCreateView(View):
             'status': 'success',
             'whatsapp_message': whatsapp_msg,
             'tracking_token': str(order.tracking_token),
-            'total': float(total_order_price),
+            'total': float(total_order_amount),
         }, status=201)

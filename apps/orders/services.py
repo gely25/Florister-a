@@ -47,11 +47,9 @@ def create_order(request, *, user=None, guest_data=None, size_code, flowers_data
         for f_data in flowers_data:
             flower = flowers_db[f_data['flower_id']]
             
-            # Stock management: decrement stock
+            # Stock management validation only (decrement moved to confirmation)
             if flower.stock <= 0:
                 raise ValidationError(f"Lo sentimos, no hay stock suficiente de {flower.name}.")
-            flower.stock -= 1
-            flower.save()
 
             BouquetItem.objects.create(
                 bouquet=bouquet,
@@ -125,42 +123,61 @@ def _calculate_best_discount(bouquet, coupon_code):
             else:
                 current_d = d.fixed_amount
         
-        # Other types (category/product) can be added here
-        # For a bouquet, it's a sum of items, so product-specific is more complex
+        elif d.type == 'category' and d.tier_target:
+            # Apply only to items with the matching tier
+            matching_total = Decimal('0.00')
+            for item in bouquet.items.all():
+                if item.flower.tier == d.tier_target:
+                    matching_total += item.price_snapshot
+            
+            if matching_total > 0:
+                if d.percentage > 0:
+                    current_d = (matching_total * d.percentage) / 100
+                else:
+                    current_d = d.fixed_amount
+        
+        elif d.type == 'product' and d.flower_target:
+            # Apply only to the specific flower
+            found = False
+            matching_total = Decimal('0.00')
+            for item in bouquet.items.all():
+                if item.flower == d.flower_target:
+                    matching_total += item.price_snapshot
+                    found = True
+            
+            if found:
+                if d.percentage > 0:
+                    current_d = (matching_total * d.percentage) / 100
+                else:
+                    current_d = d.fixed_amount
         
         if current_d > best_discount:
             best_discount = current_d
 
-    return best_discount
+    return best_discount.quantize(Decimal('0.01'))
 
 def _generate_whatsapp_message(request, order):
-    msg = f"*Nuevo Pedido #{order.id}*\n\n"
-    msg += f"Cliente: {order.user.get_full_name() if order.user else order.guest_name}\n"
-    msg += f"Tamaño: {order.bouquet.size.name}\n"
-    msg += f"Flores:\n"
-    
     from collections import Counter
+    client_name = order.user.get_full_name() if order.user else order.guest_name
+    size_name = order.bouquet.size.name
+
     flower_counts = Counter(item.flower.name for item in order.bouquet.items.all())
-    for name, count in flower_counts.items():
-        display_name = f"{name}: {count}" if count > 1 else name
-        msg += f"- {display_name}\n"
-    
-    msg += f"\n*Resumen*\n"
-    msg += f"Subtotal: ${order.total_amount:.2f}\n"
+    flower_lines = "\n".join(
+        f"  - {name}: {count}" for name, count in flower_counts.items()
+    )
+
+    price_lines = f"  Subtotal: ${order.total_amount:.2f}"
     if order.discount_amount > 0:
-        msg += f"Descuento: -${order.discount_amount:.2f}\n"
-    msg += f"Total Final: ${order.final_amount:.2f}\n\n"
-    
-    # Public Tracking Link
-    tracking_url = request.build_absolute_uri(f"/orders/track/{order.tracking_token}/")
-    msg += f"Sigue tu pedido aquí: {tracking_url}\n\n"
-    
-    if order.bouquet_image:
-        image_url = request.build_absolute_uri(order.bouquet_image.url)
-        msg += f"{image_url}\n"
-        
-    msg += "¡Gracias por preferir Atelier Floral!"
-    
+        price_lines += f"\n  Descuento: -${order.discount_amount:.2f}"
+    price_lines += f"\n  Total Final: ${order.final_amount:.2f}"
+
+    msg = (
+        f"Hola, soy {client_name} y me gustaria confirmar mi pedido.\n\n"
+        f"*Ramo Personalizado - Tamano {size_name}*\n"
+        f"{flower_lines}\n\n"
+        f"{price_lines}\n\n"
+        f"Mi numero de pedido es el *#{order.id}*. Me podrias confirmar el pedido, por favor?"
+    )
     return msg
 
 

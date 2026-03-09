@@ -12,7 +12,6 @@ def get_menu_for_user(user):
 
     if user.is_seller:
         return [
-            {'name': 'Inicio', 'url': '/', 'icon': 'home'},
             {'name': 'Catálogo', 'url': reverse('catalog:index'), 'icon': 'grid'},
             {'name': 'Resumen', 'url': reverse('dahsboard:seller_dashboard'), 'icon': 'layout-dashboard'},
             {'name': 'Gestión de Pedidos', 'url': reverse('orders:management_list'), 'icon': 'shopping-bag'},
@@ -26,9 +25,9 @@ def get_menu_for_user(user):
     
     # Default is Customer
     return [
-        {'name': 'Inicio', 'url': '/', 'icon': 'home'},
-        {'name': 'Mi Perfil', 'url': reverse('dahsboard:client_dashboard'), 'icon': 'user'},
+        {'name': 'Ver Catálogo', 'url': reverse('dahsboard:client_catalog'), 'icon': 'grid'},
+        {'name': 'Resumen', 'url': reverse('dahsboard:client_dashboard'), 'icon': 'layout-dashboard'},
         {'name': 'Mis Pedidos', 'url': reverse('orders:history'), 'icon': 'history'},
         {'name': 'Diseña tu ramo', 'url': reverse('bouquet:design'), 'icon': 'flower'},
-        {'name': 'Promociones', 'url': reverse('dahsboard:placeholder'), 'icon': 'gift'},
+        {'name': 'Promociones', 'url': reverse('dahsboard:promotions_list'), 'icon': 'gift'},
     ]

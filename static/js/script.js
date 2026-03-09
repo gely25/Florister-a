@@ -118,7 +118,7 @@ function renderCatalog() {
     list.innerHTML = '';
     const tierFlows = FLOWERS.filter(f => f.type === tier);
     const fullCount = flowers.filter(f => f.tier === tier).length;
-    const isFull = fullCount >= CONFIG[tier].n;
+    const isFull = (selectedSizeKey !== 'personalizado') && (fullCount >= CONFIG[tier].n);
     tierFlows.forEach(f => {
         const d = document.createElement('div'); d.className = `fcard ${isFull ? 'locked' : ''}`;
         d.onclick = () => !isFull && add(f);
@@ -129,7 +129,20 @@ function renderCatalog() {
 
 function add(f) {
     const c = flowers.filter(fl => fl.tier === tier).length;
-    const slot = CONFIG[tier].slots[c];
+    const isCustom = selectedSizeKey === 'personalizado';
+
+    // Fallback slot if predefined slots are exhausted
+    let slot = CONFIG[tier].slots[c];
+    if (!slot) {
+        // Random slight jitter around center for extra flowers
+        slot = {
+            x: 50 + (Math.random() * 10 - 5),
+            y: tier === 'l' ? 53 : tier === 'm' ? 60 : 66,
+            r: Math.random() * 20 - 10,
+            s: tier === 'l' ? 1.1 : tier === 'm' ? 0.85 : 0.55
+        };
+    }
+
     const flowersArea = document.getElementById('flowers');
     if (!flowersArea) return;
 
@@ -147,7 +160,7 @@ function add(f) {
     };
     cont.appendChild(ring); cont.appendChild(badge); cont.appendChild(img);
     flowersArea.appendChild(cont);
-    const obj = { el: cont, tier, data: f, x: 0, y: 0, s: tierSize.baseS, r: 0, baseR: slot.r };
+    const obj = { el: cont, tier, data: f, x: 0, y: 0, s: isCustom ? slot.s : tierSize.baseS, r: 0, baseR: slot.r };
     flowers.push(obj); states.set(cont, obj); total += f.p;
     cont.style.setProperty('--sx', '-200px'); cont.style.setProperty('--sy', '200px');
     cont.style.setProperty('--s', slot.s); cont.style.setProperty('--r', slot.r + 'deg');
@@ -312,8 +325,16 @@ function updateUI() {
 
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) {
-        if (flowers.filter(f => f.tier === tier).length >= CONFIG[tier].n) nextBtn.classList.add('on');
-        else nextBtn.classList.remove('on');
+        const isCustom = selectedSizeKey === 'personalizado';
+        const isFull = flowers.filter(f => f.tier === tier).length >= CONFIG[tier].n;
+
+        if (isCustom || isFull) {
+            nextBtn.classList.add('on');
+            nextBtn.style.pointerEvents = 'auto';
+            nextBtn.style.opacity = '1';
+        } else {
+            nextBtn.classList.remove('on');
+        }
     }
     renderCatalog();
 }
@@ -333,10 +354,69 @@ function resetSelected() { if (!selected || !states.has(selected)) return; const
 function setWrapColor(color, el) { document.querySelectorAll('.wrap-part').forEach(w => { w.style.setProperty('--wc', color); }); document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active')); if (el) el.classList.add('active'); }
 function removeSelected() { if (!selected || !states.has(selected)) return; const s = states.get(selected); total -= s.data.p; flowers = flowers.filter(f => f.el !== selected); states.delete(selected); selected.remove(); selected = null; const controls = document.getElementById('controls'); if (controls) controls.classList.remove('show'); updateUI(); }
 
+function clearBouquet() {
+    if (flowers.length === 0) return;
+    const modal = document.getElementById('clearModal');
+    if (modal) modal.style.display = 'flex';
+}
+window.clearBouquet = clearBouquet;
+
+function hideClearModal() {
+    const modal = document.getElementById('clearModal');
+    if (modal) modal.style.display = 'none';
+}
+window.hideClearModal = hideClearModal;
+
+function confirmClearBouquet() {
+    hideClearModal();
+    // Clear data
+    flowers = [];
+    states.clear();
+    total = 0;
+
+    // Clear DOM
+    const flowersArea = document.getElementById('flowers');
+    if (flowersArea) flowersArea.innerHTML = '';
+
+    // Reset steps
+    tier = 'l';
+    document.querySelectorAll('.si').forEach(s => s.classList.remove('active'));
+    const s1 = document.getElementById('s1');
+    if (s1) s1.classList.add('active');
+
+    // Reset Buttons UI
+    const finishBtn = document.getElementById('finishBtn');
+    if (finishBtn) finishBtn.style.display = 'none';
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) nextBtn.style.display = 'block';
+
+    deselectAll();
+    updateUI();
+    applySmartWrap(true);
+}
+window.confirmClearBouquet = confirmClearBouquet;
+
 let isProcessing = false;
 
 function finishOrder() {
     if (isProcessing) return;
+
+    // Validation for 'Personalizado' size
+    if (selectedSizeKey === 'personalizado') {
+        const counts = { l: 0, m: 0, s: 0 };
+        flowers.forEach(f => {
+            counts[f.tier]++;
+        });
+
+        // Condition: 1 Large OR 2 Medium OR 3 Small
+        const isValid = counts.l >= 1 || counts.m >= 2 || counts.s >= 3;
+
+        if (!isValid) {
+            alert('Para un Ramo Personalizado, debes incluir al menos:\n- 1 flor Grande\n- O 2 flores Medianas\n- O 3 flores Pequeñas\n\n¡Agrega un poco más para continuar!');
+            return;
+        }
+    }
+
     if (selected) { selected.classList.remove('selected'); selected = null; }
     const controls = document.getElementById('controls');
     if (controls) controls.classList.remove('show');
@@ -355,8 +435,11 @@ function finishOrder() {
         document.getElementById('checkoutModal').style.display = 'flex';
         document.getElementById('modalButtons').style.display = 'flex';
         document.getElementById('guestForm').style.display = 'none';
-        document.getElementById('guestName').value = '';
-        document.getElementById('guestPhone').value = '';
+        const guestNameEl = document.getElementById('guestName');
+        if (guestNameEl) guestNameEl.value = '';
+        const guestPhoneEl = document.getElementById('guestPhone');
+        if (guestPhoneEl) guestPhoneEl.value = '';
+        isProcessing = false;
     }
 }
 window.finishOrder = finishOrder;
@@ -554,6 +637,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd);
         e.preventDefault();
     });
+
+    const controls = document.getElementById('controls');
+    const controlsHeader = document.getElementById('controlsHeader');
+    if (controls && controlsHeader) {
+        let dc = false, ox, oy;
+        controlsHeader.onmousedown = e => {
+            if (e.target.closest('.adj-btn')) return;
+            dc = true; ox = e.clientX - controls.offsetLeft; oy = e.clientY - controls.offsetTop;
+            controls.style.transition = 'none'; e.preventDefault();
+        };
+        document.addEventListener('mousemove', e => {
+            if (!dc) return;
+            controls.style.left = (e.clientX - ox) + 'px';
+            controls.style.top = (e.clientY - oy) + 'px';
+            controls.style.right = 'auto';
+        });
+        document.addEventListener('mouseup', () => { if (dc) { dc = false; controls.style.transition = 'opacity 0.3s, transform 0.3s'; } });
+    }
 
     renderCatalog();
 });
