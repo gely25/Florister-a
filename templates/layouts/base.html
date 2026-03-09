@@ -119,6 +119,19 @@
             .sidebar-links a { white-space: nowrap; padding: 8px 16px; font-size: 0.8rem; }
             .sidebar-links li:last-child { margin-left: auto; border-top: none; padding-top: 0; }
         }
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 18px; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 600;
+            text-decoration: none; border: none; cursor: pointer;
+            font-family: var(--sans); transition: all 0.2s var(--ease);
+        }
+        .btn-ghost { color: var(--rose); background: transparent; border: 1.5px solid var(--blush); }
+        .btn-ghost:hover { background: var(--rose-lt); border-color: var(--rose); }
+        .btn-fill { color: white !important; background: var(--rose) !important; border: 1.5px solid var(--rose) !important; }
+        .btn-fill:hover { background: var(--rose-dk) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,125,125,0.35); }
+
     </style>
     {% block extra_head %}{% endblock %}
 </head>

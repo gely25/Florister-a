@@ -111,7 +111,10 @@
                 <a href="{% url 'orders:history' %}" class="btn btn-ghost">Limpiar Filtros</a>
             {% else %}
                 <p style="color: var(--muted); margin-bottom: 30px;">Aún no tienes pedidos o diseños guardados en tu historial.</p>
-                <a href="{% url 'bouquet:design' %}" class="btn btn-fill">Diseñar mi primer ramo</a>
+                <a href="{% url 'bouquet:design' %}" class="btn btn-fill" style="padding: 14px 30px; border-radius: 14px; font-size: 1rem;">
+                    <i data-lucide="flower-2" style="width: 20px; height: 20px;"></i>
+                    Diseñar mi primer ramo
+                </a>
             {% endif %}
         </div>
     {% endif %}

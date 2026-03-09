@@ -89,13 +89,23 @@ class OrderHistoryView(LoginRequiredMixin, ListView):
         context['status_choices'] = Order.STATUS_CHOICES
         return context
 
+from django.core.exceptions import ValidationError
+from django.http import Http404
+
 class OrderDetailView(DetailView):
     model = Order
     template_name = 'orders/track.html'
     context_object_name = 'order'
     slug_field = 'tracking_token'
     slug_url_kwarg = 'token'
-    context_object_name = 'order'
+
+    def get(self, request, *args, **kwargs):
+        try:
+            return super().get(request, *args, **kwargs)
+        except (ValidationError, ValueError, Http404):
+            return render(request, self.template_name, {
+                'error': 'El código de seguimiento ingresado no es válido o el pedido no existe.'
+            })
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

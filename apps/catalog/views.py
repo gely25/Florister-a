@@ -14,8 +14,11 @@ class HomeView(TemplateView):
     template_name = 'catalog/home.html'
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated and request.user.is_customer:
-            return redirect('dahsboard:client_catalog')
+        if request.user.is_authenticated:
+            if request.user.is_seller:
+                return redirect('dahsboard:seller_dashboard')
+            elif request.user.is_customer:
+                return redirect('dahsboard:client_catalog')
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
