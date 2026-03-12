@@ -118,7 +118,8 @@ function renderCatalog() {
     list.innerHTML = '';
     const tierFlows = FLOWERS.filter(f => f.type === tier);
     const fullCount = flowers.filter(f => f.tier === tier).length;
-    const isFull = (selectedSizeKey !== 'personalizado') && (fullCount >= CONFIG[tier].n);
+    const maxForTier = SIZE_PRESETS[selectedSizeKey] ? SIZE_PRESETS[selectedSizeKey][tier] : CONFIG[tier].n;
+    const isFull = fullCount >= maxForTier;
     tierFlows.forEach(f => {
         const d = document.createElement('div'); d.className = `fcard ${isFull ? 'locked' : ''}`;
         d.onclick = () => !isFull && add(f);
@@ -130,6 +131,8 @@ function renderCatalog() {
 function add(f) {
     const c = flowers.filter(fl => fl.tier === tier).length;
     const isCustom = selectedSizeKey === 'personalizado';
+    const maxForTier = SIZE_PRESETS[selectedSizeKey] ? SIZE_PRESETS[selectedSizeKey][tier] : CONFIG[tier].n;
+    if (c >= maxForTier) return; // Respect max limit for all sizes including personalizado
 
     // Fallback slot if predefined slots are exhausted
     let slot = CONFIG[tier].slots[c];
@@ -326,9 +329,12 @@ function updateUI() {
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) {
         const isCustom = selectedSizeKey === 'personalizado';
-        const isFull = flowers.filter(f => f.tier === tier).length >= CONFIG[tier].n;
+        const maxForTierUI = SIZE_PRESETS[selectedSizeKey] ? SIZE_PRESETS[selectedSizeKey][tier] : CONFIG[tier].n;
+        const currentCount = flowers.filter(f => f.tier === tier).length;
+        const isFull = currentCount >= maxForTierUI;
+        const hasAtLeastOne = currentCount >= 1;
 
-        if (isCustom || isFull) {
+        if (isFull || (isCustom && hasAtLeastOne)) {
             nextBtn.classList.add('on');
             nextBtn.style.pointerEvents = 'auto';
             nextBtn.style.opacity = '1';
@@ -422,16 +428,19 @@ function finishOrder() {
     if (controls) controls.classList.remove('show');
 
     const finishBtn = document.getElementById('finishBtn');
-    if (finishBtn) {
-        finishBtn.innerText = 'PROCESANDO...';
-        finishBtn.style.opacity = '0.7';
-        finishBtn.style.pointerEvents = 'none';
-    }
-    isProcessing = true;
 
     if (typeof IS_AUTHENTICATED !== 'undefined' && IS_AUTHENTICATED) {
-        processOrder(false); // Logged in
+        // Authenticated: lock button and process immediately
+        if (finishBtn) {
+            finishBtn.innerText = 'PROCESANDO...';
+            finishBtn.style.opacity = '0.7';
+            finishBtn.style.pointerEvents = 'none';
+        }
+        isProcessing = true;
+        processOrder(false);
     } else {
+        // Guest: just open the modal, don't lock the button yet
+        isProcessing = false;
         document.getElementById('checkoutModal').style.display = 'flex';
         document.getElementById('modalButtons').style.display = 'flex';
         document.getElementById('guestForm').style.display = 'none';
@@ -439,7 +448,6 @@ function finishOrder() {
         if (guestNameEl) guestNameEl.value = '';
         const guestPhoneEl = document.getElementById('guestPhone');
         if (guestPhoneEl) guestPhoneEl.value = '';
-        isProcessing = false;
     }
 }
 window.finishOrder = finishOrder;
@@ -452,6 +460,14 @@ window.showGuestForm = showGuestForm;
 
 function hideCheckoutModal() {
     document.getElementById('checkoutModal').style.display = 'none';
+    // Restore finish button in case user cancels
+    isProcessing = false;
+    const finishBtn = document.getElementById('finishBtn');
+    if (finishBtn) {
+        finishBtn.innerText = 'FINALIZAR DISEÑO ✓';
+        finishBtn.style.opacity = '1';
+        finishBtn.style.pointerEvents = 'auto';
+    }
 }
 window.hideCheckoutModal = hideCheckoutModal;
 
@@ -613,10 +629,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (drag.type === 'move') {
                 const dx = me.clientX - sx; const dy = me.clientY - sy;
                 if (drag.el.classList.contains('wrap-part')) {
-                    sx = me.clientX; sy = me.clientY;
-                    wrapState.x = Math.max(-150, Math.min(150, wrapState.x + dx));
-                    wrapState.y = Math.max(-300, Math.min(100, wrapState.y + dy));
-                    document.querySelectorAll('.wrap-part').forEach(w => { w.style.setProperty('--tx', wrapState.x + 'px'); w.style.setProperty('--ty', wrapState.y + 'px'); });
+                    // Movement disabled for wrapping per user request
+                    return;
                 } else {
                     const s = states.get(drag.el);
                     const rect = document.getElementById('stage').getBoundingClientRect();

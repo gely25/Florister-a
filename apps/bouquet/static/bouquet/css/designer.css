@@ -188,12 +188,12 @@ h1 {
     bottom: -50px;
     left: 50%;
     transform: translateX(-50%) translate3d(var(--tx, 0), var(--ty, 0), 0) scale(var(--tw, 1));
-    width: 460px;
+    width: 400px;
     pointer-events: auto !important;
     opacity: 0;
     transition: opacity 0.6s, background-color 0.4s;
     -webkit-user-drag: none;
-    cursor: grab;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -214,8 +214,8 @@ h1 {
     position: absolute;
     inset: 0;
     background-color: var(--wc);
-    -webkit-mask: url("/media/envoltura.png") no-repeat bottom center / contain;
-    mask: url("/media/envoltura.png") no-repeat bottom center / contain;
+    -webkit-mask: url("/media/envoltura.png") no-repeat bottom center / cover;
+    mask: url("/media/envoltura.png") no-repeat bottom center / cover;
     transition: background-color 0.4s;
 }
 
@@ -243,7 +243,8 @@ h1 {
 
 .wrap-front {
     z-index: 20;
-    clip-path: polygon(0 42%, 48% 68%, 52% 68%, 100% 42%, 100% 100%, 0 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    clip-path: polygon(0 40%, 48% 68%, 52% 68%, 100% 40%, 100% 100%, 0 100%);
 }
 
 /* Flowers */
