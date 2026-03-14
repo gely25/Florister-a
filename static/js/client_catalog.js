@@ -51,7 +51,7 @@ let currentItem = null;
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}' 
+                    'X-CSRFToken': window.SISART_CONFIG.csrfToken 
                 },
                 body: JSON.stringify({
                     product_type: currentItem.type,
@@ -61,7 +61,7 @@ let currentItem = null;
             });
             const res = await resp.json();
             if (res.status === 'success') {
-                const waNumber = '{{ whatsapp_number }}';
+                const waNumber = window.SISART_CONFIG.whatsappNumber;
                 window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(res.whatsapp_message)}`, '_blank');
                 window.location.href = `/orders/track/${res.tracking_token}/`;
             } else {

@@ -380,7 +380,7 @@ async function _submitQuickOrder() {
   try {
     const resp = await fetch('/orders/quick-order/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.SISART_CONFIG.csrfToken },
       body: JSON.stringify({
         product_type: _pmCurrent.type,
         product_id: _pmCurrent.id,
@@ -392,7 +392,7 @@ async function _submitQuickOrder() {
     if (result.status === 'success') {
       closeGc();
       if (result.whatsapp_message) {
-        const waNumber = '{{ whatsapp_number }}';
+        const waNumber = window.SISART_CONFIG.whatsappNumber;
         window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(result.whatsapp_message)}`, '_blank');
       }
       setTimeout(() => { window.location.href = `/orders/track/${result.tracking_token}/`; }, 1200);
@@ -446,7 +446,7 @@ function openStaticService(title, description, icon, imageUrl) {
 }
 
 function handleServiceContact(serviceName) {
-  const waNumber = '{{ whatsapp_number }}';
+  const waNumber = window.SISART_CONFIG.whatsappNumber;
   const message = `Hola Sisart! 🌸 Me gustaría obtener más información sobre el servicio: ${serviceName}.`;
   window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
 }

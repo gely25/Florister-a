@@ -15,7 +15,15 @@
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <link rel="stylesheet" href="{% static \'css/base.css\' %}?v={% now \'U\' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v={% now 'U' %}">
+    
+    <script>
+        window.SISART_CONFIG = {
+            whatsappNumber: "{{ whatsapp_number }}",
+            csrfToken: "{{ csrf_token }}"
+        };
+    </script>
+
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% if user.is_authenticated %}authenticated{% endif %}">
@@ -44,7 +52,7 @@
 
     {% block extra_js %}{% endblock %}
 
-    <script src="{% static \'js/base.js\' %}?v={% now \'U\' %}"></script>
+    <script src="{% static 'js/base.js' %}?v={% now 'U' %}"></script>
 
 </body>
 </html>

@@ -5,7 +5,7 @@
 {% block title %}Catálogo de Productos — Sisart{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static \'css/client_catalog.css\' %}?v={% now \'U\' %}">
+<link rel="stylesheet" href="{% static 'css/client_catalog.css' %}?v={% now 'U' %}">
 {% endblock %}
 
 {% block dash_content %}
@@ -122,4 +122,6 @@
 </div>
 {% endblock %}
 
-{% block dash_external_js %}\n<script src="{% static \'js/client_catalog.js\' %}?v={% now \'U\' %}"></script>\n{% endblock %}
+{% block dash_external_js %}
+<script src="{% static 'js/client_catalog.js' %}?v={% now 'U' %}"></script>
+{% endblock %}

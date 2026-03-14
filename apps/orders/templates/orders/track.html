@@ -4,7 +4,7 @@
 {% block title %}Seguimiento de Pedido | Sisart{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static \'css/track.css\' %}?v={% now \'U\' %}">
+    <link rel="stylesheet" href="{% static 'css/track.css' %}?v={% now 'U' %}">
 {% endblock %}
 {% block content %}
 <div class="track-wrap">
@@ -64,7 +64,30 @@
         </div>
     </div>
     
-    <script src="{% static \'js/track.js\' %}?v={% now \'U\' %}"></script>
+    <script>
+    async function updateStatus() {
+        const status = document.getElementById('statusSelect').value;
+        const formData = new FormData();
+        formData.append('status', status);
+        formData.append('csrfmiddlewaretoken', window.SISART_CONFIG.csrfToken);
+
+        try {
+            const res = await fetch("{% url 'orders:update_status' order.id %}", {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                alert('Estado actualizado correctamente.');
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch(e) {
+            alert('Error de conexión');
+        }
+    }
+    </script>
     {% endif %}
 
     {% if not order %}

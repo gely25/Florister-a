@@ -158,8 +158,8 @@ def _calculate_best_discount(bouquet, coupon_code):
 
 def _generate_whatsapp_message(request, order):
     from collections import Counter
-    client_name = order.user.get_full_name() if order.user else order.guest_name
-    size_name = order.bouquet.size.name
+    client_name = order.user.get_full_name() if order.user else (order.guest_name or "Invitado")
+    size_name = order.bouquet.size.name if order.bouquet and order.bouquet.size else "Estándar"
 
     flower_counts = Counter(item.flower.name for item in order.bouquet.items.all())
     flower_lines = "\n".join(
