@@ -44,10 +44,5 @@
     </form>
 </div>
 
-<style>
-    input[type="text"], input[type="number"], input[type="file"], select, textarea {
-        width: 100%; padding: 12px; border: 1px solid var(--blush); border-radius: 10px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box;
-    }
-    input[type="checkbox"] { width: auto; margin-right: 8px; }
-</style>
+<link rel="stylesheet" href="{% static \'css/portfolio_form.css\' %}?v={% now \'U\' %}">
 {% endblock %}

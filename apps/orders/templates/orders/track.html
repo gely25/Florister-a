@@ -4,80 +4,7 @@
 {% block title %}Seguimiento de Pedido | Sisart{% endblock %}
 
 {% block extra_head %}
-    <style>
-        .track-wrap {
-            display: flex; justify-content: center; align-items: center; 
-            min-height: calc(100vh - 68px - 140px);
-            padding: 40px 20px;
-        }
-        .ticket-card { 
-            background: #ffffff; border-radius: 16px; padding: 40px; 
-            box-shadow: 0 10px 40px rgba(242, 122, 133, 0.05); 
-            max-width: 450px; width: 100%; text-align: center; 
-            border: 1px solid var(--border, #eee); 
-            animation: fadeIn 0.5s ease;
-            margin: 0 auto;
-        }
-        .t-brand { color: var(--rose, #c97d7d); font-family: var(--serif); font-size: 24px; font-style: italic; margin-bottom: 20px; }
-        .t-title { font-family: var(--serif); color: var(--rose, #c97d7d); margin-bottom: 5px; font-size: 24px; }
-        .t-subtitle { color: #888; font-size: 13px; margin-bottom: 25px; }
-        
-        .t-image-container {
-            width: 100%; min-height: 250px; background: var(--cream); 
-            border-radius: 12px; margin-bottom: 20px; display: flex; 
-            align-items: center; justify-content: center; overflow: hidden;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
-            border: 1px solid #f0f0f0;
-        }
-        .t-image { width: 100%; height: auto; display: block; }
-        
-        .t-info { text-align: left; background: #fdfdfd; border: 1px solid #eee; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .t-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; color: #555; }
-        .t-row:last-child { border-bottom: none; }
-        .t-row strong { color: var(--text); font-weight: 600; }
-        .t-total { font-size: 18px; color: var(--rose); font-weight: 700; }
-        
-        .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-        .status-pending { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; }
-        .status-confirmed { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-        .status-preparing { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-        .status-ready { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        .status-delivered { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
-        .status-cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-        
-        .btn-back { display: inline-block; padding: 14px 28px; background: var(--rose); color: #fff; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 1px; transition: all 0.3s; text-transform: uppercase; font-family: var(--sans); }
-        .btn-back:hover { background: var(--rose-dk); box-shadow: 0 5px 15px rgba(201, 125, 125, 0.3); transform: translateY(-1px); }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* Florist Specific Styles */
-        .staff-panel {
-            background: #fdfaf6; border: 2px dashed #d4af37; border-radius: 12px;
-            padding: 30px; margin-bottom: 30px; text-align: left;
-            animation: slideIn 0.5s ease;
-        }
-        .staff-h { font-family: var(--serif); font-size: 14px; color: #b38b4d; letter-spacing: 2px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-        .recipe-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
-        .recipe-item { display: flex; align-items: center; gap: 10px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; }
-        .recipe-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
-        .recipe-info { font-size: 13px; font-weight: 600; }
-        .recipe-qty { color: var(--gold); }
-        .customer-contact { background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c8e6c9; }
-        .contact-h { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #2e7d32; font-weight: 700; margin-bottom: 5px; }
-        .contact-val { font-size: 14px; color: #1b5e20; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .wa-btn { background: #25d366; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; text-decoration: none; }
-        
-        .status-manager { display: flex; flex-direction: column; gap: 10px; }
-        .status-select { padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: inherit; font-size: 13px; }
-        .btn-update { background: #333; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; transition: 0.3s; }
-        .btn-update:hover { background: #000; }
-
-        .florist-login-link { font-size: 11px; color: #ccc; margin-top: 30px; display: block; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+    <link rel="stylesheet" href="{% static \'css/track.css\' %}?v={% now \'U\' %}">
 {% endblock %}
 {% block content %}
 <div class="track-wrap">
@@ -137,30 +64,7 @@
         </div>
     </div>
     
-    <script>
-    async function updateStatus() {
-        const status = document.getElementById('statusSelect').value;
-        const formData = new FormData();
-        formData.append('status', status);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-        try {
-            const res = await fetch("{% url 'orders:update_status' order.id %}", {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            if (data.status === 'success') {
-                alert('Estado actualizado correctamente.');
-                window.location.reload();
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch(e) {
-            alert('Error de conexión');
-        }
-    }
-    </script>
+    <script src="{% static \'js/track.js\' %}?v={% now \'U\' %}"></script>
     {% endif %}
 
     {% if not order %}

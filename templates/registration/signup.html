@@ -4,805 +4,123 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro · Sisart</title>
+<title>Registro · Estudio Floral</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --white:     #ffffff;
-    --card:      #fbe8e8;
-    --rose:      #c97b7b;
-    --rose-deep: #a85555;
-    --ink:       #2a1515;
-    --muted:     #b09090;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  html, body {
-    width: 100%; height: 100%;
-    overflow: hidden;
-    font-family: 'Jost', sans-serif;
-    background: #1a0d0d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .shell {
-    position: relative;
-    width: min(960px, 96vw);
-    height: min(620px, 96vh);
-    border-radius: 28px;
-    overflow: hidden;
-    box-shadow:
-      0 40px 120px rgba(0,0,0,0.55),
-      0 0 0 1px rgba(180,100,100,0.12);
-  }
-
-  .half {
-    position: absolute;
-    top: 0;
-    width: 50%;
-    height: 100%;
-    overflow: hidden;
-    transition: none;
-  }
-  .half-left  { left: 0; }
-  .half-right { right: 0; }
-
-  .shell.pre-split .half-left  { transform: translateX(100%); }
-  .shell.pre-split .half-right { transform: translateX(-100%); }
-
-  .shell.splitting .half-left {
-    transform: translateX(0);
-    transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .shell.splitting .half-right {
-    transform: translateX(0);
-    transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .bg-layer {
-    position: absolute;
-    width: 200%;
-    height: 100%;
-    top: 0;
-  }
-  .half-left  .bg-layer { left: 0; }
-  .half-right .bg-layer { left: -100%; }
-  .bg-layer svg { width: 100%; height: 100%; }
-
-  .content-layer {
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    pointer-events: none;
-  }
-  .content-layer > * { pointer-events: auto; }
-
-  .left-content {
-    width: 52%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-right: 40px;
-  }
-
-  .right-content {
-    width: 48%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 6% 0 8%;
-    position: relative;
-  }
-
-  /* ══ CARD ══ */
-  .card {
-    background: var(--card);
-    border-radius: 18px;
-    width: 320px;
-    padding: 24px 28px 20px;
-    border: 1px solid rgba(210,150,150,0.2);
-    box-shadow: 0 8px 40px rgba(160,80,80,0.14), 0 1px 4px rgba(160,80,80,0.07);
-    opacity: 0;
-    animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) forwards 0.75s;
-  }
-
-  .brand-dots {
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    margin-bottom: 8px;
-  }
-  .brand-dots span {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: var(--rose); display: block;
-  }
-  .brand-dots span:nth-child(2) { width: 3px; height: 3px; opacity: 0.5; }
-
-  .card-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.4rem; font-weight: 400;
-    letter-spacing: 0.1em; text-align: center;
-    color: var(--ink); margin-bottom: 2px;
-  }
-  .card-title em { font-style: italic; color: var(--rose-deep); }
-
-  .card-sub {
-    text-align: center; font-size: 0.55rem; font-weight: 300;
-    letter-spacing: 0.22em; color: var(--muted); margin-bottom: 12px;
-  }
-
-  .orn {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-  }
-  .orn-line {
-    flex: 1; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(201,123,123,0.3));
-  }
-  .orn-line.r { background: linear-gradient(90deg, rgba(201,123,123,0.3), transparent); }
-  .orn-dot {
-    width: 4px; height: 4px; border-radius: 50%;
-    background: var(--rose); box-shadow: 0 0 5px rgba(201,123,123,0.5);
-  }
-
-  /* Campos en dos columnas */
-  .fields-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 10px;
-  }
-  .fg { margin-bottom: 8px; }
-  .fg.full { grid-column: 1 / -1; }
-
-  .fg label {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 0.52rem; font-weight: 500;
-    letter-spacing: 0.25em; text-transform: uppercase;
-    color: rgba(168,85,85,0.72); margin-bottom: 4px;
-  }
-  .fg label svg {
-    width: 10px; height: 10px; stroke: var(--rose-deep);
-    stroke-width: 1.6; fill: none; flex-shrink: 0; opacity: 0.65;
-  }
-  .iw { position: relative; }
-  .fg input {
-    width: 100%; background: #fff;
-    border: 1px solid rgba(201,123,123,0.2); border-radius: 7px;
-    padding: 7px 32px 7px 10px;
-    font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 300;
-    color: var(--ink); outline: none;
-    transition: border-color 0.25s, box-shadow 0.25s;
-  }
-  .fg input:focus {
-    border-color: rgba(201,123,123,0.48);
-    box-shadow: 0 0 0 3px rgba(201,123,123,0.09);
-  }
-  .fg input::placeholder { color: rgba(160,100,100,0.25); }
-  .fi {
-    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-    width: 13px; height: 13px; stroke: rgba(180,120,120,0.38);
-    fill: none; stroke-width: 1.5; pointer-events: none;
-  }
-  .tp {
-    position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
-    background: none; border: none; cursor: pointer; padding: 2px;
-    opacity: 0.35; transition: opacity 0.2s; display: flex; align-items: center;
-  }
-  .tp:hover { opacity: 0.7; }
-  .tp svg { width: 13px; height: 13px; }
-
-  .cs {
-    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-    width: 14px; height: 14px; stroke: #4CAF50; fill: none; stroke-width: 2.5;
-    opacity: 0; transition: opacity 0.2s; pointer-events: none;
-  }
-  .iw.is-valid .fi { opacity: 0; }
-  .iw.is-valid .tp { opacity: 0; }
-  .iw.is-valid .cs { opacity: 1; }
-  .iw.is-valid input { border-color: #4CAF50; }
-  .iw.is-invalid input { border-color: #b84040; }
-  .fm { font-size: 0.5rem; font-weight: 400; letter-spacing: 0.05em; color: #b84040; margin-top: 3px; min-height: 12px; opacity: 0; transition: opacity 0.2s; padding-left: 2px; }
-  .fm.show { opacity: 1; }
-
-  .err {
-    font-size: 0.52rem; letter-spacing: 0.05em; color: #b84040;
-    margin-top: 2px; min-height: 11px; opacity: 0; transition: opacity 0.3s;
-    grid-column: 1 / -1;
-  }
-  .err.show { opacity: 1; display: block; }
-
-  /* Progress dots */
-  .progress {
-    display: flex; justify-content: center; gap: 6px; margin-bottom: 12px;
-  }
-  .pdot {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: rgba(201,123,123,0.2);
-    transition: background 0.4s, transform 0.4s;
-  }
-  .pdot.filled {
-    background: var(--rose);
-    transform: scale(1.2);
-  }
-
-  .btn-register {
-    width: 100%; padding: 10px; background: var(--rose);
-    border: none; border-radius: 7px; cursor: pointer;
-    font-family: 'Jost', sans-serif; font-size: 0.55rem; font-weight: 500;
-    letter-spacing: 0.32em; text-transform: uppercase; color: white;
-    position: relative; overflow: hidden;
-    transition: background 0.25s, transform 0.12s;
-    margin-bottom: 10px; margin-top: 4px;
-  }
-  .btn-register::after {
-    content:''; position:absolute; inset:0;
-    background:linear-gradient(135deg,rgba(255,255,255,0.13),transparent);
-    opacity:0; transition:opacity 0.3s;
-  }
-  .btn-register:hover { background: var(--rose-deep); }
-  .btn-register:hover::after { opacity:1; }
-  .btn-register:active { transform:scale(0.985); }
-  .btn-register.loading { letter-spacing:0.4em; opacity:0.8; pointer-events:none; }
-
-  .reg { text-align:center; font-size:0.54rem; font-weight:300;
-    letter-spacing:0.1em; color:var(--muted); }
-  .reg a { color:var(--rose-deep); font-weight:400; text-decoration:none;
-    border-bottom:1px solid rgba(168,85,85,0.28); transition:border-color 0.2s; }
-  .reg a:hover { border-color:var(--rose-deep); }
-
-  /* ══ RIGHT CONTENT ══ */
-  .r-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.2rem, 1.8vw, 1.8rem); font-weight: 300;
-    color: rgba(253,232,232,0.9); line-height: 1.3; margin-bottom: 8px;
-    opacity: 0; animation: fadeUp 0.8s ease forwards 1.0s;
-    text-align: center;
-  }
-  .r-title em { font-style:italic; color:rgba(240,195,195,0.7); display:block; }
-  .r-sub {
-    font-size:0.58rem; font-weight:200; letter-spacing:0.18em;
-    line-height:2; color:rgba(253,232,232,0.3);
-    opacity:0; animation:fadeUp 0.8s ease forwards 1.15s;
-    text-align: center;
-  }
-
-  /* Stage label */
-  .stage-label {
-    font-size: 0.5rem; font-weight: 300; letter-spacing: 0.2em;
-    color: rgba(240,195,195,0.4); margin-bottom: 6px; text-align: center;
-    min-height: 14px;
-    opacity: 0; animation: fadeUp 0.8s ease forwards 1.2s;
-    transition: color 0.4s;
-  }
-  .stage-label.active { color: rgba(240,195,195,0.65); }
-
-  .cr { position:absolute; z-index:2; width:22px; height:22px; pointer-events:none; }
-  .cr-tr { top:18px; right:18px;
-    border-top:1px solid rgba(210,155,155,0.16);
-    border-right:1px solid rgba(210,155,155,0.16); }
-  .cr-br { bottom:18px; right:18px;
-    border-bottom:1px solid rgba(210,155,155,0.16);
-    border-right:1px solid rgba(210,155,155,0.16); }
-
-  .close-btn {
-    position: absolute; top: 16px; right: 16px; z-index: 100;
-    width: 32px; height: 32px; border-radius: 50%;
-    background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;
-    text-decoration: none; transition: background 0.2s, transform 0.2s;
-  }
-  .close-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
-  .close-btn svg { width: 14px; height: 14px; stroke: rgba(253,232,232,0.9); stroke-width: 2; fill: none; }
-
-  .seam {
-    position: absolute; left: 50%; top: 0; bottom: 0;
-    width: 2px; transform: translateX(-50%);
-    background: linear-gradient(180deg,
-      transparent 0%, rgba(200,130,130,0.35) 20%,
-      rgba(200,130,130,0.35) 80%, transparent 100%);
-    z-index: 20; opacity: 0; pointer-events: none;
-    transition: opacity 0.4s ease 0.5s;
-  }
-  .shell.splitting .seam {
-    opacity: 1;
-    animation: seamFade 1.8s ease forwards 0.5s;
-  }
-
-  @keyframes seamFade {
-    0%   { opacity: 1; }
-    60%  { opacity: 0.5; }
-    100% { opacity: 0; }
-  }
-  @keyframes cardIn {
-    from { opacity:0; transform:translateY(16px) scale(0.97); }
-    to   { opacity:1; transform:translateY(0) scale(1); }
-  }
-  @keyframes fadeUp {
-    from { opacity:0; transform:translateY(10px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity:0; } to { opacity:1; }
-  }
-
-  /* ══ FLOWER ══ */
-  .flower-wrap {
-    position: relative;
-    width: min(340px, 60%);
-    aspect-ratio: 1;
-    margin: 0 auto 12px;
-    opacity: 0;
-    animation: fadeIn 1s ease forwards 0.95s;
-  }
-  .bloom-glow {
-    position: absolute; inset: -20%;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(245,198,198,0) 0%, transparent 65%);
-    transition: background 1.2s ease;
-    pointer-events: none; z-index: 0;
-  }
-  .flower-stage {
-    width: 100%; height: 100%;
-    position: relative;
-    filter: drop-shadow(0 4px 10px rgba(30, 5, 10, 0.5)) drop-shadow(0 16px 36px rgba(45, 10, 15, 0.45));
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .flower-frame {
-    position: absolute; inset: 0;
-    opacity: 0; transition: opacity 85ms ease-in-out;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .flower-frame.active { opacity: 1; }
-  .flower-frame svg { width: auto; height: auto; max-width: 100%; max-height: 100%; }
-</style>
+<link rel="stylesheet" href="{% static \'css/signup.css\' %}?v={% now \'U\' %}">
 </head>
 <body>
 
-<div class="shell pre-split" id="shell">
+<div class="shell" id="shell">
   <a href="/" class="close-btn" title="Cerrar"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></a>
-  <div class="seam"></div>
-  <div class="half half-left">
-    <div class="bg-layer">
-      <svg viewBox="0 0 960 620" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-        <rect width="960" height="620" fill="#ffffff"/>
-      </svg>
+  
+  <div class="header-section">
+    <div class="flower-wrap">
+      <div class="flower-stage" id="flowerStage"></div>
+      <div class="bloom-glow" id="bloomGlow"></div>
     </div>
+    <div class="stage-label" id="stageLabel">——</div>
+    <h2 class="card-title">Únete al <em>Jardín</em></h2>
+    <p class="card-sub">Crea tu cuenta personal</p>
   </div>
 
-  <div class="half half-right">
-    <div class="bg-layer">
-      <svg viewBox="0 0 960 620" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="rg1" cx="75%" cy="38%" r="55%">
-            <stop offset="0%" stop-color="#8b093d" stop-opacity="0.55"/>
-            <stop offset="100%" stop-color="#180a0f" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <rect width="960" height="620" fill="#180a0f"/>
-        <path d="M 0 0 C 80 75, 80 150, 0 225 C -80 300, -80 375, 0 450 L 0 620 L -100 620 L -100 0 Z" fill="#ffffff"/>
-        <rect width="960" height="620" fill="url(#rg1)"/>
-        <circle cx="680" cy="310" r="200" fill="none" stroke="rgba(210,155,155,0.05)" stroke-width="1"/>
-        <circle cx="680" cy="310" r="150" fill="none" stroke="rgba(210,155,155,0.04)" stroke-width="1"/>
-        <circle cx="680" cy="310" r="95"  fill="none" stroke="rgba(210,155,155,0.03)" stroke-width="1"/>
-      </svg>
-    </div>
-  </div>
-
-  <svg style="position:absolute;inset:0;width:100%;height:100%;z-index:1;"
-       viewBox="0 0 960 620" preserveAspectRatio="xMidYMid slice"
-       xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="rg1b" cx="70%" cy="38%" r="55%">
-        <stop offset="0%" stop-color="#8b093d" stop-opacity="0.55"/>
-        <stop offset="100%" stop-color="#180a0f" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <rect width="960" height="620" fill="#ffffff"/>
-    <path d="M 510 0 C 400 100, 400 200, 510 300 C 620 400, 620 500, 510 620 L 960 620 L 960 0 Z" fill="#180a0f"/>
-    <path d="M 510 0 C 400 100, 400 200, 510 300 C 620 400, 620 500, 510 620 L 960 620 L 960 0 Z" fill="#8b093d" fill-opacity="0.15"/>
-    <rect x="430" width="530" height="620" fill="url(#rg1b)"/>
-    <circle cx="700" cy="310" r="200" fill="none" stroke="rgba(210,155,155,0.05)" stroke-width="1"/>
-    <circle cx="700" cy="310" r="150" fill="none" stroke="rgba(210,155,155,0.04)" stroke-width="1"/>
-    <circle cx="700" cy="310" r="95"  fill="none" stroke="rgba(210,155,155,0.03)" stroke-width="1"/>
-  </svg>
-
-  <div class="content-layer">
-    <div class="left-content">
-      <div class="card">
-        <div class="brand-dots">
-          <span></span><span></span><span></span>
+  <form method="post" id="signupForm">
+    {% csrf_token %}
+    <div class="fields-grid">
+      <div class="fg">
+        <label>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Nombre
+        </label>
+        <div class="iw">
+          <input type="text" name="first_name" id="nameInput" placeholder="Ana" required>
+          <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+          <svg class="fi" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         </div>
-        <h2 class="card-title">Únete al <em>Jardín</em></h2>
-        <p class="card-sub">Crea tu cuenta personal</p>
-        <div class="orn">
-          <div class="orn-line"></div>
-          <div class="orn-dot"></div>
-          <div class="orn-line r"></div>
+        <div class="fm" id="msgName"></div>
+      </div>
+
+      <div class="fg">
+        <label>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Apellido
+        </label>
+        <div class="iw">
+          <input type="text" name="last_name" id="lastNameInput" placeholder="García" required>
+          <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+          <svg class="fi" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         </div>
+        <div class="fm" id="msgLastName"></div>
+      </div>
 
-        <div class="progress">
-          <div class="pdot" id="pd0"></div>
-          <div class="pdot" id="pd1"></div>
-          <div class="pdot" id="pd2"></div>
-          <div class="pdot" id="pd3"></div>
-          <div class="pdot" id="pd4"></div>
-          <div class="pdot" id="pd5"></div>
+      <div class="fg">
+        <label>
+          <svg viewBox="0 0 24 24"><path d="M4 17l4-4-4-4M11 19h9"/></svg>
+          Usuario
+        </label>
+        <div class="iw">
+          <input type="text" name="username" id="userInput" placeholder="anafloral" required>
+          <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+          <svg class="fi" viewBox="0 0 24 24"><path d="M4 17l4-4-4-4M11 19h9"/></svg>
         </div>
+        <div class="fm" id="msgUser"></div>
+      </div>
 
-        <form method="post" id="signupForm">
-          {% csrf_token %}
-          <div class="fields-grid">
-            <div class="fg">
-              <label>
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                Nombre
-              </label>
-              <div class="iw">
-                <input type="text" name="first_name" id="nameInput" placeholder="Ana" value="{{ form.first_name.value|default_if_none:'' }}" autocomplete="off" required>
-                <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                <svg class="fi" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-              </div>
-              <div class="fm" id="msgName"></div>
-            </div>
+      <div class="fg">
+        <label>
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 8l10 7 10-7"/></svg>
+          Correo
+        </label>
+        <div class="iw">
+          <input type="email" name="email" id="emailInput" placeholder="tu@correo.com" required>
+          <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+          <svg class="fi" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 8l10 7 10-7"/></svg>
+        </div>
+        <div class="fm" id="msgEmail"></div>
+      </div>
 
-            <div class="fg">
-              <label>
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                Apellido
-              </label>
-              <div class="iw">
-                <input type="text" name="last_name" id="lastNameInput" placeholder="García" value="{{ form.last_name.value|default_if_none:'' }}" autocomplete="off" required>
-                <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                <svg class="fi" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-              </div>
-              <div class="fm" id="msgLastName"></div>
-            </div>
+      <div class="fg">
+        <label>
+          <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          Contraseña
+        </label>
+        <div class="iw">
+          <input type="password" name="password1" id="passInput" placeholder="••••••••" required>
+          <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+          <button type="button" class="tp togglePassBtn" tabindex="-1">
+            <svg class="eyeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a85555" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="fm" id="msgPass"></div>
+      </div>
 
-            <div class="fg">
-              <label>
-                <svg viewBox="0 0 24 24"><path d="M4 17l4-4-4-4M11 19h9"/></svg>
-                Usuario
-              </label>
-              <div class="iw">
-                <input type="text" name="username" id="userInput" placeholder="anafloral" value="{{ form.username.value|default_if_none:'' }}" autocomplete="off" required>
-                <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                <svg class="fi" viewBox="0 0 24 24"><path d="M4 17l4-4-4-4M11 19h9"/></svg>
-              </div>
-              <div class="fm" id="msgUser"></div>
-            </div>
-
-            <div class="fg">
-              <label>
-                <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 8l10 7 10-7"/></svg>
-                Correo
-              </label>
-              <div class="iw">
-                <input type="email" name="email" id="emailInput" placeholder="tu@correo.com" value="{{ form.email.value|default_if_none:'' }}" autocomplete="off" required>
-                <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                <svg class="fi" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 8l10 7 10-7"/></svg>
-              </div>
-              <div class="fm" id="msgEmail"></div>
-            </div>
-
-            <div class="fg">
-              <label>
-                <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-                Contraseña
-              </label>
-              <div class="iw">
-                <input type="password" name="password1" id="passInput" placeholder="••••••••" required>
-                <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                <button type="button" class="tp togglePassBtn" tabindex="-1">
-                  <svg class="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="#a85555" stroke-width="1.6"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                </button>
-              </div>
-              <div class="fm" id="msgPass"></div>
-            </div>
-
-            <div class="fg">
-              <label>
-                <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-                Confirmar
-              </label>
-              <div class="iw">
-                <input type="password" name="password2" id="passConfirmInput" placeholder="••••••••" required>
-                <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-                <button type="button" class="tp togglePassBtn" tabindex="-1">
-                  <svg class="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="#a85555" stroke-width="1.6"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                </button>
-              </div>
-              <div class="fm" id="msgConfirm"></div>
-            </div>
-
-            <div class="err" id="errMsg">
-              {% if form.errors %}
-                {% for field in form %}
-                  {% for error in field.errors %}
-                    {{ field.label }}: {{ error }}<br>
-                  {% endfor %}
-                {% endfor %}
-                {% for error in form.non_field_errors %}
-                  {{ error }}<br>
-                {% endfor %}
-              {% endif %}
-            </div>
-          </div>
-          {% if form.errors %}
-          <style>.err { opacity: 1; display: block; }</style>
-          {% endif %}
-
-          <button type="submit" class="btn-register" id="registerBtn">Crear cuenta</button>
-          <p class="reg">¿Ya tienes cuenta? <a href="{% url 'accounts:login' %}">Inicia sesión</a></p>
-        </form>
+      <div class="fg">
+        <label>
+          <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          Confirmar
+        </label>
+        <div class="iw">
+          <input type="password" name="password2" id="passConfirmInput" placeholder="••••••••" required>
+          <svg class="cs" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+          <button type="button" class="tp togglePassBtn" tabindex="-1">
+            <svg class="eyeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a85555" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="fm" id="msgConfirm"></div>
       </div>
     </div>
 
-    <div class="right-content">
-      <div class="cr cr-tr"></div>
-      <div class="cr cr-br"></div>
-      <div class="flower-wrap">
-        <div class="flower-stage" id="flowerStage"></div>
-        <div class="bloom-glow" id="bloomGlow"></div>
-      </div>
-      <div class="stage-label" id="stageLabel">——</div>
-      <p class="r-title">Detalles que <em>duran para siempre</em></p>
-      <p class="r-sub">Sé parte de nuestra comunidad y<br>accede a nuestros servicios personalizados.</p>
+    <div id="errMsg" class="fm show" style="margin: -5px 0 10px; text-align:center;">
+      {% if form.errors %}
+        Error en el registro. Por favor, revisa tus datos.
+      {% endif %}
     </div>
-  </div>
+
+    <button type="submit" class="btn-register" id="registerBtn">Crear cuenta</button>
+    <p class="reg">¿Ya tienes cuenta?<a href="{% url 'accounts:login' %}">Inicia sesión</a></p>
+  </form>
 </div>
 
 <script src="{% static 'accounts/js/flower-frames.js' %}"></script>
-<script>
-(function() {
-  var shell = document.getElementById('shell');
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      shell.classList.remove('pre-split');
-      shell.classList.add('splitting');
-    });
-  });
-})();
-
-(function(){
-  document.querySelectorAll('.togglePassBtn').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var inp = this.parentElement.querySelector('input');
-      var eye = this.querySelector('.eyeIcon');
-      var vis = inp.type === 'text';
-      inp.type = vis ? 'password' : 'text';
-      eye.innerHTML = !vis
-        ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23" stroke="#a85555"/>'
-        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-    });
-  });
-
-  var form = document.getElementById('signupForm');
-  var btn = document.getElementById('registerBtn');
-  var errMsg = document.getElementById('errMsg');
-
-  form.addEventListener('submit', function(e){
-    var p1 = document.getElementById('passInput').value;
-    var p2 = document.getElementById('passConfirmInput').value;
-    if(p1 !== p2){
-      e.preventDefault();
-      errMsg.textContent = 'Las contraseñas no coinciden.';
-      errMsg.classList.add('show');
-      return;
-    }
-    btn.textContent = 'Creando...';
-    btn.classList.add('loading');
-  });
-})();
-
-(function() {
-  var FRAMES = window.FLOWER_FRAMES || [];
-  var N = FRAMES.length;
-  // 6 fields: 0,1,2,3,4,5. Redistribute 25 frames.
-  var RANGES = [
-    {start:0, end:4},   // Nombre
-    {start:5, end:8},   // Apellido
-    {start:9, end:12},  // Usuario
-    {start:13, end:16}, // Correo
-    {start:17, end:20}, // Pass
-    {start:21, end:24}  // Confirm
-  ];
-  var LABELS = ['Tu nombre','Tu apellido','Tu usuario','Tu correo','Contraseña','Confirmación'];
-  var stage = document.getElementById('flowerStage');
-  var glow = document.getElementById('bloomGlow');
-  var stageLabel = document.getElementById('stageLabel');
-  
-  var inps = [
-    document.getElementById('nameInput'),
-    document.getElementById('lastNameInput'),
-    document.getElementById('userInput'),
-    document.getElementById('emailInput'),
-    document.getElementById('passInput'),
-    document.getElementById('passConfirmInput')
-  ];
-  
-  var els = []; var cur = 0; var animTimer = null;
-  for (var i = 0; i < N; i++) {
-    var d = document.createElement('div'); d.className = 'flower-frame';
-    d.innerHTML = FRAMES[i]; stage.appendChild(d); els.push(d);
-  }
-  if (els[0]) els[0].classList.add('active');
-
-  function updateGlow(idx) {
-    if (idx < 0) { glow.style.opacity = 0; return; }
-    glow.style.opacity = 1;
-    var pct = idx / (N - 1);
-    var op = 0.1 + (pct * 0.2);
-    glow.style.background = 'radial-gradient(ellipse, rgba(245,198,198,'+ op +') 0%, transparent 65%)';
-  }
-
-  function goToFrame(target) {
-    if (animTimer) { clearInterval(animTimer); animTimer = null; }
-    target = Math.max(0, Math.min(N - 1, target));
-    if (cur === target) return;
-    var step = cur < target ? 1 : -1;
-    animTimer = setInterval(function() {
-      if (cur === target) { clearInterval(animTimer); animTimer = null; return; }
-      if (els[cur]) els[cur].classList.remove('active');
-      cur += step;
-      if (els[cur]) {
-        els[cur].classList.add('active');
-        // Find which label to show
-        var fieldIdx = -1;
-        for(var i=0; i<RANGES.length; i++) {
-          if(cur >= RANGES[i].start && cur <= RANGES[i].end) { fieldIdx = i; break; }
-        }
-        if(fieldIdx !== -1) {
-          stageLabel.textContent = LABELS[fieldIdx];
-          stageLabel.classList.add('pop');
-          setTimeout(function(){ stageLabel.classList.remove('pop'); }, 300);
-        }
-      } else {
-        stageLabel.textContent = '——';
-      }
-      updateGlow(cur);
-    }, 45);
-  }
-
-  function updateAnim() {
-    var lastFilled = -1;
-    for (var i = 0; i < inps.length; i++) {
-      if (inps[i] && inps[i].value.trim().length > 0) lastFilled = i;
-    }
-    var target = lastFilled === -1 ? 0 : RANGES[lastFilled].end;
-    goToFrame(target);
-  }
-
-  inps.forEach(function(inp) {
-    if(inp) {
-      inp.addEventListener('input', updateAnim);
-      inp.addEventListener('focus', updateAnim);
-      inp.addEventListener('blur', updateAnim);
-    }
-  });
-  updateAnim();
-})();
-(function() {
-  function setValid(inp, isValid, msgEl, msgText) {
-    var iw = inp.closest('.iw');
-    if (isValid) {
-      iw.classList.remove('is-invalid');
-      iw.classList.add('is-valid');
-      if (msgEl) { msgEl.textContent = ''; msgEl.classList.remove('show'); }
-    } else {
-      iw.classList.remove('is-valid');
-      iw.classList.add('is-invalid');
-      if (msgEl) { msgEl.textContent = msgText; msgEl.classList.add('show'); }
-    }
-  }
-
-  function clearState(inp, msgEl) {
-    var iw = inp.closest('.iw');
-    iw.classList.remove('is-valid', 'is-invalid');
-    if (msgEl) { msgEl.textContent = ''; msgEl.classList.remove('show'); }
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  let timerMap = {};
-
-  const userInp = document.getElementById('userInput');
-  const msgUser = document.getElementById('msgUser');
-  userInp.addEventListener('input', function() {
-    clearTimeout(timerMap['user']);
-    let val = this.value.trim();
-    if (!val) { clearState(this, msgUser); return; }
-    timerMap['user'] = setTimeout(() => {
-      fetch('{% url "accounts:check_username" %}?username=' + encodeURIComponent(val))
-        .then(r => r.json())
-        .then(data => {
-          if (data.is_taken) {
-            setValid(userInp, false, msgUser, 'Este nombre de usuario ya existe. Intenta con ' + val + Math.floor(Math.random()*100));
-          } else {
-            setValid(userInp, true, msgUser);
-          }
-        });
-    }, 400);
-  });
-
-  const emailInp = document.getElementById('emailInput');
-  const msgEmail = document.getElementById('msgEmail');
-  emailInp.addEventListener('input', function() {
-    clearTimeout(timerMap['email']);
-    let val = this.value.trim();
-    if (!val) { clearState(this, msgEmail); return; }
-    if (!emailRegex.test(val)) {
-      setValid(this, false, msgEmail, 'Este correo no es válido.');
-      return;
-    }
-    timerMap['email'] = setTimeout(() => {
-      fetch('{% url "accounts:check_email" %}?email=' + encodeURIComponent(val))
-        .then(r => r.json())
-        .then(data => {
-          if (data.is_taken) {
-            setValid(emailInp, false, msgEmail, 'Este correo ya existe.');
-          } else {
-            setValid(emailInp, true, msgEmail);
-          }
-        });
-    }, 400);
-  });
-
-  const passInp = document.getElementById('passInput');
-  const confirmInp = document.getElementById('passConfirmInput');
-  const msgPass = document.getElementById('msgPass');
-  const msgConfirm = document.getElementById('msgConfirm');
-
-  passInp.addEventListener('input', function() {
-    let val = this.value;
-    if (!val) { clearState(this, msgPass); return; }
-    if (val.length < 8) {
-      setValid(this, false, msgPass, 'La contraseña debe tener al menos 8 caracteres.');
-    } else {
-      setValid(this, true, msgPass);
-    }
-    // Recheck confirm if it has value
-    if (confirmInp.value) confirmInp.dispatchEvent(new Event('input'));
-  });
-
-  confirmInp.addEventListener('input', function() {
-    let val = this.value;
-    if (!val) { clearState(this, msgConfirm); return; }
-    if (val !== passInp.value) {
-      setValid(this, false, msgConfirm, 'Las contraseñas no coinciden.');
-    } else if(val.length >= 8) {
-      setValid(this, true, msgConfirm);
-    }
-  });
-
-  // Basic validate for name/lastname
-  const nInp = document.getElementById('nameInput');
-  const lInp = document.getElementById('lastNameInput');
-  [nInp, lInp].forEach(el => {
-    el.addEventListener('input', function() {
-      if(this.value.trim().length > 1) {
-        setValid(this, true, null);
-      } else {
-        clearState(this, null);
-      }
-    });
-  });
-
-  // Re-trigger validation for pre-filled fields
-  [nInp, lInp, userInp, emailInp].forEach(inp => {
-    if (inp && inp.value) {
-      inp.dispatchEvent(new Event('input'));
-    }
-  });
-
-})();
-</script>
+<script src="{% static \'js/signup.js\' %}?v={% now \'U\' %}"></script>
 </body>
 </html>
