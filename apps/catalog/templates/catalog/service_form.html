@@ -1,4 +1,5 @@
 {% extends 'layouts/dashboard_base.html' %}
+{% load static %}
 
 {% block title %}{% if object %}Editar{% else %}Nuevo{% endif %} Servicio — Sisart{% endblock %}
 
@@ -32,4 +33,6 @@
 </div>
 
 <link rel="stylesheet" href="{% static 'css/service_form.css' %}?v={% now 'U' %}">
+
+<script src="{% static 'js/predesigned_form.js' %}?v={% now 'U' %}"></script>
 {% endblock %}

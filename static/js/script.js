@@ -479,7 +479,7 @@ async function processOrder(isGuest, viaWhatsapp = false) {
             alert('Por favor indica tu nombre.');
             return;
         }
-        guestData = { name, email: `guest_${Date.now()}@atelier.com`, phone: 'N/A' };
+        guestData = { name, email: null, phone: 'N/A' };
         const btn = document.getElementById('btnProcessGuest');
         btn.innerText = 'Procesando...';
         btn.disabled = true;

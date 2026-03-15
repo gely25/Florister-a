@@ -90,7 +90,7 @@
       <span class="section-eyebrow">✦ Lo más pedido</span>
       <h2 class="section-title">Nuestras Ofertas</h2>
     </div>
-    <a href="{% url 'dahsboard:promotions_list' %}" class="section-see-all">Ver todas →</a>
+    <a href="{% url 'dahsboard:promotions_list' %}" class="btn-pill-rose">Ver todas →</a>
   </div>
   <div class="grid-layout reveal d1">
     {% for promo in promotions|slice:":4" %}
@@ -144,7 +144,7 @@
       <div class="section-head-left">
         <h2 class="section-title" style="font-style: normal; font-weight: 700;">Nuestro Catálogo</h2>
       </div>
-      <a href="/#ramos-catalog" class="see-all-btn" style="text-decoration: none;">Ver todo el catálogo →</a>
+      <a href="/#ramos-catalog" class="btn-pill-rose">Ver todo el catálogo →</a>
     </div>
 
   <!-- Mensaje de categoría vacía -->
@@ -276,7 +276,7 @@
       <span class="section-eyebrow">♡ Más queridos</span>
       <h2 class="section-title">Nuestros Favoritos</h2>
     </div>
-    <a href="#ramos-catalog" class="section-see-all">Ver todos →</a>
+    <a href="#ramos-catalog" class="btn-pill-rose">Ver todos →</a>
   </div>
   <div class="grid-layout reveal d1">
     {% for flower in featured_flowers|slice:":4" %}

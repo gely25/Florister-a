@@ -29,7 +29,7 @@
         <div class="metric-card">
             <div class="metric-info">
                 <span class="label">Mis Favoritos</span>
-                <span class="value">4</span>
+                <span class="value">{{ favorites_count }}</span>
                 <p class="subtext">Guardados por ti</p>
             </div>
             <i data-lucide="heart" class="metric-icon"></i>
@@ -37,7 +37,7 @@
         <div class="metric-card">
             <div class="metric-info">
                 <span class="label">Descuento Activo</span>
-                <span class="value">10%</span>
+                <span class="value">{{ active_discount_pc }}%</span>
                 <p class="subtext">En tu próximo pedido</p>
             </div>
             <i data-lucide="gift" class="metric-icon"></i>
