@@ -1,0 +1,14 @@
+{% autoescape off %}
+Hola {{ user.username }},
+
+¡Gracias por registrarte en Sisart! Estamos muy emocionados de tenerte con nosotros.
+
+Para completar tu registro y activar tu cuenta, por favor haz clic en el siguiente enlace:
+
+{{ protocol }}://{{ domain }}{% url 'accounts:verify_email' uidb64=uid token=token %}
+
+Este enlace solo funcionará una vez. Si no te has registrado en nuestro sitio, puedes ignorar este correo.
+
+Atentamente,
+El equipo de Sisart
+{% endautoescape %}

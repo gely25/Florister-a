@@ -40,7 +40,7 @@
                 </div>
             {% else %}
                 {% if order.bouquet_image %}
-                    <img src="{{ order.bouquet_image.url }}" style="width: 100%; border-radius: 12px; border: 1px solid #f9f0f0;">
+                    <img src="{{ order.bouquet_image.url }}" style="width: 450px; max-width: 100%; border-radius: 12px; border: 1px solid #f9f0f0; display: block; margin: 0 auto;">
                 {% else %}
                     <div style="padding: 40px; background: var(--cream); text-align: center; border-radius: 12px; color: var(--muted);">Sin imagen generada</div>
                 {% endif %}
@@ -107,9 +107,7 @@
                 <strong>UUID:</strong><br>{{ order.tracking_token }}
             </div>
             <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 20px;">Este identificador único garantiza que solo el dueño del enlace pueda ver el pedido.</p>
-            <button onclick="window.print()" style="width: 100%; padding: 12px; border: 1px solid var(--rose); color: var(--rose); background: transparent; border-radius: 10px; font-weight: 600; cursor: pointer;">
-                Imprimir Orden
-            </button>
+
         </div>
     </aside>
 </div>

@@ -1,181 +1,133 @@
-{% extends 'layouts/base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceder · Estudio Floral</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/login.css' %}?v={% now 'U' %}">
+</head>
+<body>
 
-{% block title %}Acceso Floristas | Sisart{% endblock %}
+<div class="shell" id="shell">
+  <a href="/" class="close-btn" title="Cerrar"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></a>
+  
+  <svg class="bg-layer" viewBox="0 0 960 620" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="rg1b" cx="70%" cy="38%" r="55%">
+        <stop offset="0%" stop-color="#c97b7b" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#a85555" stop-opacity="0"/>
+      </radialGradient>
+      <clipPath id="dark-side">
+        <path d="M 510 0 C 400 100, 400 200, 510 300 C 620 400, 620 500, 510 620 L 960 620 L 960 0 Z" />
+      </clipPath>
+    </defs>
+    
+    <!-- Left Background -->
+    <rect width="960" height="620" fill="#ffffff"/> <!-- Blanco para el form -->
+    
+    <!-- Right Background Curve Group Animado -->
+    <g class="right-svg-panel">
+      <!-- Fondo oscuro y su curva -->
+      <path d="M 510 0 C 400 100, 400 200, 510 300 C 620 400, 620 500, 510 620 L 960 620 L 960 0 Z" fill="#a85555"/>
+      <path d="M 510 0 C 400 100, 400 200, 510 300 C 620 400, 620 500, 510 620 L 960 620 L 960 0 Z" fill="#c97b7b" fill-opacity="0.15"/>
+      <rect x="430" width="530" height="620" fill="url(#rg1b)" clip-path="url(#dark-side)" />
+      
+      <!-- Decorative Circles aligned on the right side -->
+      <circle cx="700" cy="310" r="200" fill="none" stroke="rgba(210,155,155,0.06)" stroke-width="1" clip-path="url(#dark-side)"/>
+      <circle cx="700" cy="310" r="150" fill="none" stroke="rgba(210,155,155,0.05)" stroke-width="1" clip-path="url(#dark-side)"/>
+      <circle cx="700" cy="310" r="95"  fill="none" stroke="rgba(210,155,155,0.04)" stroke-width="1" clip-path="url(#dark-side)"/>
+    </g>
+  </svg>
 
-{% block extra_head %}
-    <style>
-        :root {
-            --pink: #f5c6c6;
-            --pink-light: #fdf0f0;
-            --pink-mid: #f0a8a8;
-            --accent: #e8637a;
-            --border: #f0e0e0;
-        }
-        .login-wrap {
-            display: flex; justify-content: center; align-items: center;
-            min-height: calc(100vh - 68px - 140px);
-            padding: 40px 20px;
-        }
-        .login-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 50px 40px;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(232, 99, 122, 0.1);
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-            border: 1px solid var(--border);
-            animation: fadeIn 0.8s ease-out;
-            margin: 0 auto;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .brand-icon {
-            width: 50px; height: 50px; margin-bottom: 20px; color: var(--accent);
-        }
-        h2.login-h2 {
-            font-size: 13px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 35px;
-            font-weight: 700;
-        }
-        .form-group {
-            text-align: left;
-            margin-bottom: 22px;
-            position: relative;
-        }
-        .form-group i {
-            position: absolute;
-            left: 14px;
-            top: 40px;
-            width: 18px;
-            height: 18px;
-            color: var(--pink-mid);
-        }
-        label.login-label {
-            display: block;
-            font-size: 11px;
-            font-weight: 700;
-            color: #888;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .login-card input {
-            width: 100%;
-            padding: 14px 15px 14px 45px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 15px;
-            box-sizing: border-box;
-            background: #fff;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .login-card input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(232, 99, 122, 0.1);
-            transform: translateY(-1px);
-        }
-        .btn-login {
-            width: 100%;
-            padding: 16px;
-            background: var(--text);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 15px;
-            transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            font-family: var(--sans);
-        }
-        .btn-login:hover {
-            background: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(232, 99, 122, 0.3);
-        }
-        .errorlist {
-            list-style: none;
-            padding: 12px;
-            margin: 0 0 25px 0;
-            background: rgba(217, 83, 79, 0.1);
-            color: #d9534f;
-            font-size: 13px;
-            border-radius: 10px;
-            display: flex; align-items: center; gap: 8px; justify-content: center;
-        }
-        .back-link {
-            display: inline-flex;
-            align-items: center; gap: 6px;
-            margin-top: 30px;
-            font-size: 13px;
-            color: #666;
-            text-decoration: none;
-            transition: color 0.2s;
-            font-weight: 500;
-        }
-        .back-link:hover {
-            color: var(--accent);
-        }
-    </style>
-{% endblock %}
+  <div class="content-layer">
+    <div class="left-content">
+      <div class="form-wrapper">
+        <h2 class="card-title">Bienven<em>ido</em></h2>
+        <p class="card-sub">Accede a tu cuenta</p>
 
-{% block sidebar_layout %}
-    {% block content %}
-<div class="login-wrap">
-    <div class="login-card">
-        <i data-lucide="flower" class="brand-icon"></i>
-        <div style="font-family: var(--serif); font-size: 32px; font-style: italic; color: var(--text); margin-bottom: 8px;">Sisart</div>
-        <h2 class="login-h2">Acceso Floristas</h2>
-
-        <form method="post">
-            {% csrf_token %}
-            {% if form.errors %}
-                <div class="errorlist">
-                    <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
-                    <span>Credenciales incorrectas</span>
-                </div>
-            {% endif %}
-
-            <div class="form-group">
-                <label class="login-label" for="id_username">Usuario</label>
-                <i data-lucide="user"></i>
-                <input type="text" name="username" id="id_username" placeholder="Tu usuario" required autofocus>
+        <form method="post" id="loginForm">
+          {% csrf_token %}
+          
+          <div class="fg">
+            <label>
+              <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 8l10 7 10-7"/></svg>
+              Usuario o Correo
+            </label>
+            <div class="iw">
+              <input type="text" name="username" id="emailInput" placeholder="tu@correo.com" autocomplete="username" required>
+              <svg class="fi" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 8l10 7 10-7"/></svg>
             </div>
+          </div>
 
-            <div class="form-group">
-                <label class="login-label" for="id_password">Contraseña</label>
-                <i data-lucide="lock"></i>
-                <input type="password" name="password" id="id_password" placeholder="••••••••" required>
+          <div class="fg">
+            <label>
+              <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+              Contraseña
+            </label>
+            <div class="iw">
+              <input type="password" name="password" id="passInput" placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="tp togglePassBtn" tabindex="-1">
+                <svg class="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="#a85555" stroke-width="1.6"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
             </div>
+          </div>
 
-            <button type="submit" class="btn-login">
-                <span>Entrar al Sistema</span>
-                <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
-            </button>
-            <input type="hidden" name="next" value="{{ next }}">
+          <div class="opts">
+            <label class="rem">
+              <input type="checkbox" name="remember">
+              <span class="chk"></span>
+              <span class="rem-t">Recuérdame</span>
+            </label>
+            <a href="{% url 'accounts:password_reset' %}" class="fgt" style="text-decoration: none;">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <div id="formErrors">
+            <div class="err" id="loginError">
+              Ocurrió un error. Verifica tus credenciales.
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login" id="loginBtn">Iniciar sesión</button>
+          <p class="reg">¿No tienes cuenta? <a href="{% url 'accounts:signup' %}">Regístrate</a></p>
         </form>
-
-        <p class="login-prompt" style="margin-top: 20px; font-size: 13px; color: #666;">
-            ¿No tienes cuenta? <a href="{% url 'accounts:signup' %}" style="color: var(--accent); text-decoration: none; font-weight: 600;">Regístrate aquí</a>
-        </p>
-
-        <a href="/" class="back-link">
-            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
-            Volver al inicio
-        </a>
+      </div>
     </div>
+
+    <div class="right-content">
+      <div class="flower-wrap">
+        <div class="flower-stage" id="flowerStage"></div>
+        <div class="bloom-glow" id="bloomGlow"></div>
+      </div>
+      <p class="r-title">Detalles que <em>duran para siempre</em></p>
+      <p class="r-sub">Bienvenido de vuelta, accede a tu perfil para darle<br>seguimiento a tus pedidos y visualizar tus personalizaciones.</p>
+      <div class="info-boxes">
+        <div class="info-box">
+          <div class="info-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="info-text">
+            <h4>Seguimiento en tiempo real</h4>
+            <p>Estado actualizado de tus pedidos</p>
+          </div>
+        </div>
+        
+        <div class="info-box">
+          <div class="info-icon">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="info-text">
+            <h4>Tus diseños guardados</h4>
+            <p>Historial completo de personalizaciones</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-    {% endblock %}
-{% endblock %}
+
+<script src="{% static 'accounts/js/flower-frames.js' %}"></script>
+<script src="{% static 'js/login.js' %}?v={% now 'U' %}"></script>
+</body>
+</html>

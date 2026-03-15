@@ -40,58 +40,7 @@
     </form>
 </div>
 
-<style>
-    input[type="text"], input[type="file"], select, textarea {
-        width: 100%; padding: 12px; border: 1px solid var(--blush); border-radius: 10px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box;
-    }
-    input[type="number"] { width: 100%; padding: 12px; border: 1px solid var(--blush); border-radius: 10px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box; }
-    /* Hide native number spin buttons */
-    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    
-    input[type="checkbox"] { width: auto; margin-right: 8px; }
-    
-    /* Stepper Styling */
-    .custom-number-input { 
-        display: flex; align-items: stretch; border: 1px solid var(--blush); border-radius: 10px; overflow: hidden; background: white; 
-    }
-    /* Reset the internal input when inside stepper so wrapper provides the border/padding visual */
-    .custom-number-input input[type="number"] { 
-        border: none; border-radius: 0; padding: 12px 10px; text-align: center; font-weight: 600; width: 100%; -moz-appearance: textfield; box-sizing: border-box; background: transparent;
-    }
-    .stepper-btn {
-        background: white; border: none; width: 45px; font-size: 1.2rem; cursor: pointer; color: var(--text); padding: 0; display: flex; align-items: center; justify-content: center; transition: background 0.2s;
-    }
-    .stepper-btn:hover { background: #fdf2f8 !important; color: var(--rose) !important; }
-    .stepper-symbol {
-        padding: 0 15px; color: var(--muted); font-weight: 600; background: #fafafa; border-right: 1px solid var(--blush); display: flex; align-items: center;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/predesigned_form.css' %}?v={% now 'U' %}">
 
-<script>
-    function stepPrice(btn, amount) {
-        const wrapper = btn.closest('.custom-number-input');
-        const input = wrapper.querySelector('input[type="number"]');
-        
-        // Handle comma as decimal separator
-        let currentString = input.value.replace(',', '.');
-        let val = parseFloat(currentString) || 0;
-        
-        val += amount;
-        if (val < 0) val = 0;
-        
-        // Always strictly 2 decimal places
-        // The browser handles type="number" step="0.01" natively but using .toFixed gives exactly 2 decimal chars.
-        input.value = val.toFixed(2);
-    }
-    
-    // Auto-format on blur
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.custom-number-input input[type="number"]').forEach(input => {
-            input.addEventListener('blur', function() {
-                let val = parseFloat(this.value.replace(',', '.')) || 0;
-                this.value = val.toFixed(2);
-            });
-        });
-    });
-</script>
+<script src="{% static 'js/predesigned_form.js' %}?v={% now 'U' %}"></script>
 {% endblock %}

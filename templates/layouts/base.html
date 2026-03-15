@@ -15,124 +15,15 @@
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        :root {
-            --rose:    #c97d7d;
-            --rose-dk: #a05c5c;
-            --rose-lt: #f9f0f0;
-            --blush:   #f2dada;
-            --cream:   #fdf9f7;
-            --gold:    #c9a55a;
-            --text:    #2d2323;
-            --muted:   #9e8a8a;
-            --max-w:   1200px;
-            --radius:  16px;
-            --ease:    cubic-bezier(0.4,0,0.2,1);
-            --serif:   'Playfair Display', Georgia, serif;
-            --sans:    'DM Sans', system-ui, sans-serif;
-        }
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v={% now 'U' %}">
+    
+    <script>
+        window.SISART_CONFIG = {
+            whatsappNumber: "{{ whatsapp_number }}",
+            csrfToken: "{{ csrf_token }}"
+        };
+    </script>
 
-        body { font-family: var(--sans); background: var(--cream); color: var(--text); line-height: 1.6; }
-        
-        .page-wrap {
-            max-width: 100%;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* ── GLOBAL DASHBOARD LAYOUT ── */
-        .page-with-sidebar {
-            display: flex;
-            min-height: 100vh; 
-            background: #fdfaf8;
-        }
-        
-        .main-container {
-            flex-grow: 1;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ── SIDEBAR ── */
-        .dash-sidebar {
-            width: 260px;
-            background: #ffffff;
-            border-right: 1px solid var(--blush);
-            display: flex;
-            flex-direction: column;
-            padding: 24px 0;
-            transition: all 0.3s var(--ease);
-            flex-shrink: 0;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-        }
-
-        .sidebar-header { padding: 0 24px 24px; border-bottom: 1px solid #f9f0f0; margin-bottom: 20px; }
-        .user-profile-small { display: flex; align-items: center; gap: 12px; }
-        .user-avatar-sm {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: var(--rose-lt); display: flex; align-items: center; justify-content: center;
-            color: var(--rose); font-weight: 700;
-        }
-        .sidebar-links { list-style: none; padding: 0 12px; flex-grow: 1; display: flex; flex-direction: column; }
-        .sidebar-links li { margin-bottom: 4px; }
-        .sidebar-links a {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px; border-radius: 12px;
-            color: var(--text); text-decoration: none;
-            font-size: 0.9rem; font-weight: 500;
-            transition: all 0.2s;
-        }
-        .sidebar-links a i { width: 18px; height: 18px; opacity: 0.7; }
-        .sidebar-links a:hover { background: var(--rose-lt); color: var(--rose); }
-        .sidebar-links a.active { background: var(--rose); color: white; }
-        .sidebar-links a.active i { opacity: 1; }
-
-        /* Nav & Footer Base */
-        footer { 
-            background: var(--text); 
-            color: rgba(255,255,255,0.7); 
-            text-align: center; 
-            padding: 24px 20px; 
-            font-size: 0.85rem; 
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        /* Reveal Animation Global */
-        .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s var(--ease), transform 0.65s var(--ease); }
-        .reveal.visible { opacity: 1; transform: none; }
-        .d1 { transition-delay: 0.1s; } .d2 { transition-delay: 0.2s; } .d3 { transition-delay: 0.3s; }
-
-        @media (max-width: 900px) {
-            .page-with-sidebar { display: block; }
-            .dash-sidebar { 
-                width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--blush); 
-                padding: 12px 24px; position: static;
-            }
-            .sidebar-header { display: none; }
-            .sidebar-links { display: flex; flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 8px; }
-            .sidebar-links li { margin-bottom: 0; }
-            .sidebar-links a { white-space: nowrap; padding: 8px 16px; font-size: 0.8rem; }
-            .sidebar-links li:last-child { margin-left: auto; border-top: none; padding-top: 0; }
-        }
-        /* ── BUTTONS ── */
-        .btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 8px 18px; border-radius: 8px;
-            font-size: 0.85rem; font-weight: 600;
-            text-decoration: none; border: none; cursor: pointer;
-            font-family: var(--sans); transition: all 0.2s var(--ease);
-        }
-        .btn-ghost { color: var(--rose); background: transparent; border: 1.5px solid var(--blush); }
-        .btn-ghost:hover { background: var(--rose-lt); border-color: var(--rose); }
-        .btn-fill { color: white !important; background: var(--rose) !important; border: 1.5px solid var(--rose) !important; }
-        .btn-fill:hover { background: var(--rose-dk) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,125,125,0.35); }
-
-    </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% if user.is_authenticated %}authenticated{% endif %}">
@@ -161,20 +52,7 @@
 
     {% block extra_js %}{% endblock %}
 
-    <script>
-        lucide.createIcons();
-        
-        /* SCROLL REVEAL */
-        const ro = new IntersectionObserver(entries => {
-            entries.forEach(e => { 
-                if (e.isIntersecting) { 
-                    e.target.classList.add('visible'); 
-                    ro.unobserve(e.target); 
-                } 
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-    </script>
+    <script src="{% static 'js/base.js' %}?v={% now 'U' %}"></script>
 
 </body>
 </html>

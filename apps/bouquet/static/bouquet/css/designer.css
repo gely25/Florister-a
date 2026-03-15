@@ -188,12 +188,12 @@ h1 {
     bottom: -50px;
     left: 50%;
     transform: translateX(-50%) translate3d(var(--tx, 0), var(--ty, 0), 0) scale(var(--tw, 1));
-    width: 460px;
+    width: 400px;
     pointer-events: auto !important;
     opacity: 0;
     transition: opacity 0.6s, background-color 0.4s;
     -webkit-user-drag: none;
-    cursor: grab;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -214,8 +214,8 @@ h1 {
     position: absolute;
     inset: 0;
     background-color: var(--wc);
-    -webkit-mask: url("/media/envoltura.png") no-repeat bottom center / contain;
-    mask: url("/media/envoltura.png") no-repeat bottom center / contain;
+    -webkit-mask: url("/media/envoltura.png") no-repeat bottom center / cover;
+    mask: url("/media/envoltura.png") no-repeat bottom center / cover;
     transition: background-color 0.4s;
 }
 
@@ -243,7 +243,8 @@ h1 {
 
 .wrap-front {
     z-index: 20;
-    clip-path: polygon(0 42%, 48% 68%, 52% 68%, 100% 42%, 100% 100%, 0 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    clip-path: polygon(0 40%, 48% 68%, 52% 68%, 100% 40%, 100% 100%, 0 100%);
 }
 
 /* Flowers */
@@ -1024,4 +1025,118 @@ input[type=range] {
 .guest-input:focus {
     border-color: var(--gold);
     outline: none;
+}
+
+/* --- Appended from designer.html inline styles --- */
+.page-wrap { max-width: 100% !important; margin: 0 !important; padding: 0 !important; flex: 1; display: flex; flex-direction: column; }
+
+/* Logged-out (with top navbar) */
+body:not(.authenticated) #sizeScreen { top: 67px !important; }
+body:not(.authenticated) .app { height: calc(100vh - 68px); }
+
+/* Logged-in (with sidebar, no top navbar) */
+body.authenticated #sizeScreen { top: 0 !important; left: 260px !important; width: calc(100% - 260px) !important; }
+body.authenticated .app { height: 100vh; margin-left: 0; width: 100%; }
+
+#sizeScreen { 
+  position: fixed !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  width: 100% !important; height: auto !important;
+  background: radial-gradient(ellipse at 50% 0%, #fef5f5 0%, #ffffff 70%) !important;
+  z-index: 9000 !important;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: left 0.3s ease, width 0.3s ease;
+}
+.app { margin-top: 0; width: 100%; overflow: hidden; position: relative; }
+:root {
+    --gold: #c97d7d !important;
+    --gold-light: #fdf0f0 !important;
+    --rose: #c97d7d !important;
+}
+.sz-title, .sz-name, .sz-confirm, .sz-brand, .sz-pill { color: #c97d7d !important; }
+.sz-confirm, .sz-card.selected, .sz-card:hover { border-color: #c97d7d !important; }
+
+/* Checkout Modal */
+.modal-overlay {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.45);
+z-index: 99999;
+display: none;
+align-items: center;
+justify-content: center;
+}
+.modal-box {
+background: #fff;
+border-radius: 16px;
+padding: 40px 32px;
+max-width: 480px;
+width: 90%;
+text-align: center;
+box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal-box h3 {
+font-family: var(--serif);
+color: var(--rose);
+font-size: 1.4rem;
+margin-bottom: 10px;
+}
+.sz-icon {
+font-size: 3rem;
+margin-bottom: 15px;
+}
+.modal-box p {
+color: #666;
+font-size: 0.9rem;
+margin-bottom: 24px;
+line-height: 1.6;
+}
+.modal-buttons {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+.modal-buttons button {
+width: 100%;
+padding: 14px;
+border-radius: 8px;
+border: none;
+font-family: var(--serif);
+font-size: 0.85rem;
+letter-spacing: 2px;
+text-transform: uppercase;
+cursor: pointer;
+font-weight: 600;
+transition: all 0.2s;
+pointer-events: auto !important;
+opacity: 1 !important;
+}
+.modal-buttons button:first-child {
+background: #fdf0f0;
+color: var(--rose);
+border: 1.5px solid var(--rose);
+}
+.modal-buttons button:first-child:hover {
+background: var(--rose);
+color: #fff;
+}
+.modal-buttons button.on, .modal-buttons button:last-child {
+background: var(--rose);
+color: #fff;
+}
+.modal-buttons button:last-child:hover {
+background: #b56060;
+}
+.guest-input {
+width: 100%;
+padding: 10px 14px;
+border: 1.5px solid #e0c0c0;
+border-radius: 8px;
+font-family: var(--sans);
+font-size: 0.9rem;
+outline: none;
+box-sizing: border-box;
+margin-bottom: 10px;
+}
+.guest-input:focus {
+border-color: var(--rose);
 }

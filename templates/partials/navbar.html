@@ -1,50 +1,5 @@
 {% load static %}
-<style>
-/* ── NAV ── */
-nav {
-  position: sticky; top: 0; z-index: 10000 !important;
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  opacity: 1 !important;
-  border-bottom: 1px solid var(--blush);
-  box-shadow: 0 2px 20px rgba(180,120,120,0.08);
-}
-.nav-inner {
-  max-width: var(--max-w); margin: 0 auto;
-  height: 68px; padding: 0 48px;
-  display: flex; align-items: center; justify-content: space-between; gap: 24px;
-}
-.logo {
-  font-family: var(--serif); font-size: 1.75rem; font-style: italic;
-  color: var(--text); text-decoration: none;
-}
-.logo span { color: var(--rose); font-style: normal; }
-.nav-links-wrap { list-style: none; display: flex; align-items: center; gap: 4px; }
-.nav-links-wrap a {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border-radius: 8px;
-  font-size: 0.875rem; font-weight: 500;
-  color: var(--text); /* Mejor contraste */
-  text-decoration: none;
-  transition: all 0.2s;
-}
-.nav-links-wrap a:hover, .nav-links-wrap a.active {
-  color: var(--rose); background: var(--rose-lt);
-}
-.nav-links-wrap i { width: 16px; height: 16px; stroke-width: 1.8; }
-
-.nav-actions { display: flex; align-items: center; gap: 10px; }
-
-.user-info { display: flex; align-items: center; gap: 12px; font-size: 0.85rem; font-weight: 600; color: var(--text); }
-.staff-badge { 
-    background: var(--gold); color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; 
-}
-
-@media (max-width: 900px) {
-  .nav-inner { padding: 0 24px; }
-  .nav-links-wrap { display: none; }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/navbar.css' %}?v={% now 'U' %}">
 
 <nav>
   <div class="nav-inner">
@@ -116,41 +71,4 @@ nav {
   </div>
 </nav>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const navLinks = document.querySelectorAll('.nav-links-wrap a');
-  
-  function updateActiveLink() {
-    const currentPath = window.location.pathname;
-    const currentHash = window.location.hash;
-
-    navLinks.forEach(link => {
-      const linkHref = link.getAttribute('href');
-      link.classList.remove('active');
-
-      if (linkHref === '/' && currentPath === '/' && !currentHash) {
-          // Explicitly Home (Inicio) only if no hash
-          link.classList.add('active');
-      } else if (linkHref.includes('#') && currentHash && linkHref.endsWith(currentHash)) {
-          // Matching hash (e.g. #grid-servicios)
-          link.classList.add('active');
-      } else if (!linkHref.includes('#') && linkHref !== '/' && currentPath.startsWith(linkHref)) {
-          // Matching other paths (e.g. /designer/)
-          link.classList.add('active');
-      }
-    });
-  }
-
-  // Listen for hash changes (clicking nav links or manual hash entry)
-  window.addEventListener('hashchange', updateActiveLink);
-  // Initial check
-  updateActiveLink();
-  
-  // Also handle click for immediate feedback (smooth scroll triggers hashchange later)
-  navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      setTimeout(updateActiveLink, 50);
-    });
-  });
-});
-</script>
+<script src="{% static 'js/navbar.js' %}?v={% now 'U' %}"></script>

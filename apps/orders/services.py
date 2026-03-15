@@ -158,8 +158,8 @@ def _calculate_best_discount(bouquet, coupon_code):
 
 def _generate_whatsapp_message(request, order):
     from collections import Counter
-    client_name = order.user.get_full_name() if order.user else order.guest_name
-    size_name = order.bouquet.size.name
+    client_name = order.user.get_full_name() if order.user else (order.guest_name or "Invitado")
+    size_name = order.bouquet.size.name if order.bouquet and order.bouquet.size else "Estándar"
 
     flower_counts = Counter(item.flower.name for item in order.bouquet.items.all())
     flower_lines = "\n".join(
@@ -243,18 +243,31 @@ def _generate_bouquet_image_pillow(bouquet, tracking_token, wrap_data=None):
             # Intelligent Stem Hiding (Gradient Mask)
             # Replicates CSS: mask-image: linear-gradient(to bottom, black 35%, transparent 68%)
             w, h = f_img.size
-            # Create a 1-pixel wide mask and resize it to full width
-            col_mask = Image.new('L', (1, h), 255)
-            for y in range(h):
-                if y < 0.35 * h:
-                    alpha = 255
-                elif y > 0.68 * h:
-                    alpha = 0
-                else:
-                    ratio = (y - 0.35 * h) / (0.68 * h - 0.35 * h)
-                    alpha = int(255 * (1 - ratio))
-                col_mask.putpixel((0, y), alpha)
-            
+            # Vectorized gradient using numpy (much faster than pixel-by-pixel loop)
+            try:
+                import numpy as np
+                ys = np.arange(h, dtype=np.float32)
+                alphas = np.where(
+                    ys < 0.35 * h, 255,
+                    np.where(
+                        ys > 0.68 * h, 0,
+                        (255 * (1 - (ys - 0.35 * h) / (0.68 * h - 0.35 * h))).astype(np.float32)
+                    )
+                ).clip(0, 255).astype(np.uint8)
+                col_mask = Image.fromarray(alphas[:, np.newaxis], mode='L')
+            except ImportError:
+                # Fallback: still use pixel loop if numpy is unavailable
+                col_mask = Image.new('L', (1, h), 255)
+                for y in range(h):
+                    if y < 0.35 * h:
+                        alpha = 255
+                    elif y > 0.68 * h:
+                        alpha = 0
+                    else:
+                        ratio = (y - 0.35 * h) / (0.68 * h - 0.35 * h)
+                        alpha = int(255 * (1 - ratio))
+                    col_mask.putpixel((0, y), alpha)
+
             mask = col_mask.resize((w, h), Image.NEAREST)
             f_img.putalpha(ImageChops.multiply(f_img.getchannel('A'), mask))
 

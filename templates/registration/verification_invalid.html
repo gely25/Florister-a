@@ -1,0 +1,36 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Enlace Inválido — Sisart{% endblock %}
+
+{% block content %}
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+    <div style="background: white; padding: 40px; border-radius: 24px; border: 1px solid var(--blush); width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(45, 35, 35, 0.05); text-align: center;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <i data-lucide="alert-triangle" style="color: #991b1b; width: 40px; height: 40px;"></i>
+        </div>
+        
+        <h1 style="font-family: var(--serif); font-size: 1.8rem; font-style: italic; color: var(--text); margin-bottom: 16px;">Enlace de activación inválido</h1>
+        
+        <p style="color: var(--text); opacity: 0.8; font-size: 1rem; line-height: 1.6; margin-bottom: 30px;">
+            Lo sentimos, el enlace de activación ha expirado o ya ha sido utilizado. Por favor, intenta registrarte de nuevo o contacta con soporte si crees que es un error.
+        </p>
+
+        <a href="{% url 'accounts:signup' %}" style="display: block; width: 100%; padding: 14px; border-radius: 12px; background: var(--rose); color: white; text-decoration: none; font-weight: 700; font-size: 1rem; transition: transform 0.2s;">
+            Intentar registrarme de nuevo
+        </a>
+        
+        <div style="margin-top: 20px;">
+            <a href="{% url 'accounts:login' %}" style="color: var(--muted); text-decoration: none; font-size: 0.9rem;">
+                Ir al inicio de sesión
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

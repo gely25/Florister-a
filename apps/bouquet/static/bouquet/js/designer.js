@@ -81,7 +81,8 @@ async function finishOrder() {
             document.getElementById('finalView').innerHTML = document.getElementById('stage').innerHTML;
             document.getElementById('doneOv').classList.add('show');
             setTimeout(() => {
-                window.location.href = `https://wa.me/YOUR_PHONE_NUMBER?text=${encodeURIComponent(result.whatsapp_message)}`;
+                const waNumber = window.SISART_CONFIG.whatsappNumber || '593985991149';
+                window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(result.whatsapp_message)}`;
             }, 2000);
         } else {
             alert('Error al crear el pedido: ' + result.error);
