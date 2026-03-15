@@ -1,9 +1,24 @@
 from .base import *
 import os
 
-# para collectstatic en producción
-STATIC_ROOT= BASE_DIR / "staticfiles"  
-#en producción no queremos que las imagenes se guarden el código
-media_root = ""
+# Configuración de almacenamiento en producción
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+# MEDIA_ROOT se hereda de base.py (BASE_DIR / 'media')
 DEBUG = False
-DATABASES= { 'default': env.db(),} 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'florist_db',
+        'USER': 'postgres',
+        'PASSWORD': 'Admin25#',  
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}

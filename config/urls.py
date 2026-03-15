@@ -18,6 +18,11 @@ urlpatterns = [
     path('pedidos/seguimiento/<str:token>/', OrderDetailView.as_view(), name='track_alias'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+from django.urls import re_path
+from django.views.static import serve
+
+# Servir archivos estáticos y media incluso con DEBUG=False para pruebas locales
+urlpatterns += [
+    re_path(f'^{settings.MEDIA_URL.lstrip("/")}(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    re_path(f'^{settings.STATIC_URL.lstrip("/")}(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+]

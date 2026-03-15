@@ -50,6 +50,9 @@
                 {% if order.guest_phone and order.guest_phone != "N/A" %}
                 <a href="https://wa.me/{{ order.guest_phone|cut:' ' }}" class="wa-btn" target="_blank">Chat WA</a>
                 {% endif %}
+                {% if order.guest_email and not "@atelier.com" in order.guest_email and not "@sisart.com" in order.guest_email %}
+                <div style="font-size: 11px; color: #888; margin-top: 4px;">{{ order.guest_email }}</div>
+                {% endif %}
             </div>
         </div>
 

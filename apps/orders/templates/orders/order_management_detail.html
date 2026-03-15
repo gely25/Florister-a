@@ -76,10 +76,12 @@
                 <label style="font-size: 0.75rem; opacity: 0.7; display: block;">Nombre:</label>
                 <div style="font-weight: 600;">{{ order.user.get_full_name|default:order.guest_name }}</div>
             </div>
+            {% if order.user.email or order.guest_email and not "@atelier.com" in order.guest_email and not "@sisart.com" in order.guest_email %}
             <div style="margin-bottom: 12px;">
                 <label style="font-size: 0.75rem; opacity: 0.7; display: block;">Email:</label>
                 <div>{{ order.user.email|default:order.guest_email }}</div>
             </div>
+            {% endif %}
             <div style="margin-bottom: 24px;">
                 <label style="font-size: 0.75rem; opacity: 0.7; display: block;">Teléfono:</label>
                 <div>{{ order.guest_phone|default:"Sin teléfono" }}</div>

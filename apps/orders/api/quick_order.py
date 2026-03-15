@@ -99,7 +99,7 @@ class QuickOrderCreateView(View):
         order = Order.objects.create(
             user=user,
             guest_name=guest_data.get('name') if guest_data else None,
-            guest_email=guest_data.get('email', f"guest_{uuid.uuid4().hex[:8]}@sisart.com") if guest_data else None,
+            guest_email=guest_data.get('email') if guest_data else None,
             guest_phone=guest_data.get('phone', '') if guest_data else None,
             bouquet=bouquet,
             item_type=product_type,

@@ -18,6 +18,10 @@
         <div>
             <div style="font-size: 0.8rem; color: var(--muted);">Pedidos Pendientes</div>
             <div style="font-size: 1.5rem; font-weight: 700;">{{ pending_count }}</div>
+            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 4px;">
+                <span style="color: #0369a1; font-weight: 600;">{{ pending_auth_count }}</span> Socios / 
+                <span style="color: #64748b;">{{ pending_guest_count }}</span> Invitados
+            </div>
         </div>
     </div>
 
@@ -59,7 +63,12 @@
             {% for order in recent_orders %}
             <tr style="border-bottom: 1px solid #f9f0f0;">
                 <td style="padding: 12px; font-weight: 600;">#{{ order.id }}</td>
-                <td style="padding: 12px;">{{ order.user.get_full_name|default:order.guest_name }}</td>
+                <td style="padding: 12px;">
+                    {{ order.user.get_full_name|default:order.guest_name }}
+                    {% if not order.user %}
+                        <span style="font-size: 0.65rem; padding: 2px 6px; background: #f1f5f9; color: #64748b; border-radius: 4px; margin-left: 5px; text-transform: uppercase;">Invitado</span>
+                    {% endif %}
+                </td>
                 <td style="padding: 12px;">
                     <span class="status-badge status-{{ order.status }}">
                         {{ order.get_status_display }}

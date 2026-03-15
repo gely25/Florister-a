@@ -20,23 +20,28 @@ def seller_dashboard(request):
     now = timezone.now()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Metrics
-    pending_orders_count = Order.objects.filter(status='pending').count()
+    # Metrics: We distinguish between authenticated users and guests to avoid 'ghost' orders
+    pending_auth_count = Order.objects.filter(status='pending', user__isnull=False).count()
+    pending_guest_count = Order.objects.filter(status='pending', user__isnull=True).count()
+    pending_orders_count = pending_auth_count + pending_guest_count
+    
     completed_today_count = Order.objects.filter(status='delivered', updated_at__gte=today_start).count()
     
     # Low Stock Alerts
     low_flowers = Flower.objects.filter(stock__lt=10).count()
     low_bouquets = PreDesignedBouquet.objects.filter(stock__lt=5).count()
     total_low_stock = low_flowers + low_bouquets
-
+ 
     # Sales Data
     total_sales_today = Order.objects.filter(status='delivered', updated_at__gte=today_start).aggregate(total=Sum('final_amount'))['total'] or 0
     
     # Recent Orders
     recent_orders = Order.objects.all().order_by('-created_at')[:5]
-
+ 
     context = {
         'pending_count': pending_orders_count,
+        'pending_auth_count': pending_auth_count,
+        'pending_guest_count': pending_guest_count,
         'completed_today': completed_today_count,
         'low_stock_count': total_low_stock,
         'sales_today': total_sales_today,
@@ -56,9 +61,22 @@ def client_dashboard(request):
     
     # We could also fetch active coupons if relevant
     
+    # Discount Info
+    from apps.discounts.models import Discount
+    active_global_discount = Discount.objects.filter(
+        type='global',
+        is_active=True,
+        valid_from__lte=timezone.now(),
+        valid_to__gte=timezone.now()
+    ).order_by('-percentage').first()
+    
+    active_discount_pc = active_global_discount.percentage if active_global_discount else 0
+    
     context = {
         'recent_orders': recent_orders,
         'total_orders_count': total_orders_count,
+        'favorites_count': 0,  # Feature not yet implemented
+        'active_discount_pc': active_discount_pc,
     }
     return render(request, 'dahsboard/client_dashboard.html', context)
 
