@@ -129,6 +129,18 @@
     box-shadow: 0 4px 15px rgba(201,123,123,0.12);
   }
   .fg input::placeholder { color: rgba(168,85,85,0.3); }
+  
+  /* Hide browser eyes/clear buttons */
+  .fg input::-ms-reveal,
+  .fg input::-ms-clear {
+    display: none;
+  }
+  .fg input::-webkit-contacts-auto-fill-button,
+  .fg input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+  }
 
   .fi {
     position: absolute; right: 14px; top: 50%; transform: translateY(-50%);

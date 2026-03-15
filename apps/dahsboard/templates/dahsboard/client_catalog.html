@@ -34,7 +34,7 @@
                  onclick="openDetails({
                     id: '{{ item.id|escapejs }}',
                     type: '{{ item.item_type|escapejs }}',
-                    name: '{{ item.name|escapejs }}{{ item.title|escapejs }}',
+                    name: '{% if item.name %}{{ item.name|escapejs }}{% else %}{{ item.title|escapejs }}{% endif %}',
                     price: '{% if item.discount_info.final_price %}{{ item.discount_info.final_price|floatformat:2|escapejs }}{% else %}{{ item.price|floatformat:2|escapejs }}{% endif %}',
                     desc: '{{ item.description|escapejs }}',
                     img: '{% if item.image %}{{ item.image.url|escapejs }}{% elif item.image_icon %}{{ item.image_icon.url|escapejs }}{% endif %}',
@@ -57,9 +57,9 @@
 
                 <div class="card-body">
                     <div class="card-type">
-                        {% if item.item_type == 'flower' %}{{ item.get_tier_display }}{% else %}Ramo{% endif %}
+                        {% if item.item_type == 'flower' %}{{ item.get_tier_display }}{% else %}Ramo Elaborado{% endif %}
                     </div>
-                    <div class="card-title">{{ item.name }}{{ item.title }}</div>
+                    <div class="card-title">{% if item.name %}{{ item.name }}{% else %}{{ item.title }}{% endif %}</div>
                     <div class="card-price">
                         {% if item.discount_info.has_discount %}
                             <span class="price-old">${{ item.discount_info.original_price|floatformat:2 }}</span>
@@ -72,10 +72,12 @@
             </div>
         {% empty %}
             <div class="empty-state">
-                <i data-lucide="info" style="width: 48px; height: 48px; color: var(--muted); margin-bottom: 16px;"></i>
-                <h2>No se encontraron productos</h2>
-                <p>Intenta con otra búsqueda o filtro.</p>
-                <a href="{% url 'dahsboard:client_catalog' %}" style="color: var(--rose); margin-top: 10px; display: inline-block;">Limpiar búsqueda</a>
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--rose-lt); display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                    <i data-lucide="search-x" style="width: 40px; height: 40px; color: var(--rose);"></i>
+                </div>
+                <h2>Sin resultados</h2>
+                <p>No encontramos productos que coincidan con tu búsqueda.</p>
+                <a href="{% url 'dahsboard:client_catalog' %}" class="btn-ghost" style="margin-top: 24px; padding: 12px 32px; border-radius: 50px; text-decoration: none;">Limpiar búsqueda</a>
             </div>
         {% endfor %}
     </div>

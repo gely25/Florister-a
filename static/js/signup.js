@@ -124,7 +124,7 @@
     if (msgEl) { msgEl.textContent = ''; msgEl.classList.remove('show'); }
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   let timerMap = {};
 
   const userInp = document.getElementById('userInput');
@@ -135,12 +135,14 @@
       let val = this.value.trim();
       if (!val) { clearState(this, msgUser); return; }
       timerMap['user'] = setTimeout(() => {
-        fetch('{% url "accounts:check_username" %}?username=' + encodeURIComponent(val))
+        const url = (window.SISART_CONFIG && window.SISART_CONFIG.checkUsernameUrl) ? window.SISART_CONFIG.checkUsernameUrl : '/accounts/check-username/';
+        fetch(url + '?username=' + encodeURIComponent(val))
           .then(r => r.json())
           .then(data => {
             if (data.is_taken) setValid(userInp, false, msgUser, 'Usuario ya existe.');
             else setValid(userInp, true, msgUser);
-          });
+          })
+          .catch(err => console.error('Error checking username:', err));
       }, 400);
     });
   }
@@ -154,12 +156,14 @@
       if (!val) { clearState(this, msgEmail); return; }
       if (!emailRegex.test(val)) { setValid(this, false, msgEmail, 'Correo inválido.'); return; }
       timerMap['email'] = setTimeout(() => {
-        fetch('{% url "accounts:check_email" %}?email=' + encodeURIComponent(val))
+        const url = (window.SISART_CONFIG && window.SISART_CONFIG.checkEmailUrl) ? window.SISART_CONFIG.checkEmailUrl : '/accounts/check-email/';
+        fetch(url + '?email=' + encodeURIComponent(val))
           .then(r => r.json())
           .then(data => {
-            if (data.is_taken) setValid(emailInp, false, msgEmail, 'Correo ya existe.');
+            if (data.is_taken) setValid(emailInp, false, msgEmail, 'Este correo ya está registrado.');
             else setValid(emailInp, true, msgEmail);
-          });
+          })
+          .catch(err => console.error('Error checking email:', err));
       }, 400);
     });
   }
@@ -173,8 +177,21 @@
     passInp.addEventListener('input', function() {
       let val = this.value;
       if (!val) { clearState(this, msgPass); return; }
-      if (val.length < 8) setValid(this, false, msgPass, 'Mínimo 8 caracteres.');
-      else setValid(this, true, msgPass);
+      
+      if (val.length < 8) {
+          setValid(this, false, msgPass, 'Mínimo 8 caracteres.');
+      } else if (!/[A-Z]/.test(val)) {
+          setValid(this, false, msgPass, 'Falta una mayúscula.');
+      } else if (!/[a-z]/.test(val)) {
+          setValid(this, false, msgPass, 'Falta una minúscula.');
+      } else if (!/[0-9]/.test(val)) {
+          setValid(this, false, msgPass, 'Falta un número.');
+      } else if (!/[^a-zA-Z0-9]/.test(val)) {
+          setValid(this, false, msgPass, 'Falta un símbolo.');
+      } else {
+          setValid(this, true, msgPass);
+      }
+      
       if (confirmInp.value) confirmInp.dispatchEvent(new Event('input'));
     });
   }

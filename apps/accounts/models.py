@@ -15,6 +15,7 @@ class User(AbstractUser):
         choices=ROLE_CHOICES,
         default=CUSTOMER
     )
+    is_email_verified = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if self.is_staff or self.is_superuser:

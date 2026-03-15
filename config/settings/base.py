@@ -97,5 +97,19 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dahsboard:index'
 LOGOUT_REDIRECT_URL = 'home'
 
+AUTHENTICATION_BACKENDS = [
+    'apps.accounts.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # Business Config
 WHATSAPP_NUMBER = env('WHATSAPP_NUMBER')
+
+# Email Config
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = f'Sisart <{EMAIL_HOST_USER}>'

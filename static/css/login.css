@@ -148,9 +148,9 @@
   .tp svg { width: 13px; height: 13px; }
 
   .err {
-    font-size: 0.52rem; letter-spacing: 0.05em; color: #b84040;
-    margin-top: 4px; min-height: 11px; opacity: 0; transition: opacity 0.3s;
-    text-align: center;
+    font-size: 0.85rem; letter-spacing: 0.02em; color: #b84040;
+    margin-top: 8px; min-height: 20px; opacity: 0; transition: opacity 0.3s;
+    text-align: center; font-weight: 500;
   }
   .err.show { opacity: 1; display: block; }
 
@@ -175,9 +175,9 @@
     border-right:1.5px solid white; border-bottom:1.5px solid white;
     transform:rotate(40deg);
   }
-  .rem-t { font-size:0.55rem; font-weight:300; letter-spacing:0.1em; color:var(--muted); }
+  .rem-t { font-size:0.8rem; font-weight:400; letter-spacing:0.02em; color:var(--muted); }
   .fgt {
-    font-size:0.55rem; font-weight:300; letter-spacing:0.1em;
+    font-size:0.8rem; font-weight:400; letter-spacing:0.02em;
     color:var(--muted); cursor:pointer; transition:color 0.2s;
   }
   .fgt:hover { color: var(--rose-deep); }
@@ -202,8 +202,8 @@
   .btn-login:active { transform:scale(0.985); }
   .btn-login.loading { letter-spacing:0.4em; opacity:0.8; pointer-events:none; }
 
-  .reg { text-align:center; font-size:0.65rem; font-weight:300; /* Aumentado de 0.54rem */
-    letter-spacing:0.1em; color:var(--muted); }
+  .reg { text-align:center; font-size:0.85rem; font-weight:400;
+    letter-spacing:0.02em; color:var(--muted); }
   .reg a { color:var(--rose-deep); font-weight:500; text-decoration:none;
     border-bottom:none; transition:opacity 0.2s; }
   .reg a:hover { opacity: 0.8; }

@@ -80,15 +80,13 @@
               <span class="chk"></span>
               <span class="rem-t">Recuérdame</span>
             </label>
-            <span class="fgt">¿Olvidaste tu contraseña?</span>
+            <a href="{% url 'accounts:password_reset' %}" class="fgt" style="text-decoration: none;">¿Olvidaste tu contraseña?</a>
           </div>
 
           <div id="formErrors">
-            {% if form.errors %}
-              <div class="err show">
-                Ocurrió un error. Verifica tus credenciales.
-              </div>
-            {% endif %}
+            <div class="err" id="loginError">
+              Ocurrió un error. Verifica tus credenciales.
+            </div>
           </div>
 
           <button type="submit" class="btn-login" id="loginBtn">Iniciar sesión</button>

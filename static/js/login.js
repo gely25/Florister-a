@@ -15,10 +15,42 @@
 
   var loginForm = document.getElementById('loginForm');
   var loginBtn = document.getElementById('loginBtn');
+  var loginError = document.getElementById('loginError');
+
   if (loginForm && loginBtn) {
-    loginForm.addEventListener('submit', function() {
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      var oldText = loginBtn.innerHTML;
       loginBtn.innerHTML = 'Ingresando...';
       loginBtn.classList.add('loading');
+      if (loginError) loginError.classList.remove('show');
+
+      var formData = new FormData(loginForm);
+      fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(function(res) {
+        if (res.ok) return res.json();
+        throw res;
+      })
+      .then(function(data) {
+        if (data.status === 'success') {
+          window.location.href = data.redirect_url;
+        }
+      })
+      .catch(function(err) {
+        loginBtn.innerHTML = oldText;
+        loginBtn.classList.remove('loading');
+        if (loginError) loginError.classList.add('show');
+        
+        // Trigger abrupt closing animation
+        if (window.triggerErrorAnim) window.triggerErrorAnim();
+      });
     });
   }
 })();
@@ -71,6 +103,15 @@
     goToFrame(target);
   }
 
+  window.triggerErrorAnim = function() {
+    // Snap shut logic
+    if (animTimer) clearInterval(animTimer);
+    if (els[cur]) els[cur].classList.remove('active');
+    cur = 0;
+    if (els[cur]) els[cur].classList.add('active');
+    updateGlow(cur);
+  };
+
   [userInp, passInp].forEach(function(inp) {
     if(inp) {
       inp.addEventListener('input', updateAnim);
@@ -78,5 +119,6 @@
       inp.addEventListener('blur', updateAnim);
     }
   });
+
   updateAnim();
 })();
