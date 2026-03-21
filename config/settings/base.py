@@ -8,6 +8,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     WHATSAPP_NUMBER=(str, '573000000000'),
     DATABASE_URL=(str, 'postgresql://postgres:marcos@localhost:5432/floresdb'),
+    CLOUDINARY_URL=(str, ''),
 )
 environ.Env.read_env(BASE_DIR / '.env')
 
@@ -26,7 +27,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     'apps.accounts',
     'apps.bouquet',
     'apps.catalog',
