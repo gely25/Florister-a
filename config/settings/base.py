@@ -7,6 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env(
     DEBUG=(bool, False),
     WHATSAPP_NUMBER=(str, '573000000000'),
+    DATABASE_URL=(str, 'postgresql://postgres:marcos@localhost:5432/floresdb'),
 )
 environ.Env.read_env(BASE_DIR / '.env')
 
@@ -93,6 +94,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Database — lee la URL desde .env (DATABASE_URL)
+# Ejemplo local:      postgresql://postgres:marcos@localhost:5432/floresdb
+# Ejemplo producción: postgresql://user:pass@host:5432/floresdb
+DATABASES = {
+    'default': env.db('DATABASE_URL')
+}
 
 # Authentication
 LOGIN_URL = 'accounts:login'

@@ -1,0 +1,50 @@
+spec:
+  name: florister-a
+  region: nyc
+  services:
+    - name: web
+      github:
+        repo: gely25/Florister-a
+        branch: main
+        deploy_on_push: true
+      build_command: |
+        pip install -r requirements.txt
+        python manage.py collectstatic --noinput
+      run_command: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+      http_port: 8080
+      instance_count: 1
+      instance_size_slug: apps-s-1vcpu-0.5gb
+      envs:
+        - key: DJANGO_SETTINGS_ENV
+          value: "pro"
+          scope: RUN_AND_BUILD_TIME
+        - key: DJANGO_SECRET_KEY
+          value: ""          # ← Pega tu SECRET_KEY aquí o usa el panel de DO
+          scope: RUN_AND_BUILD_TIME
+          type: SECRET
+        - key: DEBUG
+          value: "False"
+          scope: RUN_AND_BUILD_TIME
+        - key: ALLOWED_HOSTS
+          value: ""          # ← DigitalOcean lo completa automáticamente; puedes dejarlo vacío
+          scope: RUN_AND_BUILD_TIME
+        - key: CSRF_TRUSTED_ORIGINS
+          value: ""          # ← Se llena después con tu URL de DO, ej: https://florister-a.ondigitalocean.app
+          scope: RUN_AND_BUILD_TIME
+        - key: DATABASE_URL
+          scope: RUN_AND_BUILD_TIME
+          # Si conectas una DB gestionada de DO, ella inyecta DATABASE_URL automáticamente.
+          # Si NO tienes DB gestionada, descomenta y completa la línea siguiente:
+          # value: "postgresql://usuario:contraseña@host:5432/nombre_db"
+        - key: WHATSAPP_NUMBER
+          value: "593985991149"
+          scope: RUN_AND_BUILD_TIME
+        - key: EMAIL_HOST_USER
+          value: "sisarte8@gmail.com"
+          scope: RUN_AND_BUILD_TIME
+        - key: EMAIL_HOST_PASSWORD
+          value: ""          # ← Pega tu contraseña de app de Gmail aquí
+          scope: RUN_AND_BUILD_TIME
+          type: SECRET
+      routes:
+        - path: /
