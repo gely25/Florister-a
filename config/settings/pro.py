@@ -19,10 +19,6 @@ SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-# Opcional: Para evitar advertencias de Cloudinary en variables de entorno (aunque render las inyectará)
-CLOUDINARY_STORAGE = {
-    'CLOUDINARY_URL': env('CLOUDINARY_URL')
-}
 
 # Static files con whitenoise comprimidos, Media files en Cloudinary
 STORAGES = {
