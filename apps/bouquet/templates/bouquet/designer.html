@@ -15,8 +15,8 @@
             name: "{{ flower.name|escapejs }}", 
             type: "{{ flower.tier }}", 
             p: {{ disc.final_price|stringformat:".2f" }}, 
-            img: "{% if flower.image %}{{ flower.image.url }}{% else %}https://placehold.co/400x600?text={{ flower.name|urlencode }}{% endif %}", 
-            thumb: "{% if flower.thumbnail %}{{ flower.thumbnail.url }}{% elif flower.image %}{{ flower.image.url }}{% else %}https://placehold.co/100x100?text={{ flower.name|urlencode }}{% endif %}" 
+            img: "{% if flower.image %}{{ flower.image.url }}{% else %}{% static 'seed/' %}{{ flower.name|slugify }}_frente.png{% endif %}", 
+            thumb: "{% if flower.thumbnail %}{{ flower.thumbnail.url }}{% elif flower.image %}{{ flower.image.url }}{% else %}{% static 'seed/' %}{{ flower.name|slugify }}_up.png{% endif %}" 
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
     ];
@@ -88,12 +88,12 @@
     <div class="stage-outer" id="stage">
       <div class="wrap-part wrap-back visible" id="wb">
         <div class="wrap-color"></div>
-        <img src="/media/envoltura.png" class="wrap-texture" draggable="false">
+        <img src="" onerror="this.style.display='none'" class="wrap-texture" draggable="false">
       </div>
       <div id="flowers"></div>
       <div class="wrap-part wrap-front visible" id="wf">
         <div class="wrap-color"></div>
-        <img src="/media/envoltura.png" class="wrap-texture" draggable="false">
+        <img src="" onerror="this.style.display='none'" class="wrap-texture" draggable="false">
       </div>
     </div>
     
