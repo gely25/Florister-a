@@ -1,12 +1,10 @@
 from .base import *
 
-# En producción DEBUG siempre desactivado
-DEBUG = False
+# En producción DEBUG temporalmente activo para diagnóstico
+DEBUG = True
 
-# Dominios permitidos: el de Render + dominio personalizado si tienes
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
-    '.onrender.com',
-])
+# Dominios permitidos: el de Render + todos para diagnóstico
+ALLOWED_HOSTS = ['*']
 
 # CSRF: necesario para que los formularios funcionen en HTTPS
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[
