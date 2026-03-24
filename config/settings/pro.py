@@ -3,11 +3,9 @@ from .base import *
 # Inyectar WhiteNoise solo en producción (después de SecurityMiddleware)
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
-# En producción DEBUG desactivado para seguridad
-DEBUG = False
-
-# Dominios permitidos en Render
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.onrender.com'])
+# En producción DEBUG temporalmente activo para diagnóstico
+DEBUG = True
+ALLOWED_HOSTS = ['*']
 
 # Static files con whitenoise comprimidos, Media files en Cloudinary
 STORAGES = {
