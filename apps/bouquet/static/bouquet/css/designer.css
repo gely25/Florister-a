@@ -214,8 +214,8 @@ h1 {
     position: absolute;
     inset: 0;
     background-color: var(--wc);
-    -webkit-mask: url("/media/envoltura.png") no-repeat bottom center / cover;
-    mask: url("/media/envoltura.png") no-repeat bottom center / cover;
+    -webkit-mask: url("../img/envoltura.png") no-repeat bottom center / cover;
+    mask: url("../img/envoltura.png") no-repeat bottom center / cover;
     transition: background-color 0.4s;
 }
 
