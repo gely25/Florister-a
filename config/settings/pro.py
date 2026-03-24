@@ -1,5 +1,8 @@
 from .base import *
 
+# Inyectar WhiteNoise solo en producción (después de SecurityMiddleware)
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
 # En producción DEBUG desactivado para seguridad
 DEBUG = False
 
