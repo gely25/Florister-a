@@ -1,9 +1,22 @@
 from .base import *
 
-# Inyectar WhiteNoise solo en producción (después de SecurityMiddleware)
-MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+# Middleware explícito para asegurar que WhiteNoise sea el primero tras SecurityMiddleware
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
 
-# Usar almacenamiento comprimido pero no estricto con el manifiesto para evitar caídas
+# En producción DEBUG desactivado
+DEBUG = False
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.onrender.com'])
+
+# Static files comprimidos con fallback (no estricto)
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
@@ -13,10 +26,8 @@ STORAGES = {
     },
 }
 WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_USE_FINDERS = True # Fallback por si collectstatic falla o es parcial
 
-# En producción DEBUG desactivado nuevamente
-DEBUG = False
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['.onrender.com'])
 
 # Configuración de Anymail para usar API de Brevo en la nube (salta el bloqueo SMTP port 587 de Render)
 INSTALLED_APPS += ['anymail']
