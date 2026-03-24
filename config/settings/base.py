@@ -10,7 +10,10 @@ env = environ.Env(
     DATABASE_URL=(str, 'postgresql://postgres:marcos@localhost:5432/floresdb'),
     CLOUDINARY_URL=(str, ''),
 )
-environ.Env.read_env(BASE_DIR / '.env')
+# Lee .env solo si existe (útil para local, Render usa variables directas)
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    environ.Env.read_env(env_file)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-prod-fallback-key-sisart-123')
