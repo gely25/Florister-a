@@ -156,11 +156,23 @@ function add(f) {
     const ring = document.createElement('div'); ring.className = 'rotation-ring';
     ring.innerHTML = `<div class="rotation-handle"><svg viewBox="0 0 12 12"><path d="M6 1.5 A4.5 4.5 0 0 1 10.5 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>`;
     const badge = document.createElement('div'); badge.className = 'angle-badge'; badge.innerText = '0°';
-    const img = document.createElement('img'); img.src = f.img; img.className = 'pfl';
+    const img = document.createElement('img'); 
+    // Show thumb immediately, swap to full-res once loaded for instant feedback
+    img.src = f.thumb || f.img;
+    img.className = 'pfl';
+    img.decoding = 'async';
     img.onerror = function () {
         if (!this.dataset.tried) { this.dataset.tried = true; this.src = this.src.replace('.webp', '.png'); }
         else { this.src = 'https://placehold.co/400x600?text=Error'; this.onerror = null; }
     };
+    // If thumb and full are different, preload full and swap
+    if (f.thumb && f.img && f.thumb !== f.img) {
+        const full = new Image();
+        full.decoding = 'async';
+        full.onload = function() { img.src = f.img; };
+        full.onerror = function() { /* keep thumb */ };
+        full.src = f.img;
+    }
     cont.appendChild(ring); cont.appendChild(badge); cont.appendChild(img);
     flowersArea.appendChild(cont);
     const obj = { el: cont, tier, data: f, x: 0, y: 0, s: isCustom ? slot.s : tierSize.baseS, r: 0, baseR: slot.r };
@@ -168,7 +180,14 @@ function add(f) {
     cont.style.setProperty('--sx', '-200px'); cont.style.setProperty('--sy', '200px');
     cont.style.setProperty('--s', slot.s); cont.style.setProperty('--r', slot.r + 'deg');
     cont.style.animation = 'fly 0.5s ease-out forwards';
-    setTimeout(() => { cont.style.animation = 'none'; transform(obj); select(cont); applySmartWrap(true); }, 550);
+    setTimeout(() => { 
+        cont.style.animation = 'none'; transform(obj); select(cont); applySmartWrap(true); 
+        const th = document.getElementById('touchHint');
+        if (flowers.length === 1 && th && window.innerWidth <= 768) {
+            th.classList.add('show');
+            setTimeout(() => th.classList.remove('show'), 4000);
+        }
+    }, 550);
     updateUI();
 }
 
@@ -599,35 +618,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dial = document.getElementById('dial');
     if (dial) {
-        dial.addEventListener('mousedown', e => {
+        const startDial = e => {
             if (!selected || !states.has(selected)) return;
             dialDragging = true; e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
             const move = me => {
+                const mev = me.touches ? me.touches[0] : me;
                 const s = states.get(selected); const rect = dial.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2; const cy = rect.top + rect.height / 2;
-                applyAngle(s, Math.atan2(me.clientY - cy, me.clientX - cx) * 180 / Math.PI + 90);
+                applyAngle(s, Math.atan2(mev.clientY - cy, mev.clientX - cx) * 180 / Math.PI + 90);
             };
-            const up = () => { dialDragging = false; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
-            document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
-        });
+            const up = () => { 
+                dialDragging = false; 
+                document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); 
+                document.removeEventListener('touchmove', move); document.removeEventListener('touchend', up); 
+            };
+            document.addEventListener('mousemove', move, {passive: false}); document.addEventListener('mouseup', up);
+            document.addEventListener('touchmove', move, {passive: false}); document.addEventListener('touchend', up);
+        };
+        dial.addEventListener('mousedown', startDial);
+        dial.addEventListener('touchstart', startDial, {passive: false});
     }
 
     const fScale = document.getElementById('fScale'); if (fScale) fScale.oninput = e => { if (!selected || !states.has(selected)) return; const s = states.get(selected); s.s = parseFloat(e.target.value); if (document.getElementById('scaleValText')) document.getElementById('scaleValText').innerText = s.s.toFixed(1) + 'x'; transform(s); };
     const fRot = document.getElementById('fRot'); if (fRot) fRot.oninput = e => { if (!selected || !states.has(selected)) return; applyAngle(states.get(selected), parseFloat(e.target.value), false); };
     const wScale = document.getElementById('wScale'); if (wScale) wScale.oninput = e => { const { minS, maxS } = getSmartWrapBounds(); wrapState.s = Math.max(minS, Math.min(maxS, parseFloat(e.target.value))); e.target.value = wrapState.s; if (document.getElementById('wScaleValText')) document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1) + 'x'; document.querySelectorAll('.wrap-part').forEach(w => w.style.setProperty('--tw', wrapState.s)); };
 
-    document.addEventListener('mousedown', e => {
+    const startDrag = (e) => {
         if (isFinal) return;
+        const evt = e.touches ? e.touches[0] : e;
         const target = e.target.closest('.pfl-container') || e.target.closest('.wrap-part');
-        if (!target && !e.target.closest('#controls') && !e.target.closest('.fcard')) { deselectAll(); return; }
+        if (!target && !e.target.closest('#controls') && !e.target.closest('.fcard') && !e.target.closest('.mob-tab-bar') && !e.target.closest('.right-panel') && !e.target.closest('.catalog')) { deselectAll(); return; }
         if (!target) return;
+        
+        const th = document.getElementById('touchHint');
+        if (th) th.classList.remove('show');
+
         const isHandle = e.target.closest('.rotation-handle');
         drag = isHandle ? { type: 'rotate', el: target } : { type: 'move', el: target };
-        select(target); sx = e.clientX; sy = e.clientY;
+        select(target); sx = evt.clientX; sy = evt.clientY;
         const onMove = me => {
             if (!drag) return;
+            const mev = me.touches ? me.touches[0] : me;
             if (drag.type === 'move') {
-                const dx = me.clientX - sx; const dy = me.clientY - sy;
+                const dx = mev.clientX - sx; const dy = mev.clientY - sy;
                 if (drag.el.classList.contains('wrap-part')) {
                     // Movement disabled for wrapping per user request
                     return;
@@ -635,40 +669,97 @@ document.addEventListener('DOMContentLoaded', () => {
                     const s = states.get(drag.el);
                     const rect = document.getElementById('stage').getBoundingClientRect();
                     const minX = -rect.width / 2 + 30; const maxX = rect.width / 2 - 30;
-                    const minY = -s.el.offsetTop + 30; const maxY = (650 - s.el.offsetTop) - 30;
+                    const minY = -s.el.offsetTop + 30; const maxY = (rect.height - s.el.offsetTop) - 30;
                     const newX = s.x + dx; const newY = s.y + dy;
-                    s.x = Math.max(minX, Math.min(maxX, newX)); sx = me.clientX;
-                    if (newY >= minY && newY <= maxY && checkPositionConstraints(s, dy)) { s.y = newY; sy = me.clientY; }
+                    s.x = Math.max(minX, Math.min(maxX, newX)); sx = mev.clientX;
+                    if (newY >= minY && newY <= maxY && checkPositionConstraints(s, dy)) { s.y = newY; sy = mev.clientY; }
                     transform(s);
                 }
             } else if (drag.type === 'rotate') {
                 const s = states.get(drag.el); const rect = drag.el.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2; const cy = rect.top + rect.height / 2;
-                applyAngle(s, Math.atan2(me.clientY - cy, me.clientX - cx) * 180 / Math.PI + 90, false);
+                applyAngle(s, Math.atan2(mev.clientY - cy, mev.clientX - cx) * 180 / Math.PI + 90, false);
             }
+            if (e.touches) me.preventDefault();
         };
-        const onEnd = () => { drag = null; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd); };
-        document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd);
-        e.preventDefault();
-    });
+        const onEnd = () => { 
+            drag = null; 
+            document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd); 
+            document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); 
+        };
+        document.addEventListener('mousemove', onMove, {passive: false}); document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, {passive: false}); document.addEventListener('touchend', onEnd);
+        if (!e.touches && e.cancelable) e.preventDefault();
+    };
+
+    document.addEventListener('mousedown', startDrag);
+    document.addEventListener('touchstart', startDrag, {passive: false});
 
     const controls = document.getElementById('controls');
     const controlsHeader = document.getElementById('controlsHeader');
     if (controls && controlsHeader) {
         let dc = false, ox, oy;
-        controlsHeader.onmousedown = e => {
+        const startControlDrag = e => {
             if (e.target.closest('.adj-btn')) return;
-            dc = true; ox = e.clientX - controls.offsetLeft; oy = e.clientY - controls.offsetTop;
-            controls.style.transition = 'none'; e.preventDefault();
+            const evt = e.touches ? e.touches[0] : e;
+            dc = true; ox = evt.clientX - controls.offsetLeft; oy = evt.clientY - controls.offsetTop;
+            controls.style.transition = 'none'; 
+            if (e.cancelable) e.preventDefault();
         };
-        document.addEventListener('mousemove', e => {
+        const moveControl = e => {
             if (!dc) return;
-            controls.style.left = (e.clientX - ox) + 'px';
-            controls.style.top = (e.clientY - oy) + 'px';
+            const evt = e.touches ? e.touches[0] : e;
+            controls.style.left = (evt.clientX - ox) + 'px';
+            controls.style.top = (evt.clientY - oy) + 'px';
             controls.style.right = 'auto';
-        });
-        document.addEventListener('mouseup', () => { if (dc) { dc = false; controls.style.transition = 'opacity 0.3s, transform 0.3s'; } });
+        };
+        const endControlDrag = () => { if (dc) { dc = false; controls.style.transition = 'opacity 0.3s, transform 0.3s'; } };
+        
+        controlsHeader.addEventListener('mousedown', startControlDrag);
+        controlsHeader.addEventListener('touchstart', startControlDrag, {passive: false});
+        document.addEventListener('mousemove', moveControl, {passive: false});
+        document.addEventListener('touchmove', moveControl, {passive: false});
+        document.addEventListener('mouseup', endControlDrag);
+        document.addEventListener('touchend', endControlDrag);
     }
 
     renderCatalog();
 });
+
+window.switchMobTab = function(tab) {
+    const catalog = document.querySelector('.catalog');
+    const rightPanel = document.querySelector('.right-panel');
+    const controls = document.getElementById('controls');
+    
+    // Backdrops
+    const catBackdrop = document.getElementById('mobCatalogBackdrop');
+    const sumBackdrop = document.getElementById('mobSummaryBackdrop');
+    
+    // Tabs
+    document.querySelectorAll('.mob-tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Hide all first
+    if (catalog) catalog.classList.remove('mob-visible');
+    if (rightPanel) rightPanel.classList.remove('mob-visible');
+    if (catBackdrop) catBackdrop.classList.remove('visible');
+    if (sumBackdrop) sumBackdrop.classList.remove('visible');
+    if (controls && tab !== 'stage') controls.classList.remove('show');
+    
+    // Show requested
+    if (tab === 'catalog') {
+        const t = document.getElementById('tabCatalog'); if(t) t.classList.add('active');
+        if (catalog) catalog.classList.add('mob-visible');
+        if (catBackdrop) catBackdrop.classList.add('visible');
+        deselectAll();
+    } 
+    else if (tab === 'summary') {
+        const t = document.getElementById('tabSummary'); if(t) t.classList.add('active');
+        if (rightPanel) rightPanel.classList.add('mob-visible');
+        if (sumBackdrop) sumBackdrop.classList.add('visible');
+        deselectAll();
+    }
+    else {
+        // stage
+        const t = document.getElementById('tabStage'); if(t) t.classList.add('active');
+    }
+};

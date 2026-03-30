@@ -32,8 +32,30 @@
     var WA_NUMBER = "{{ whatsapp_number }}";
 </script>
 
+<script>
+// Preload all flower images and wrap texture immediately
+(function(){
+    // Preload envoltura
+    var env = new Image(); env.src = '/media/envoltura.png';
+    // Preload all flower full images and thumbnails
+    if (typeof FLOWERS !== 'undefined') {
+        FLOWERS.forEach(function(f) {
+            if (f.img)   { var i = new Image(); i.src = f.img; }
+            if (f.thumb) { var t = new Image(); t.src = f.thumb; }
+        });
+    }
+})();
+</script>
+
 
 <link rel="stylesheet" href="{% static 'bouquet/css/designer.css' %}?v={% now "U" %}">
+
+<style>
+  .mob-tab-bar { display: none; }
+  @media (max-width: 768px) {
+      .mob-tab-bar { display: flex !important; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -86,14 +108,18 @@
   </div>
   <div class="bouquet-area">
     <div class="stage-outer" id="stage">
+      <div class="touch-hint" id="touchHint">
+        <span class="touch-hint-icon">👆</span>
+        Toca las flores para moverlas
+      </div>
       <div class="wrap-part wrap-back visible" id="wb">
         <div class="wrap-color"></div>
-        <img src="/media/envoltura.png" class="wrap-texture" draggable="false">
+        <img src="/media/envoltura.png" class="wrap-texture" draggable="false" loading="eager" decoding="async" fetchpriority="high">
       </div>
       <div id="flowers"></div>
       <div class="wrap-part wrap-front visible" id="wf">
         <div class="wrap-color"></div>
-        <img src="/media/envoltura.png" class="wrap-texture" draggable="false">
+        <img src="/media/envoltura.png" class="wrap-texture" draggable="false" loading="eager" decoding="async">
       </div>
     </div>
     
@@ -150,20 +176,6 @@
             <div class="scale-row"><span>TAMAÑO PAPEL</span><span id="wScaleValText">1.0x</span></div>
             <input type="range" id="wScale" min="0.8" max="1.4" step="0.01" value="1">
           </div>
-
-          <div class="color-group">
-            <span class="color-label">Color del Papel</span>
-            <div class="color-grid">
-              <div class="color-swatch active" style="background:#e8dfcc" onclick="setWrapColor('#e8dfcc', this)" title="Natural"></div>
-              <div class="color-swatch" style="background:#f2cada" onclick="setWrapColor('#f2cada', this)" title="Rosa"></div>
-              <div class="color-swatch" style="background:#9eb091" onclick="setWrapColor('#9eb091', this)" title="Verde"></div>
-              <div class="color-swatch" style="background:#90b1c7" onclick="setWrapColor('#90b1c7', this)" title="Azul"></div>
-              <div class="color-swatch" style="background:#8e735b" onclick="setWrapColor('#8e735b', this)" title="Kraft"></div>
-              <div class="color-swatch" style="background:#1a1a1a" onclick="setWrapColor('#1a1a1a', this)" title="Negro"></div>
-              <div class="color-swatch" style="background:#f0f0f0; border:1px solid #ddd" onclick="setWrapColor('#f0f0f0', this)" title="Blanco"></div>
-              <div class="color-swatch" style="background:#7a1d1d" onclick="setWrapColor('#7a1d1d', this)" title="Tinto"></div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -183,7 +195,27 @@
     <button class="act-btn" id="nextBtn" onclick="step()">CONTINUAR →</button>
     <button class="act-btn on" id="finishBtn" style="display:none; background:var(--rose); color:#ffffff; box-shadow:0 10px 20px rgba(201,125,125,0.4);" onclick="finishOrder()">FINALIZAR DISEÑO ✓</button>
   </div>
+  </div>
 </div>
+
+<div class="mob-catalog-backdrop" id="mobCatalogBackdrop" onclick="switchMobTab('stage')"></div>
+<div class="mob-summary-backdrop" id="mobSummaryBackdrop" onclick="switchMobTab('stage')"></div>
+
+<div class="mob-tab-bar" id="mobTabBar">
+  <button class="mob-tab-btn active" id="tabStage" onclick="switchMobTab('stage')">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Ramo
+  </button>
+  <button class="mob-tab-btn" id="tabCatalog" onclick="switchMobTab('catalog')">
+    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Flores
+  </button>
+  <button class="mob-tab-btn" id="tabSummary" onclick="switchMobTab('summary')">
+    <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.29 5.17c-.22.5.15 1.08.7 1.08h13.59"/><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>
+    Resumen
+  </button>
+</div>
+
 </div>
 <div class="done-ov" id="doneOv"><div id="finalView" style="position:relative; width:400px; height:600px"></div></div>
 

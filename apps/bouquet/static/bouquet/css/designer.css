@@ -1140,3 +1140,348 @@ margin-bottom: 10px;
 .guest-input:focus {
 border-color: var(--rose);
 }
+
+/* ============================================================
+   RESPONSIVE MOBILE — Bouquet Designer
+   ============================================================ */
+
+/* === TABLET: 768px y menor === */
+@media (max-width: 768px) {
+    /* Forzar layout vertical */
+    .workspace {
+        grid-template-columns: 1fr !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 52px); /* resta steps-bar */
+        overflow: hidden;
+    }
+
+    /* Steps bar más compacta */
+    .steps-bar {
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+    .sl { display: none; }
+    .sc { width: 14px; margin: 0 6px; }
+    .sn { width: 24px; height: 24px; font-size: 9px; }
+
+    /* Área del stage toma el espacio principal */
+    .bouquet-area {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    /* Stage responsivo */
+    .stage-outer {
+        width: min(95vw, 360px);
+        height: min(calc(95vw * 1.625), 585px);
+        border-bottom: 2px solid var(--border);
+    }
+
+    /* Catálogo: se oculta por defecto en mobile y se muestra via JS/tabs */
+    .catalog {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 5000;
+        background: white;
+        border-top: 1px solid var(--border);
+        padding: 12px 16px 16px;
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.08);
+        border-radius: 20px 20px 0 0;
+        max-height: 55vh;
+        overflow-y: auto;
+        flex-direction: column;
+    }
+
+    .catalog.mob-visible {
+        display: flex;
+    }
+
+    /* Lista del catálogo: horizontal scroll en mobile */
+    .clist {
+        flex-direction: row !important;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+    }
+
+    .clist::-webkit-scrollbar { display: none; }
+
+    /* Cards del catálogo horizontales */
+    .fcard {
+        flex-direction: column;
+        flex-shrink: 0;
+        width: 90px;
+        padding: 10px 8px;
+        text-align: center;
+        gap: 6px;
+        scroll-snap-align: start;
+        border-radius: 12px;
+    }
+    .fcard:hover { transform: none; }
+    .fcard:active { border-color: var(--gold); transform: scale(0.97); }
+    .fcard-img { width: 48px; height: 64px; }
+    .fname { font-size: 9px; }
+    .fprice { margin-left: 0; font-size: 12px; }
+
+    /* Panel derecho oculto por default, se muestra via tabs */
+    .right-panel {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 5000;
+        background: white;
+        border-top: 1px solid var(--border);
+        border-radius: 20px 20px 0 0;
+        padding: 16px;
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.08);
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    .right-panel.mob-visible {
+        display: block;
+    }
+
+    /* Panel de controles (adj) como bottom sheet */
+    .adj-controls {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        border-radius: 20px 20px 0 0;
+        border: none;
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        z-index: 6000;
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .adj-controls.show {
+        transform: translateY(0) !important;
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .adj-controls.minimized { transform: translateY(calc(100% - 52px)) !important; }
+
+    .adj-header { cursor: default; border-radius: 20px 20px 0 0; }
+    /* Handle visual de arrastre para el bottom sheet */
+    .adj-header::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: var(--border);
+        border-radius: 4px;
+        margin: 0 auto 10px;
+    }
+
+    .adj-content { padding: 16px; }
+
+    /* Dial un poco más pequeño */
+    .dial { width: 70px; height: 70px; }
+    .arc-svg { width: 120px; height: 70px; }
+
+    /* Delete / Reset buttons más altos */
+    .delete-btn, .reset-btn { padding: 12px; font-size: 10px; }
+
+    /* === BARRA DE TABS MÓVIL === */
+    .mob-tab-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 4500;
+        background: white;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: stretch;
+        height: 58px;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+
+    .mob-tab-btn {
+        flex: 1;
+        border: none;
+        background: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        cursor: pointer;
+        color: #bbb;
+        font-size: 8px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        font-family: 'Cinzel', serif;
+        transition: color 0.2s;
+        padding: 4px 2px;
+    }
+
+    .mob-tab-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; }
+    .mob-tab-btn.active { color: var(--gold); }
+    .mob-tab-btn.active svg { stroke: var(--gold); }
+
+    /* Título del catálogo en mobile */
+    #catTitle { font-size: 10px; margin-bottom: 10px; }
+
+    /* Right panel labels */
+    .rl {
+        font-family: 'Cinzel', serif;
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: var(--gold);
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    /* Precio */
+    .price-val { font-size: 24px; }
+    .price-box { margin-top: 12px; padding: 12px; }
+
+    /* Botón siguiente / finalizar */
+    .act-btn { padding: 13px; margin-top: 10px; font-size: 10px; }
+
+    /* Offset para no tapar el botón de acción con los tabs */
+    .workspace { padding-bottom: 58px !important; }
+}
+
+/* === MÓVIL PEQUEÑO: 480px y menor === */
+@media (max-width: 480px) {
+    .stage-outer {
+        width: 98vw;
+        height: calc(98vw * 1.625);
+        max-height: calc(100vh - 160px);
+    }
+
+    .sz-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px;
+    }
+
+    .sz-card {
+        padding: 18px 12px;
+        gap: 10px;
+    }
+    .sz-icon { font-size: 28px; }
+    .sz-name { font-size: 11px; letter-spacing: 2px; }
+    .sz-desc { font-size: 10px; }
+    .sz-pill { font-size: 8px; padding: 2px 6px; }
+    .sz-confirm { padding: 12px 30px; font-size: 10px; }
+    .sz-title { font-size: clamp(20px, 6vw, 32px); }
+
+    .fcard { width: 80px; }
+    .fcard-img { width: 40px; height: 55px; }
+
+    .dial { width: 60px; height: 60px; }
+
+    /* Modal adaptado */
+    .modal-box { padding: 24px 16px; }
+    .modal-box h3 { font-size: 1.1rem; }
+}
+
+/* === SIZE SCREEN MÓVIL === */
+@media (max-width: 768px) {
+    #sizeScreen {
+        padding: 20px 16px 80px !important;
+        justify-content: flex-start !important;
+        overflow-y: auto;
+    }
+
+    .sz-brand { font-size: 8px; letter-spacing: 5px; }
+    .sz-subtitle { font-size: 10px; margin-bottom: 24px; }
+
+    .sz-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        max-width: 100%;
+    }
+
+    .sz-card {
+        padding: 20px 14px 18px;
+        border-radius: 12px;
+    }
+
+    .sz-confirm {
+        margin-top: 24px;
+        width: 100%;
+        max-width: 320px;
+    }
+}
+
+/* === Pantalla completa en autenticado (sidebar) en mobile === */
+@media (max-width: 768px) {
+    body.authenticated #sizeScreen {
+        left: 0 !important;
+        width: 100% !important;
+        top: 0 !important;
+    }
+}
+
+/* === Overlay del catálogo (backdrop click to close) === */
+.mob-catalog-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 4800;
+    background: rgba(0,0,0,0.3);
+}
+.mob-catalog-backdrop.visible { display: block; }
+
+/* === Overlay de panel de resumen === */
+.mob-summary-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 4800;
+    background: rgba(0,0,0,0.3);
+}
+.mob-summary-backdrop.visible { display: block; }
+
+/* === Touch hint animation === */
+@keyframes touchPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.15); opacity: 1; }
+}
+.touch-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--gold);
+    font-size: 11px;
+    text-align: center;
+    pointer-events: none;
+    letter-spacing: 1px;
+    animation: touchPulse 2s ease-in-out infinite;
+    font-family: 'Jost', sans-serif;
+    z-index: 12;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+.touch-hint.show { opacity: 1; }
+.touch-hint-icon { font-size: 28px; display: block; margin-bottom: 6px; }
