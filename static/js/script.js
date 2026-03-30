@@ -122,7 +122,10 @@ function renderCatalog() {
     const isFull = fullCount >= maxForTier;
     tierFlows.forEach(f => {
         const d = document.createElement('div'); d.className = `fcard ${isFull ? 'locked' : ''}`;
-        d.onclick = () => !isFull && add(f);
+        d.onclick = (e) => {
+            if (e) e.stopPropagation();
+            if (!isFull) add(f);
+        };
         d.innerHTML = `<img src="${f.thumb}" class="fcard-img" onerror="if(!this.dataset.tried){this.dataset.tried=true; this.src=this.src.replace('.webp','.png');}else{this.src='https://placehold.co/100x100?text=Error'; this.onerror=null;}"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
         list.appendChild(d);
     });
@@ -156,8 +159,8 @@ function add(f) {
     const ring = document.createElement('div'); ring.className = 'rotation-ring';
     ring.innerHTML = `<div class="rotation-handle"><svg viewBox="0 0 12 12"><path d="M6 1.5 A4.5 4.5 0 0 1 10.5 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>`;
     const badge = document.createElement('div'); badge.className = 'angle-badge'; badge.innerText = '0°';
-    const img = document.createElement('img'); 
-    // Show thumb immediately, swap to full-res once loaded for instant feedback
+    const img = document.createElement('img');
+    // Using thumbnail for instant feedback, then asynchronously swap to full
     img.src = f.thumb || f.img;
     img.className = 'pfl';
     img.decoding = 'async';
@@ -165,7 +168,6 @@ function add(f) {
         if (!this.dataset.tried) { this.dataset.tried = true; this.src = this.src.replace('.webp', '.png'); }
         else { this.src = 'https://placehold.co/400x600?text=Error'; this.onerror = null; }
     };
-    // If thumb and full are different, preload full and swap
     if (f.thumb && f.img && f.thumb !== f.img) {
         const full = new Image();
         full.decoding = 'async';
@@ -181,11 +183,24 @@ function add(f) {
     cont.style.setProperty('--s', slot.s); cont.style.setProperty('--r', slot.r + 'deg');
     cont.style.animation = 'fly 0.5s ease-out forwards';
     setTimeout(() => { 
-        cont.style.animation = 'none'; transform(obj); select(cont); applySmartWrap(true); 
+        cont.style.animation = 'none';
+        transform(obj); 
+        
+        // On mobile, if catalog is open, do not trigger the full select() because it opens the controls drawer and hides the catalog
+        const cat = document.querySelector('.catalog');
+        if (window.innerWidth <= 768 && cat && cat.classList.contains('mob-visible')) {
+            if (selected) selected.classList.remove('selected');
+            selected = cont; 
+            selected.classList.add('selected');
+        } else {
+            select(cont); 
+        }
+        
+        applySmartWrap(true);
+        // Brief touch hint on first flower
         const th = document.getElementById('touchHint');
         if (flowers.length === 1 && th && window.innerWidth <= 768) {
-            th.classList.add('show');
-            setTimeout(() => th.classList.remove('show'), 4000);
+            setTimeout(() => { th.classList.add('show'); setTimeout(() => th.classList.remove('show'), 3500); }, 400);
         }
     }, 550);
     updateUI();
@@ -607,6 +622,35 @@ window.processOrder = processOrder;
 
 // Initialization and Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // Prevent long-press context menu on all images in the designer (mobile)
+    document.addEventListener('contextmenu', e => {
+        if (e.target.tagName === 'IMG' || e.target.closest('.pfl-container') || e.target.closest('.stage-outer')) {
+            e.preventDefault();
+        }
+    });
+
+    // ── RANGE SLIDER PROTECTION ──────────────────────────────────────────────
+    // Stop the global startDrag touchstart/touchmove from ever reaching form
+    // inputs. This allows input[type=range] (wrap size slider) to work on mobile.
+    document.querySelectorAll('#controls input, #controls select').forEach(input => {
+        input.addEventListener('touchstart', e => e.stopPropagation(), { passive: false });
+        input.addEventListener('touchmove',  e => e.stopPropagation(), { passive: false });
+    });
+    // Also protect dynamically-added inputs via delegation on #controls
+    const controlsEl = document.getElementById('controls');
+    if (controlsEl) {
+        controlsEl.addEventListener('touchstart', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+                e.stopPropagation();
+            }
+        }, { passive: false, capture: true });
+        controlsEl.addEventListener('touchmove', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+                e.stopPropagation();
+            }
+        }, { passive: false, capture: true });
+    }
+
     const stage = document.getElementById('stage');
     if (stage) {
         stage.addEventListener('wheel', e => {
@@ -642,14 +686,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fScale = document.getElementById('fScale'); if (fScale) fScale.oninput = e => { if (!selected || !states.has(selected)) return; const s = states.get(selected); s.s = parseFloat(e.target.value); if (document.getElementById('scaleValText')) document.getElementById('scaleValText').innerText = s.s.toFixed(1) + 'x'; transform(s); };
     const fRot = document.getElementById('fRot'); if (fRot) fRot.oninput = e => { if (!selected || !states.has(selected)) return; applyAngle(states.get(selected), parseFloat(e.target.value), false); };
-    const wScale = document.getElementById('wScale'); if (wScale) wScale.oninput = e => { const { minS, maxS } = getSmartWrapBounds(); wrapState.s = Math.max(minS, Math.min(maxS, parseFloat(e.target.value))); e.target.value = wrapState.s; if (document.getElementById('wScaleValText')) document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1) + 'x'; document.querySelectorAll('.wrap-part').forEach(w => w.style.setProperty('--tw', wrapState.s)); };
+    const wScale = document.getElementById('wScale'); 
+    if (wScale) {
+        wScale.oninput = e => { 
+            const { minS, maxS } = getSmartWrapBounds(); 
+            wrapState.s = Math.max(minS, Math.min(maxS, parseFloat(e.target.value))); 
+            e.target.value = wrapState.s; 
+            if (document.getElementById('wScaleValText')) document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1) + 'x'; 
+            document.querySelectorAll('.wrap-part').forEach(w => w.style.setProperty('--tw', wrapState.s)); 
+        };
+        // Redundant touch protection for mobile wrapper
+        wScale.addEventListener('touchstart', e => { e.stopPropagation(); }, {passive: false, capture: true});
+        wScale.addEventListener('touchmove', e => { e.stopPropagation(); }, {passive: false, capture: true});
+        wScale.addEventListener('mousedown', e => { e.stopPropagation(); });
+    }
 
     const startDrag = (e) => {
         if (isFinal) return;
         const evt = e.touches ? e.touches[0] : e;
+        // On mobile, .pfl-container has pointer-events: auto, so target may be container itself
         const target = e.target.closest('.pfl-container') || e.target.closest('.wrap-part');
         if (!target && !e.target.closest('#controls') && !e.target.closest('.fcard') && !e.target.closest('.mob-tab-bar') && !e.target.closest('.right-panel') && !e.target.closest('.catalog')) { deselectAll(); return; }
         if (!target) return;
+        // Only process if target has state (is a flower container) or is wrap
+        if (!target.classList.contains('wrap-part') && !states.has(target)) return;
         
         const th = document.getElementById('touchHint');
         if (th) th.classList.remove('show');

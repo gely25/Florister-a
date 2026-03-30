@@ -262,6 +262,8 @@ h1 {
     pointer-events: auto !important;
     cursor: grab;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     -webkit-user-drag: none;
     transform-origin: center center;
     filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
@@ -525,6 +527,8 @@ input[type=range] {
     width: 100%;
     accent-color: var(--gold);
     cursor: pointer;
+    touch-action: pan-x; /* Allow horizontal sliding on mobile */
+    -webkit-appearance: none;
 }
 
 .reset-btn {
@@ -1485,3 +1489,61 @@ border-color: var(--rose);
 }
 .touch-hint.show { opacity: 1; }
 .touch-hint-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+
+/* === Prevenir menú largo-toque en TODAS las imágenes del designer === */
+.stage-outer img,
+.pfl,
+.fcard-img,
+.wrap-texture,
+.ri img {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    pointer-events: auto;
+}
+
+/* === Mobile: área de toque ampliada para flores === */
+/* En mobile el contenedor completo es tappable para mayor precisión */
+/* === Animaciones Faltantes === */
+@keyframes fly {
+    from {
+        opacity: 0;
+        transform: translate(var(--sx), var(--sy)) scale(0) rotate(0deg);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(var(--s)) rotate(var(--r));
+    }
+}
+
+/* === Mobile fixes finales === */
+@media (max-width: 768px) {
+    .pfl-container {
+        pointer-events: auto !important;
+        /* Garantizar visibilidad! */
+        display: block !important; 
+        opacity: 1;
+    }
+    input[type=range] {
+        touch-action: pan-x;
+        z-index: 9999;
+        position: relative;
+    }
+    .catalog {
+        /* Bloquear explícitamente clics al backdrop por debajo */
+        pointer-events: auto !important;
+    }
+}
+
+/* === Fix context menu overlay === */
+.stage-outer img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    pointer-events: none;
+}
+.pfl {
+    pointer-events: auto; /* Required to tap flowers */
+    min-width: 80px;
+    min-height: 80px;
+}
