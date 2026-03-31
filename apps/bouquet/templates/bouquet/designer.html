@@ -3,8 +3,8 @@
 {% load discount_tags %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'bouquet/css/designer.css' %}?v=999">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="{% static 'bouquet/css/designer.css' %}?v={% now 'U' %}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" async></script>
 
 <script>
     var FLOWERS = [
@@ -36,7 +36,7 @@
 // Preload all flower images and wrap texture immediately
 (function(){
     // Preload envoltura
-    var env = new Image(); env.src = '/media/envoltura.png';
+    var env = new Image(); env.src = 'https://res.cloudinary.com/dzfovowgt/image/upload/v1774373194/media/envoltura.png';
     // Preload all flower full images and thumbnails
     if (typeof FLOWERS !== 'undefined') {
         FLOWERS.forEach(function(f) {
@@ -48,7 +48,7 @@
 </script>
 
 
-<link rel="stylesheet" href="{% static 'bouquet/css/designer.css' %}?v={% now "U" %}">
+{% comment %} CSS ya cargado arriba — no duplicar {% endcomment %}
 
 <style>
   .mob-tab-bar { display: none; }
@@ -109,7 +109,6 @@
   <div class="bouquet-area">
     <div class="stage-outer" id="stage">
       <div class="touch-hint" id="touchHint">
-        <span class="touch-hint-icon">👆</span>
         Toca las flores para moverlas
       </div>
       <div class="wrap-part wrap-back visible" id="wb">

@@ -168,7 +168,7 @@ h1 {
 .bouquet-area {
     display: flex;
     flex-direction: column;
-    align-items: center
+    align-items: center;
 }
 
 .stage-outer {
@@ -185,10 +185,12 @@ h1 {
 
 .wrap-part {
     position: absolute;
-    bottom: -50px;
+    /* Imagen 800×1200 → a 400px de ancho = 600px de alto */
+    bottom: 0;
     left: 50%;
     transform: translateX(-50%) translate3d(var(--tx, 0), var(--ty, 0), 0) scale(var(--tw, 1));
     width: 400px;
+    height: 600px;
     pointer-events: auto !important;
     opacity: 0;
     transition: opacity 0.6s, background-color 0.4s;
@@ -198,7 +200,6 @@ h1 {
     flex-direction: column;
     align-items: center;
     --wc: #e8dfcc;
-    /* color base natural */
 }
 
 .wrap-part.visible {
@@ -214,19 +215,19 @@ h1 {
     position: absolute;
     inset: 0;
     background-color: var(--wc);
-    -webkit-mask: url("https://res.cloudinary.com/dzfovowgt/image/upload/v1774373194/media/envoltura.png") no-repeat bottom center / cover;
-    mask: url("https://res.cloudinary.com/dzfovowgt/image/upload/v1774373194/media/envoltura.png") no-repeat bottom center / cover;
+    /* La máscara usa contain para respetar la forma SIN recortar */
+    -webkit-mask: url("https://res.cloudinary.com/dzfovowgt/image/upload/v1774373194/media/envoltura.png") no-repeat bottom center / contain;
+    mask: url("https://res.cloudinary.com/dzfovowgt/image/upload/v1774373194/media/envoltura.png") no-repeat bottom center / contain;
     transition: background-color 0.4s;
 }
 
 .wrap-texture {
-    width: 100%;
-    height: auto;
+    width: 100%;               /* ocupa el ancho del wrap-part (400px) */
+    height: auto;              /* alto proporcional a la imagen real, sin distorsion */
     display: block;
     mix-blend-mode: multiply;
     pointer-events: none;
     filter: contrast(1.1) brightness(1.05);
-    /* realzar sombras */
 }
 
 .wrap-back {
@@ -243,8 +244,6 @@ h1 {
 
 .wrap-front {
     z-index: 20;
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-    clip-path: polygon(0 40%, 48% 68%, 52% 68%, 100% 40%, 100% 100%, 0 100%);
 }
 
 /* Flowers */

@@ -332,3 +332,98 @@
   }
   .flower-frame.active { opacity: 1; }
   .flower-frame svg { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+
+  /* ══ MÓVIL RESPONSIVE ══ */
+  @media (max-width: 768px) {
+    html, body {
+      overflow-y: auto;
+      align-items: flex-start;
+      padding: 0;
+      background: #a85555;
+    }
+
+    /* Shell ocupa toda la pantalla */
+    .shell {
+      width: 100%;
+      height: auto;
+      min-height: 100dvh;
+      border-radius: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Ocultar el SVG de fondo — lo reemplaza el background del right-content */
+    .bg-layer { display: none; }
+
+    /* El content-layer pasa a ser flujo normal (column) */
+    .content-layer {
+      position: relative;
+      inset: auto;
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      pointer-events: auto;
+    }
+
+    /* ─── Panel SUPERIOR: solo la flor ─── */
+    .right-content {
+      order: 1;
+      width: 100%;
+      height: auto;
+      padding: 48px 24px 32px;
+      background: linear-gradient(160deg, #a85555 0%, #c97b7b 60%, #e5a0a0 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform: none;
+      opacity: 1;
+      animation: none;
+    }
+
+    /* Ocultar todo excepto la flor */
+    .r-title, .r-sub, .info-boxes { display: none; }
+
+    .flower-wrap {
+      width: 170px;
+      margin: 0 auto;
+      opacity: 1;
+      animation: none;
+    }
+
+    /* ─── Panel INFERIOR: formulario centrado ─── */
+    .left-content {
+      order: 2;
+      width: 100%;
+      height: auto;
+      padding: 36px 24px 48px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;       /* centra horizontalmente */
+      justify-content: flex-start;
+      transform: none;
+      opacity: 1;
+      animation: none;
+    }
+
+    /* Formulario ocupa todo el ancho disponible con máx razonable */
+    .form-wrapper {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* Títulos del formulario al centro en móvil */
+    .card-title, .card-sub { text-align: center; }
+
+    /* ─── Botón cerrar sobre el degradado ─── */
+    .close-btn {
+      background: rgba(255,255,255,0.2);
+      top: 12px;
+      right: 12px;
+      z-index: 200;
+    }
+    .close-btn svg { stroke: #fff; }
+  }
