@@ -115,20 +115,36 @@ function applySmartWrap(autoCenter = true) {
 
 function renderCatalog() {
     const list = document.getElementById('flist'); if (!list) return;
-    list.innerHTML = '';
     const tierFlows = FLOWERS.filter(f => f.type === tier);
     const fullCount = flowers.filter(f => f.tier === tier).length;
     const maxForTier = SIZE_PRESETS[selectedSizeKey] ? SIZE_PRESETS[selectedSizeKey][tier] : CONFIG[tier].n;
     const isFull = fullCount >= maxForTier;
-    tierFlows.forEach(f => {
-        const d = document.createElement('div'); d.className = `fcard ${isFull ? 'locked' : ''}`;
-        d.onclick = (e) => {
-            if (e) e.stopPropagation();
-            if (!isFull) add(f);
-        };
-        d.innerHTML = `<img src="${f.thumb}" class="fcard-img" onerror="if(!this.dataset.tried){this.dataset.tried=true; this.src=this.src.replace('.webp','.png');}else{this.src='https://placehold.co/100x100?text=Error'; this.onerror=null;}"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
-        list.appendChild(d);
-    });
+
+    // To prevent "click-through" bugs on mobile where destroying the tapped DOM element 
+    // causes the click to hit the element underneath it (e.g. the 'Ramo' tab), 
+    // we only build the DOM if it's empty or from a different tier.
+    if (list.dataset.renderedTier !== tier) {
+        list.innerHTML = '';
+        list.dataset.renderedTier = tier;
+        tierFlows.forEach(f => {
+            const d = document.createElement('div'); d.className = `fcard ${isFull ? 'locked' : ''}`;
+            d.onclick = (e) => {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                // Live check fullCount when clicked
+                const curFull = flowers.filter(fl => fl.tier === tier).length;
+                const curMax = SIZE_PRESETS[selectedSizeKey] ? SIZE_PRESETS[selectedSizeKey][tier] : CONFIG[tier].n;
+                if (curFull < curMax) add(f);
+            };
+            d.innerHTML = `<img src="${f.thumb}" class="fcard-img" onerror="if(!this.dataset.tried){this.dataset.tried=true; this.src=this.src.replace('.webp','.png');}else{this.src='https://placehold.co/100x100?text=Error'; this.onerror=null;}"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
+            list.appendChild(d);
+        });
+    } else {
+        // Just update lock state
+        document.querySelectorAll('#flist .fcard').forEach(d => {
+            if (isFull) d.classList.add('locked');
+            else d.classList.remove('locked');
+        });
+    }
 }
 
 function add(f) {
