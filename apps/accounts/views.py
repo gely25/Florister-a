@@ -46,24 +46,13 @@ class SignUpView(CreateView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        user.is_active = False  # Deactivate account until it is confirmed
+        user.is_active = True  # Activación inmediata (Plan B Emergencia)
+        user.is_email_verified = True
         user.save()
 
-        # Send verification email
-        current_site = get_current_site(self.request)
-        subject = 'Activa tu cuenta en Sisart'
-        message = render_to_string('registration/verification_email.html', {
-            'user': user,
-            'domain': current_site.domain,
-            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': default_token_generator.make_token(user),
-            'protocol': 'https' if self.request.is_secure() else 'http',
-        })
-        
-        email = EmailMessage(subject, message, to=[user.email])
-        email.send()
-        
-        return redirect(self.success_url)
+        # Omitimos enviar el correo de verificación para evitar timeouts y bloqueos
+        messages.success(self.request, "¡Cuenta creada con éxito! Ya puedes iniciar sesión y comprar.")
+        return redirect('accounts:login')
 
 class VerifyEmailView(View):
     def get(self, request, uidb64, token):

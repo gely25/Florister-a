@@ -7,11 +7,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env(
     DEBUG=(bool, False),
     WHATSAPP_NUMBER=(str, '573000000000'),
+    DATABASE_URL=(str, 'postgresql://postgres:marcos@localhost:5432/floresdb'),
+    CLOUDINARY_URL=(str, ''),
 )
-environ.Env.read_env(BASE_DIR / '.env')
+# Lee .env solo si existe (útil para local, Render usa variables directas)
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    environ.Env.read_env(env_file)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('DJANGO_SECRET_KEY')
+SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-prod-fallback-key-sisart-123')
 
 DEBUG = env('DEBUG')
 
@@ -25,7 +30,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     'apps.accounts',
     'apps.bouquet',
     'apps.catalog',
@@ -42,7 +49,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -94,6 +100,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Database — lee la URL desde .env (DATABASE_URL)
+# Ejemplo local:      postgresql://postgres:marcos@localhost:5432/floresdb
+# Ejemplo producción: postgresql://user:pass@host:5432/floresdb
+DATABASES = {
+    'default': env.db('DATABASE_URL')
+}
+
 # Authentication
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dahsboard:index'
@@ -112,6 +125,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='sisarte8@gmail.com')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = f'Sisart <{EMAIL_HOST_USER}>'
