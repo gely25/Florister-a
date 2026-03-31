@@ -115,17 +115,42 @@ function applySmartWrap(autoCenter = true) {
 
 function renderCatalog() {
     const list = document.getElementById('flist'); if (!list) return;
-    list.innerHTML = '';
+    const catTitle = document.getElementById('catTitle');
+    if (catTitle) {
+        if (tier === 'l') catTitle.innerText = 'CAPA I: GRANDES';
+        else if (tier === 'm') catTitle.innerText = 'CAPA II: MEDIANAS';
+        else if (tier === 's') catTitle.innerText = 'CAPA III: PEQUEÑAS';
+    }
     const tierFlows = FLOWERS.filter(f => f.type === tier);
     const fullCount = flowers.filter(f => f.tier === tier).length;
     const maxForTier = SIZE_PRESETS[selectedSizeKey] ? SIZE_PRESETS[selectedSizeKey][tier] : CONFIG[tier].n;
     const isFull = fullCount >= maxForTier;
-    tierFlows.forEach(f => {
-        const d = document.createElement('div'); d.className = `fcard ${isFull ? 'locked' : ''}`;
-        d.onclick = () => !isFull && add(f);
-        d.innerHTML = `<img src="${f.thumb}" class="fcard-img" onerror="if(!this.dataset.tried){this.dataset.tried=true; this.src=this.src.replace('.webp','.png');}else{this.src='https://placehold.co/100x100?text=Error'; this.onerror=null;}"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
-        list.appendChild(d);
-    });
+
+    // To prevent "click-through" bugs on mobile where destroying the tapped DOM element 
+    // causes the click to hit the element underneath it (e.g. the 'Ramo' tab), 
+    // we only build the DOM if it's empty or from a different tier.
+    if (list.dataset.renderedTier !== tier) {
+        list.innerHTML = '';
+        list.dataset.renderedTier = tier;
+        tierFlows.forEach(f => {
+            const d = document.createElement('div'); d.className = `fcard ${isFull ? 'locked' : ''}`;
+            d.onclick = (e) => {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+                // Live check fullCount when clicked
+                const curFull = flowers.filter(fl => fl.tier === tier).length;
+                const curMax = SIZE_PRESETS[selectedSizeKey] ? SIZE_PRESETS[selectedSizeKey][tier] : CONFIG[tier].n;
+                if (curFull < curMax) add(f);
+            };
+            d.innerHTML = `<img src="${f.thumb}" class="fcard-img" onerror="if(!this.dataset.tried){this.dataset.tried=true; this.src=this.src.replace('.webp','.png');}else{this.src='https://placehold.co/100x100?text=Error'; this.onerror=null;}"><div><div class="fname">${f.name}</div></div><div class="fprice">$${f.p}</div>`;
+            list.appendChild(d);
+        });
+    } else {
+        // Just update lock state
+        document.querySelectorAll('#flist .fcard').forEach(d => {
+            if (isFull) d.classList.add('locked');
+            else d.classList.remove('locked');
+        });
+    }
 }
 
 function add(f) {
@@ -156,11 +181,22 @@ function add(f) {
     const ring = document.createElement('div'); ring.className = 'rotation-ring';
     ring.innerHTML = `<div class="rotation-handle"><svg viewBox="0 0 12 12"><path d="M6 1.5 A4.5 4.5 0 0 1 10.5 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>`;
     const badge = document.createElement('div'); badge.className = 'angle-badge'; badge.innerText = '0°';
-    const img = document.createElement('img'); img.src = f.img; img.className = 'pfl';
+    const img = document.createElement('img');
+    // Using thumbnail for instant feedback, then asynchronously swap to full
+    img.src = f.thumb || f.img;
+    img.className = 'pfl';
+    img.decoding = 'async';
     img.onerror = function () {
         if (!this.dataset.tried) { this.dataset.tried = true; this.src = this.src.replace('.webp', '.png'); }
         else { this.src = 'https://placehold.co/400x600?text=Error'; this.onerror = null; }
     };
+    if (f.thumb && f.img && f.thumb !== f.img) {
+        const full = new Image();
+        full.decoding = 'async';
+        full.onload = function() { img.src = f.img; };
+        full.onerror = function() { /* keep thumb */ };
+        full.src = f.img;
+    }
     cont.appendChild(ring); cont.appendChild(badge); cont.appendChild(img);
     flowersArea.appendChild(cont);
     const obj = { el: cont, tier, data: f, x: 0, y: 0, s: isCustom ? slot.s : tierSize.baseS, r: 0, baseR: slot.r };
@@ -168,7 +204,27 @@ function add(f) {
     cont.style.setProperty('--sx', '-200px'); cont.style.setProperty('--sy', '200px');
     cont.style.setProperty('--s', slot.s); cont.style.setProperty('--r', slot.r + 'deg');
     cont.style.animation = 'fly 0.5s ease-out forwards';
-    setTimeout(() => { cont.style.animation = 'none'; transform(obj); select(cont); applySmartWrap(true); }, 550);
+    setTimeout(() => { 
+        cont.style.animation = 'none';
+        transform(obj); 
+        
+        // On mobile, if catalog is open, do not trigger the full select() because it opens the controls drawer and hides the catalog
+        const cat = document.querySelector('.catalog');
+        if (window.innerWidth <= 768 && cat && cat.classList.contains('mob-visible')) {
+            if (selected) selected.classList.remove('selected');
+            selected = cont; 
+            selected.classList.add('selected');
+        } else {
+            select(cont); 
+        }
+        
+        applySmartWrap(true);
+        // Brief touch hint on first flower
+        const th = document.getElementById('touchHint');
+        if (flowers.length === 1 && th && window.innerWidth <= 768) {
+            setTimeout(() => { th.classList.add('show'); setTimeout(() => th.classList.remove('show'), 3500); }, 400);
+        }
+    }, 550);
     updateUI();
 }
 
@@ -345,14 +401,37 @@ function updateUI() {
     renderCatalog();
 }
 
-function step() {
-    if (tier === 'l') { tier = 'm'; document.getElementById('s1').classList.remove('active'); document.getElementById('s2').classList.add('active'); }
-    else if (tier === 'm') { tier = 's'; document.getElementById('s2').classList.remove('active'); document.getElementById('s3').classList.add('active'); }
-    else { document.getElementById('finishBtn').style.display = 'block'; document.getElementById('nextBtn').style.display = 'none'; return; }
+window.step = function() {
+    // Force lowercase to avoid comparison issues
+    const currentTier = tier.toLowerCase();
+    
+    if (currentTier === 'l') { 
+        tier = 'm'; 
+        const s1 = document.getElementById('s1'); if(s1) s1.classList.remove('active');
+        const s2 = document.getElementById('s2'); if(s2) s2.classList.add('active');
+    }
+    else if (currentTier === 'm') { 
+        tier = 's'; 
+        const s2 = document.getElementById('s2'); if(s2) s2.classList.remove('active');
+        const s3 = document.getElementById('s3'); if(s3) s3.classList.add('active');
+    }
+    else { 
+        const finishBtn = document.getElementById('finishBtn'); if(finishBtn) finishBtn.style.display = 'block';
+        const nextBtn = document.getElementById('nextBtn'); if(nextBtn) nextBtn.style.display = 'none';
+        return; 
+    }
+    
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) nextBtn.classList.remove('on');
+    
     renderCatalog();
-}
+    updateUI();
+
+    // On mobile, automatically return to catalog tab to see the new category of flowers
+    if (window.innerWidth <= 768 && window.switchMobTab) {
+        window.switchMobTab('catalog');
+    }
+};
 
 function stepRot(delta) { if (!selected || !states.has(selected)) return; const s = states.get(selected); applyAngle(s, Math.max(-180, Math.min(180, s.r + delta)), false); }
 function applyQuickRot(delta) { if (!selected || !states.has(selected)) return; const s = states.get(selected); applyAngle(s, s.r + delta, false); }
@@ -588,6 +667,35 @@ window.processOrder = processOrder;
 
 // Initialization and Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // Prevent long-press context menu on all images in the designer (mobile)
+    document.addEventListener('contextmenu', e => {
+        if (e.target.tagName === 'IMG' || e.target.closest('.pfl-container') || e.target.closest('.stage-outer')) {
+            e.preventDefault();
+        }
+    });
+
+    // ── RANGE SLIDER PROTECTION ──────────────────────────────────────────────
+    // Stop the global startDrag touchstart/touchmove from ever reaching form
+    // inputs. This allows input[type=range] (wrap size slider) to work on mobile.
+    document.querySelectorAll('#controls input, #controls select').forEach(input => {
+        input.addEventListener('touchstart', e => e.stopPropagation(), { passive: false });
+        input.addEventListener('touchmove',  e => e.stopPropagation(), { passive: false });
+    });
+    // Also protect dynamically-added inputs via delegation on #controls
+    const controlsEl = document.getElementById('controls');
+    if (controlsEl) {
+        controlsEl.addEventListener('touchstart', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+                e.stopPropagation();
+            }
+        }, { passive: false, capture: true });
+        controlsEl.addEventListener('touchmove', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+                e.stopPropagation();
+            }
+        }, { passive: false, capture: true });
+    }
+
     const stage = document.getElementById('stage');
     if (stage) {
         stage.addEventListener('wheel', e => {
@@ -599,35 +707,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dial = document.getElementById('dial');
     if (dial) {
-        dial.addEventListener('mousedown', e => {
+        const startDial = e => {
             if (!selected || !states.has(selected)) return;
             dialDragging = true; e.stopPropagation();
+            if (e.cancelable) e.preventDefault();
             const move = me => {
+                const mev = me.touches ? me.touches[0] : me;
                 const s = states.get(selected); const rect = dial.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2; const cy = rect.top + rect.height / 2;
-                applyAngle(s, Math.atan2(me.clientY - cy, me.clientX - cx) * 180 / Math.PI + 90);
+                applyAngle(s, Math.atan2(mev.clientY - cy, mev.clientX - cx) * 180 / Math.PI + 90);
             };
-            const up = () => { dialDragging = false; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
-            document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
-        });
+            const up = () => { 
+                dialDragging = false; 
+                document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); 
+                document.removeEventListener('touchmove', move); document.removeEventListener('touchend', up); 
+            };
+            document.addEventListener('mousemove', move, {passive: false}); document.addEventListener('mouseup', up);
+            document.addEventListener('touchmove', move, {passive: false}); document.addEventListener('touchend', up);
+        };
+        dial.addEventListener('mousedown', startDial);
+        dial.addEventListener('touchstart', startDial, {passive: false});
     }
 
     const fScale = document.getElementById('fScale'); if (fScale) fScale.oninput = e => { if (!selected || !states.has(selected)) return; const s = states.get(selected); s.s = parseFloat(e.target.value); if (document.getElementById('scaleValText')) document.getElementById('scaleValText').innerText = s.s.toFixed(1) + 'x'; transform(s); };
     const fRot = document.getElementById('fRot'); if (fRot) fRot.oninput = e => { if (!selected || !states.has(selected)) return; applyAngle(states.get(selected), parseFloat(e.target.value), false); };
-    const wScale = document.getElementById('wScale'); if (wScale) wScale.oninput = e => { const { minS, maxS } = getSmartWrapBounds(); wrapState.s = Math.max(minS, Math.min(maxS, parseFloat(e.target.value))); e.target.value = wrapState.s; if (document.getElementById('wScaleValText')) document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1) + 'x'; document.querySelectorAll('.wrap-part').forEach(w => w.style.setProperty('--tw', wrapState.s)); };
+    const wScale = document.getElementById('wScale'); 
+    if (wScale) {
+        wScale.oninput = e => { 
+            const { minS, maxS } = getSmartWrapBounds(); 
+            wrapState.s = Math.max(minS, Math.min(maxS, parseFloat(e.target.value))); 
+            e.target.value = wrapState.s; 
+            if (document.getElementById('wScaleValText')) document.getElementById('wScaleValText').innerText = wrapState.s.toFixed(1) + 'x'; 
+            document.querySelectorAll('.wrap-part').forEach(w => w.style.setProperty('--tw', wrapState.s)); 
+        };
+        // Redundant touch protection for mobile wrapper
+        wScale.addEventListener('touchstart', e => { e.stopPropagation(); }, {passive: false, capture: true});
+        wScale.addEventListener('touchmove', e => { e.stopPropagation(); }, {passive: false, capture: true});
+        wScale.addEventListener('mousedown', e => { e.stopPropagation(); });
+    }
 
-    document.addEventListener('mousedown', e => {
+    const startDrag = (e) => {
         if (isFinal) return;
+        const evt = e.touches ? e.touches[0] : e;
+        // On mobile, .pfl-container has pointer-events: auto, so target may be container itself
         const target = e.target.closest('.pfl-container') || e.target.closest('.wrap-part');
-        if (!target && !e.target.closest('#controls') && !e.target.closest('.fcard')) { deselectAll(); return; }
+        if (!target && !e.target.closest('#controls') && !e.target.closest('.fcard') && !e.target.closest('.mob-tab-bar') && !e.target.closest('.right-panel') && !e.target.closest('.catalog')) { deselectAll(); return; }
         if (!target) return;
+        // Only process if target has state (is a flower container) or is wrap
+        if (!target.classList.contains('wrap-part') && !states.has(target)) return;
+        
+        const th = document.getElementById('touchHint');
+        if (th) th.classList.remove('show');
+
         const isHandle = e.target.closest('.rotation-handle');
         drag = isHandle ? { type: 'rotate', el: target } : { type: 'move', el: target };
-        select(target); sx = e.clientX; sy = e.clientY;
+        select(target); sx = evt.clientX; sy = evt.clientY;
         const onMove = me => {
             if (!drag) return;
+            const mev = me.touches ? me.touches[0] : me;
             if (drag.type === 'move') {
-                const dx = me.clientX - sx; const dy = me.clientY - sy;
+                const dx = mev.clientX - sx; const dy = mev.clientY - sy;
                 if (drag.el.classList.contains('wrap-part')) {
                     // Movement disabled for wrapping per user request
                     return;
@@ -635,40 +774,97 @@ document.addEventListener('DOMContentLoaded', () => {
                     const s = states.get(drag.el);
                     const rect = document.getElementById('stage').getBoundingClientRect();
                     const minX = -rect.width / 2 + 30; const maxX = rect.width / 2 - 30;
-                    const minY = -s.el.offsetTop + 30; const maxY = (650 - s.el.offsetTop) - 30;
+                    const minY = -s.el.offsetTop + 30; const maxY = (rect.height - s.el.offsetTop) - 30;
                     const newX = s.x + dx; const newY = s.y + dy;
-                    s.x = Math.max(minX, Math.min(maxX, newX)); sx = me.clientX;
-                    if (newY >= minY && newY <= maxY && checkPositionConstraints(s, dy)) { s.y = newY; sy = me.clientY; }
+                    s.x = Math.max(minX, Math.min(maxX, newX)); sx = mev.clientX;
+                    if (newY >= minY && newY <= maxY && checkPositionConstraints(s, dy)) { s.y = newY; sy = mev.clientY; }
                     transform(s);
                 }
             } else if (drag.type === 'rotate') {
                 const s = states.get(drag.el); const rect = drag.el.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2; const cy = rect.top + rect.height / 2;
-                applyAngle(s, Math.atan2(me.clientY - cy, me.clientX - cx) * 180 / Math.PI + 90, false);
+                applyAngle(s, Math.atan2(mev.clientY - cy, mev.clientX - cx) * 180 / Math.PI + 90, false);
             }
+            if (e.touches) me.preventDefault();
         };
-        const onEnd = () => { drag = null; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd); };
-        document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd);
-        e.preventDefault();
-    });
+        const onEnd = () => { 
+            drag = null; 
+            document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onEnd); 
+            document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onEnd); 
+        };
+        document.addEventListener('mousemove', onMove, {passive: false}); document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, {passive: false}); document.addEventListener('touchend', onEnd);
+        if (!e.touches && e.cancelable) e.preventDefault();
+    };
+
+    document.addEventListener('mousedown', startDrag);
+    document.addEventListener('touchstart', startDrag, {passive: false});
 
     const controls = document.getElementById('controls');
     const controlsHeader = document.getElementById('controlsHeader');
     if (controls && controlsHeader) {
         let dc = false, ox, oy;
-        controlsHeader.onmousedown = e => {
+        const startControlDrag = e => {
             if (e.target.closest('.adj-btn')) return;
-            dc = true; ox = e.clientX - controls.offsetLeft; oy = e.clientY - controls.offsetTop;
-            controls.style.transition = 'none'; e.preventDefault();
+            const evt = e.touches ? e.touches[0] : e;
+            dc = true; ox = evt.clientX - controls.offsetLeft; oy = evt.clientY - controls.offsetTop;
+            controls.style.transition = 'none'; 
+            if (e.cancelable) e.preventDefault();
         };
-        document.addEventListener('mousemove', e => {
+        const moveControl = e => {
             if (!dc) return;
-            controls.style.left = (e.clientX - ox) + 'px';
-            controls.style.top = (e.clientY - oy) + 'px';
+            const evt = e.touches ? e.touches[0] : e;
+            controls.style.left = (evt.clientX - ox) + 'px';
+            controls.style.top = (evt.clientY - oy) + 'px';
             controls.style.right = 'auto';
-        });
-        document.addEventListener('mouseup', () => { if (dc) { dc = false; controls.style.transition = 'opacity 0.3s, transform 0.3s'; } });
+        };
+        const endControlDrag = () => { if (dc) { dc = false; controls.style.transition = 'opacity 0.3s, transform 0.3s'; } };
+        
+        controlsHeader.addEventListener('mousedown', startControlDrag);
+        controlsHeader.addEventListener('touchstart', startControlDrag, {passive: false});
+        document.addEventListener('mousemove', moveControl, {passive: false});
+        document.addEventListener('touchmove', moveControl, {passive: false});
+        document.addEventListener('mouseup', endControlDrag);
+        document.addEventListener('touchend', endControlDrag);
     }
 
     renderCatalog();
 });
+
+window.switchMobTab = function(tab) {
+    const catalog = document.querySelector('.catalog');
+    const rightPanel = document.querySelector('.right-panel');
+    const controls = document.getElementById('controls');
+    
+    // Backdrops
+    const catBackdrop = document.getElementById('mobCatalogBackdrop');
+    const sumBackdrop = document.getElementById('mobSummaryBackdrop');
+    
+    // Tabs
+    document.querySelectorAll('.mob-tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Hide all first
+    if (catalog) catalog.classList.remove('mob-visible');
+    if (rightPanel) rightPanel.classList.remove('mob-visible');
+    if (catBackdrop) catBackdrop.classList.remove('visible');
+    if (sumBackdrop) sumBackdrop.classList.remove('visible');
+    if (controls && tab !== 'stage') controls.classList.remove('show');
+    
+    // Show requested
+    if (tab === 'catalog') {
+        const t = document.getElementById('tabCatalog'); if(t) t.classList.add('active');
+        if (catalog) catalog.classList.add('mob-visible');
+        if (catBackdrop) catBackdrop.classList.add('visible');
+        deselectAll();
+    } 
+    else if (tab === 'summary') {
+        const t = document.getElementById('tabSummary'); if(t) t.classList.add('active');
+        if (rightPanel) rightPanel.classList.add('mob-visible');
+        if (sumBackdrop) sumBackdrop.classList.add('visible');
+        deselectAll();
+    }
+    else {
+        // stage
+        const t = document.getElementById('tabStage'); if(t) t.classList.add('active');
+    }
+};
