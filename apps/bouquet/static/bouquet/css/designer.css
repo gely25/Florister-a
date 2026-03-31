@@ -216,8 +216,8 @@ h1 {
     inset: 0;
     background-color: var(--wc);
     /* La máscara usa contain para respetar la forma SIN recortar */
-    -webkit-mask: url("https://res.cloudinary.com/dzfovowgt/image/upload/v1774373194/media/envoltura.png") no-repeat bottom center / contain;
-    mask: url("https://res.cloudinary.com/dzfovowgt/image/upload/v1774373194/media/envoltura.png") no-repeat bottom center / contain;
+    -webkit-mask: url("https://res.cloudinary.com/dzfovowgt/image/upload/v1774992683/media/envoltura_v2.png") no-repeat bottom center / contain;
+    mask: url("https://res.cloudinary.com/dzfovowgt/image/upload/v1774992683/media/envoltura_v2.png") no-repeat bottom center / contain;
     transition: background-color 0.4s;
 }
 
