@@ -115,6 +115,12 @@ function applySmartWrap(autoCenter = true) {
 
 function renderCatalog() {
     const list = document.getElementById('flist'); if (!list) return;
+    const catTitle = document.getElementById('catTitle');
+    if (catTitle) {
+        if (tier === 'l') catTitle.innerText = 'CAPA I: GRANDES';
+        else if (tier === 'm') catTitle.innerText = 'CAPA II: MEDIANAS';
+        else if (tier === 's') catTitle.innerText = 'CAPA III: PEQUEÑAS';
+    }
     const tierFlows = FLOWERS.filter(f => f.type === tier);
     const fullCount = flowers.filter(f => f.tier === tier).length;
     const maxForTier = SIZE_PRESETS[selectedSizeKey] ? SIZE_PRESETS[selectedSizeKey][tier] : CONFIG[tier].n;
@@ -395,14 +401,37 @@ function updateUI() {
     renderCatalog();
 }
 
-function step() {
-    if (tier === 'l') { tier = 'm'; document.getElementById('s1').classList.remove('active'); document.getElementById('s2').classList.add('active'); }
-    else if (tier === 'm') { tier = 's'; document.getElementById('s2').classList.remove('active'); document.getElementById('s3').classList.add('active'); }
-    else { document.getElementById('finishBtn').style.display = 'block'; document.getElementById('nextBtn').style.display = 'none'; return; }
+window.step = function() {
+    // Force lowercase to avoid comparison issues
+    const currentTier = tier.toLowerCase();
+    
+    if (currentTier === 'l') { 
+        tier = 'm'; 
+        const s1 = document.getElementById('s1'); if(s1) s1.classList.remove('active');
+        const s2 = document.getElementById('s2'); if(s2) s2.classList.add('active');
+    }
+    else if (currentTier === 'm') { 
+        tier = 's'; 
+        const s2 = document.getElementById('s2'); if(s2) s2.classList.remove('active');
+        const s3 = document.getElementById('s3'); if(s3) s3.classList.add('active');
+    }
+    else { 
+        const finishBtn = document.getElementById('finishBtn'); if(finishBtn) finishBtn.style.display = 'block';
+        const nextBtn = document.getElementById('nextBtn'); if(nextBtn) nextBtn.style.display = 'none';
+        return; 
+    }
+    
     const nextBtn = document.getElementById('nextBtn');
     if (nextBtn) nextBtn.classList.remove('on');
+    
     renderCatalog();
-}
+    updateUI();
+
+    // On mobile, automatically return to catalog tab to see the new category of flowers
+    if (window.innerWidth <= 768 && window.switchMobTab) {
+        window.switchMobTab('catalog');
+    }
+};
 
 function stepRot(delta) { if (!selected || !states.has(selected)) return; const s = states.get(selected); applyAngle(s, Math.max(-180, Math.min(180, s.r + delta)), false); }
 function applyQuickRot(delta) { if (!selected || !states.has(selected)) return; const s = states.get(selected); applyAngle(s, s.r + delta, false); }
