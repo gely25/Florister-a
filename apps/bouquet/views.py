@@ -10,8 +10,12 @@ class BouquetDesignView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['flowers'] = Flower.objects.filter(is_active=True)
+        # select_related evita N+1 con image/thumbnail
+        context['flowers'] = Flower.objects.filter(is_active=True).select_related()
         context['sizes'] = BouquetSize.objects.all()
+        # Pasar whatsapp_number si existe en settings
+        from django.conf import settings
+        context['whatsapp_number'] = getattr(settings, 'WHATSAPP_NUMBER', '')
         return context
 
 class BouquetListView(LoginRequiredMixin, SellerRequiredMixin, ListView):

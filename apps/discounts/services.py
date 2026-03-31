@@ -2,6 +2,24 @@ from decimal import Decimal
 from django.utils import timezone
 from .models import Discount
 
+# Cache simple en memoria para los descuentos activos (evita N+1 queries)
+_discount_cache = None
+_discount_cache_time = None
+_CACHE_TTL_SECONDS = 60  # Re-consulta cada 60 segundos
+
+def _get_active_discounts():
+    global _discount_cache, _discount_cache_time
+    now = timezone.now()
+    if _discount_cache is None or _discount_cache_time is None or \
+            (now - _discount_cache_time).total_seconds() > _CACHE_TTL_SECONDS:
+        _discount_cache = list(Discount.objects.filter(
+            is_active=True,
+            valid_from__lte=now,
+            valid_to__gte=now
+        ).select_related('flower_target', 'bouquet_target', 'promotion_target', 'service_target'))
+        _discount_cache_time = now
+    return _discount_cache
+
 def get_discounted_price_info(obj):
     """
     Calculates the best applicable discount for a Flower or PreDesignedBouquet.
@@ -14,18 +32,13 @@ def get_discounted_price_info(obj):
     """
     from apps.catalog.models import Flower, PreDesignedBouquet, Promotion, Service
     
-    now = timezone.now()
     original_price = obj.price
     best_final_price = original_price
     best_discount_amount = Decimal('0.00')
     discount_label = ""
     has_discount = False
 
-    active_discounts = Discount.objects.filter(
-        is_active=True, 
-        valid_from__lte=now, 
-        valid_to__gte=now
-    )
+    active_discounts = _get_active_discounts()
 
     for d in active_discounts:
         current_discount = Decimal('0.00')
@@ -52,7 +65,7 @@ def get_discounted_price_info(obj):
         
         # 3. Check Product (for Flowers)
         elif d.type == 'product' and isinstance(obj, Flower):
-            if d.flower_target == obj:
+            if d.flower_target_id == obj.pk:
                 if d.percentage > 0:
                     current_discount = (original_price * d.percentage) / 100
                     current_label = f"{d.percentage}% OFF"
@@ -62,7 +75,7 @@ def get_discounted_price_info(obj):
         
         # 4. Check Bouquet Specific
         elif d.type == 'bouquet' and isinstance(obj, PreDesignedBouquet):
-            if d.bouquet_target == obj:
+            if d.bouquet_target_id == obj.pk:
                 if d.percentage > 0:
                     current_discount = (original_price * d.percentage) / 100
                     current_label = f"{d.percentage}% OFF"
@@ -72,7 +85,7 @@ def get_discounted_price_info(obj):
 
         # 5. Check Promotion Specific
         elif d.type == 'promotion' and isinstance(obj, Promotion):
-            if d.promotion_target == obj:
+            if d.promotion_target_id == obj.pk:
                 if d.percentage > 0:
                     current_discount = (original_price * d.percentage) / 100
                     current_label = f"{d.percentage}% OFF"
@@ -82,7 +95,7 @@ def get_discounted_price_info(obj):
 
         # 6. Check Service Specific
         elif d.type == 'service' and isinstance(obj, Service):
-            if d.service_target == obj:
+            if d.service_target_id == obj.pk:
                 if d.percentage > 0:
                     current_discount = (original_price * d.percentage) / 100
                     current_label = f"{d.percentage}% OFF"
