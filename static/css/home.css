@@ -198,8 +198,13 @@ html { scroll-behavior: smooth; }
   display: flex; gap: 22px;
   overflow-x: auto; scroll-snap-type: x mandatory;
   scrollbar-width: none; scroll-behavior: smooth;
+  padding-bottom: 20px; /* give shadow room */
 }
 .carousel-track::-webkit-scrollbar { display: none; }
+.carousel-track .product-card {
+  flex: 0 0 280px;
+  max-width: 280px;
+}
 .carousel-btn {
   position: absolute; top: 50%; transform: translateY(-50%);
   width: 42px; height: 42px; border-radius: 50%;
@@ -561,4 +566,6 @@ html { scroll-behavior: smooth; }
   .hero-content { padding: 0 24px; }
   .tabs-inner { padding: 0 20px; }
   .about-strip { padding: 60px 20px; }
+  .section-head { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+  .carousel-track .product-card { flex: 0 0 240px; max-width: 240px; }
 }
