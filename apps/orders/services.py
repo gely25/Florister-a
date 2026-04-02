@@ -202,7 +202,9 @@ def _generate_bouquet_image_pillow(bouquet, tracking_token, wrap_data=None):
             if not color_hex: color_hex = "#e8dfcc"
             texture_path = os.path.join(settings.MEDIA_ROOT, "envoltura.png")
             if not os.path.exists(texture_path):
-                return None
+                texture_path = os.path.join(settings.BASE_DIR, "media", "envoltura.png")
+                if not os.path.exists(texture_path):
+                    return None
             
             texture = Image.open(texture_path).convert('RGBA')
             rgb = ImageColor.getrgb(color_hex)
@@ -231,14 +233,34 @@ def _generate_bouquet_image_pillow(bouquet, tracking_token, wrap_data=None):
             base.paste(back_img, (pos_x, pos_y), back_img)
 
         # Draw Flowers
+        import urllib.request
         items = list(bouquet.items.all().select_related('flower'))
         for item in items:
             flower = item.flower
             if not flower.image or not flower.image.name: continue
-            img_path = flower.image.path
-            if not os.path.exists(img_path): continue
             
-            f_img = Image.open(img_path).convert('RGBA')
+            try:
+                image_data = None
+                image_url = getattr(flower.image, 'url', None)
+                
+                if image_url and image_url.startswith('http'):
+                    req = urllib.request.Request(image_url, headers={'User-Agent': 'Mozilla/5.0'})
+                    with urllib.request.urlopen(req) as response:
+                        image_data = response.read()
+                else:
+                    # Fallback for local files
+                    if hasattr(flower.image, 'path') and os.path.exists(flower.image.path):
+                        with open(flower.image.path, 'rb') as f:
+                            image_data = f.read()
+                    else:
+                        with flower.image.open('rb') as f:
+                            image_data = f.read()
+                            
+                if not image_data: continue
+                f_img = Image.open(io.BytesIO(image_data)).convert('RGBA')
+            except Exception as e:
+                print(f"Error loading flower image {flower.name}: {e}")
+                continue
             
             # Intelligent Stem Hiding (Gradient Mask)
             # Replicates CSS: mask-image: linear-gradient(to bottom, black 35%, transparent 68%)
