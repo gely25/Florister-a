@@ -12,7 +12,7 @@ class Command(BaseCommand):
             {'name': 'Grande', 'code': 'grande', 'max_large': 3, 'max_medium': 3, 'max_small': 3, 'base_price': 45.00},
             {'name': 'Mediano', 'code': 'mediano', 'max_large': 3, 'max_medium': 2, 'max_small': 3, 'base_price': 35.00},
             {'name': 'Pequeño', 'code': 'pequeño', 'max_large': 1, 'max_medium': 2, 'max_small': 2, 'base_price': 25.00},
-            {'name': 'Personalizado', 'code': 'personalizado', 'max_large': 4, 'max_medium': 4, 'max_small': 4, 'base_price': 0.00},
+            {'name': 'Personalizado', 'code': 'personalizado', 'max_large': 15, 'max_medium': 15, 'max_small': 20, 'base_price': 0.00},
         ]
         
         for s_data in sizes:
