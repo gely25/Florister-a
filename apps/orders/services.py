@@ -200,9 +200,12 @@ def _generate_bouquet_image_pillow(bouquet, tracking_token, wrap_data=None):
         # Helper to load and process wrap color
         def get_wrap_layer(color_hex):
             if not color_hex: color_hex = "#e8dfcc"
-            texture_path = os.path.join(settings.MEDIA_ROOT, "envoltura.png")
+            
+            # The wrapper is a static asset not tracked in media on prod, load it from the static folder locally.
+            texture_path = os.path.join(settings.BASE_DIR, "apps", "bouquet", "static", "bouquet", "img", "envoltura.png")
             if not os.path.exists(texture_path):
-                texture_path = os.path.join(settings.BASE_DIR, "media", "envoltura.png")
+                # Fallback to media just in case someone deletes it from static
+                texture_path = os.path.join(settings.MEDIA_ROOT, "envoltura.png")
                 if not os.path.exists(texture_path):
                     return None
             
