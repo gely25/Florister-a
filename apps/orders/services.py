@@ -227,12 +227,29 @@ def _generate_bouquet_image_pillow(bouquet, tracking_token, wrap_data=None):
         pos_x, pos_y = 0, 0
         sw, sh = 0, 0
         if wrap_img:
-            sw = int(460 * wrap_scale * 1.5)
-            sh = int(wrap_img.height * (sw / wrap_img.width))
+            # Base width before scaling in frontend is 400px (matches .wrap-part width)
+            base_w = 400 * 1.5
+            sw = int(base_w * wrap_scale)
+            # Find aspect ratio of raw image to calculate height
+            aspect = wrap_img.height / wrap_img.width
+            sh = int(sw * aspect)
+            
+            # The frontend scales around the center of the element (transform-origin: center center).
+            # Unscaled frontend height = 400 * aspect
+            # Frontend .wrap-part has `bottom: -50px`, so its bottom is at 650 (stage H) - (-50) = 700.
+            # Unscaled frontend center Y = Bottom (700) - Height/2
+            frontend_unscaled_h = 400 * aspect
+            frontend_cy = 700 - (frontend_unscaled_h / 2)
+            
+            # Convert to backend coordinates
+            cy = frontend_cy * 1.5
+            
             wrap_img_scaled = wrap_img.resize((sw, sh), Image.LANCZOS)
             back_img = ImageEnhance.Brightness(wrap_img_scaled).enhance(0.85)
-            pos_x = (W // 2) - (sw // 2) + int(wrap_x_off * 1.5)
-            pos_y = H - sh + int(50 * 1.5) + int(wrap_y_off * 1.5)
+            
+            # Calculate final positions
+            pos_x = int((W / 2) - (sw / 2) + (wrap_x_off * 1.5))
+            pos_y = int(cy - (sh / 2) + (wrap_y_off * 1.5))
             base.paste(back_img, (pos_x, pos_y), back_img)
 
         # Draw Flowers
@@ -312,10 +329,10 @@ def _generate_bouquet_image_pillow(bouquet, tracking_token, wrap_data=None):
             draw = ImageDraw.Draw(mask)
             w_pts, h_pts = front_img.size
             poly = [
-                (0, h_pts * 0.42),
+                (0, h_pts * 0.40),
                 (w_pts * 0.48, h_pts * 0.68),
                 (w_pts * 0.52, h_pts * 0.68),
-                (w_pts, h_pts * 0.42),
+                (w_pts, h_pts * 0.40),
                 (w_pts, h_pts),
                 (0, h_pts)
             ]
