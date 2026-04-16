@@ -57,6 +57,8 @@ function confirmSize() {
         m: { n: preset.m, slots: ALL_SLOTS.m.slice(0, preset.m) },
         s: { n: preset.s, slots: ALL_SLOTS.s.slice(0, preset.s) }
     };
+    // Add class to body so CSS can hide nav, etc. ONLY during designer
+    document.body.classList.add('designer-active');
     const ss = document.getElementById('sizeScreen');
     if (ss) {
         ss.classList.add('hide');
@@ -228,11 +230,25 @@ function add(f) {
     updateUI();
 }
 
+// Track if we are in edit mode (opened via edit button) vs just dragging
+let editModeActive = false;
+
+function selectForEdit(cont) {
+    editModeActive = true;
+    selectInternal(cont, true);
+}
+
 function select(cont) {
+    selectInternal(cont, editModeActive);
+}
+
+function selectInternal(cont, showPanel) {
     if (selected) selected.classList.remove('selected');
-    selected = cont; selected.classList.add('selected');
+    selected = cont;
+    if (cont) cont.classList.add('selected');
     const fEdit = document.getElementById('fEdit');
     const wEdit = document.getElementById('wEdit');
+    if (!cont) return;
     if (cont.classList.contains('wrap-part')) {
         if (wEdit) wEdit.style.display = 'block';
         if (fEdit) fEdit.style.display = 'none';
@@ -241,6 +257,7 @@ function select(cont) {
         if (fEdit) fEdit.style.display = 'block';
         if (wEdit) wEdit.style.display = 'none';
         const s = states.get(cont);
+        if (!s) return;
         const limits = getLogicalLimits(s.tier);
         const fScale = document.getElementById('fScale');
         if (fScale) { fScale.min = limits.minS; fScale.max = limits.maxS; fScale.value = s.s; }
@@ -254,13 +271,18 @@ function select(cont) {
         if (adjTitle) adjTitle.innerText = 'Flor: ' + s.data.name;
         updateRotationUI(s.r);
     }
-    const controls = document.getElementById('controls');
-    if (controls) controls.classList.add('show');
+    // On mobile, ONLY show panel if we are in edit mode (triggered via edit button)
+    const isMobile = window.innerWidth <= 768;
+    if (!isMobile || showPanel) {
+        const controls = document.getElementById('controls');
+        if (controls) controls.classList.add('show');
+    }
 }
 
 function deselectAll() {
     if (selected) selected.classList.remove('selected');
     selected = null;
+    editModeActive = false;
     const controls = document.getElementById('controls');
     if (controls) controls.classList.remove('show');
 }
@@ -761,7 +783,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isHandle = e.target.closest('.rotation-handle');
         drag = isHandle ? { type: 'rotate', el: target } : { type: 'move', el: target };
-        select(target); sx = evt.clientX; sy = evt.clientY;
+        // On mobile, selecting a flower just marks it selected (for dragging) without opening panel
+        // The panel opens only via the edit button workflow
+        selectInternal(target, editModeActive); sx = evt.clientX; sy = evt.clientY;
         const onMove = me => {
             if (!drag) return;
             const mev = me.touches ? me.touches[0] : me;
@@ -848,11 +872,11 @@ window.switchMobTab = function(tab) {
     if (rightPanel) rightPanel.classList.remove('mob-visible');
     if (catBackdrop) catBackdrop.classList.remove('visible');
     if (sumBackdrop) sumBackdrop.classList.remove('visible');
-    if (controls && tab !== 'stage') controls.classList.remove('show');
+    if (controls) controls.classList.remove('show');
     
     // Show requested
     if (tab === 'catalog') {
-        const t = document.getElementById('tabCatalog'); if(t) t.classList.add('active');
+        const t = document.getElementById('tabAdd'); if(t) t.classList.add('active');
         if (catalog) catalog.classList.add('mob-visible');
         if (catBackdrop) catBackdrop.classList.add('visible');
         deselectAll();
@@ -863,8 +887,166 @@ window.switchMobTab = function(tab) {
         if (sumBackdrop) sumBackdrop.classList.add('visible');
         deselectAll();
     }
-    else {
-        // stage
-        const t = document.getElementById('tabStage'); if(t) t.classList.add('active');
+};
+
+// --- NEW MOBILE FUNCTIONS ---
+
+window.closeAllMobPanels = function() {
+    const catalog = document.querySelector('.catalog');
+    const rightPanel = document.querySelector('.right-panel');
+    const catBackdrop = document.getElementById('mobCatalogBackdrop');
+    const sumBackdrop = document.getElementById('mobSummaryBackdrop');
+    if (catalog) catalog.classList.remove('mob-visible');
+    if (rightPanel) rightPanel.classList.remove('mob-visible');
+    if (catBackdrop) catBackdrop.classList.remove('visible');
+    if (sumBackdrop) sumBackdrop.classList.remove('visible');
+    document.querySelectorAll('.mob-tab-btn').forEach(btn => btn.classList.remove('active'));
+};
+
+window.showFlowerNumbers = function() {
+    flowers.forEach((f, idx) => {
+        let span = f.el.querySelector('.flower-number');
+        if (!span) {
+            span = document.createElement('div');
+            span.className = 'flower-number';
+            f.el.appendChild(span);
+        }
+        span.innerText = idx + 1;
+    });
+};
+
+window.hideFlowerNumbers = function() {
+    flowers.forEach(f => {
+        let span = f.el.querySelector('.flower-number');
+        if (span) span.remove();
+    });
+};
+
+window.openFlowerList = function(mode) {
+    const overlay = document.getElementById('flowerListOverlay');
+    const listBody = document.getElementById('flowerItemsList');
+    const title = document.getElementById('listTitle');
+    
+    if (!overlay || !listBody || !title) return;
+    
+    title.innerText = mode === 'edit' ? 'Selecciona una flor para editar' : 'Selecciona flores para eliminar';
+    listBody.innerHTML = '';
+    
+    document.querySelectorAll('.mob-tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (mode === 'edit') document.getElementById('tabEdit')?.classList.add('active');
+    else document.getElementById('tabDelete')?.classList.add('active');
+
+    if (flowers.length === 0) {
+        listBody.innerHTML = '<div style="text-align:center; padding:40px; color:#bbb; font-size:0.9rem;">No hay flores en el ramo todavía.</div>';
+    } else {
+        flowers.forEach((f, idx) => {
+            const item = document.createElement('div');
+            item.className = 'flow-item';
+            
+            const tierName = f.tier === 'l' ? 'Grande' : f.tier === 'm' ? 'Mediana' : 'Pequeña';
+            const tierColor = f.tier === 'l' ? '#d63031' : f.tier === 'm' ? '#e17055' : '#fdcb6e';
+
+            if (mode === 'delete') {
+                item.innerHTML = `
+                    <div style="font-weight: 800; color: #a9a9a9; width: 20px; text-align: center;">${idx + 1}</div>
+                    <img src="${f.data.thumb || f.data.img}" onerror="this.src='https://placehold.co/50x50?text=?'">
+                    <div class="flow-info">
+                        <div class="flow-name">${f.data.name}</div>
+                        <div class="flow-tier" style="color:${tierColor}">${tierName}</div>
+                    </div>
+                    <button class="action-icon-btn delete-icon" onclick="event.stopPropagation(); removeFlowerByIdx(${idx})" title="Eliminar">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                            <path d="M10 11v6M14 11v6"></path>
+                            <path d="M9 6V4h6v2"></path>
+                        </svg>
+                    </button>
+                `;
+                item.onclick = (e) => { e.stopPropagation(); removeFlowerByIdx(idx); };
+            } else {
+                item.innerHTML = `
+                    <div style="font-weight: 800; color: #a9a9a9; width: 20px; text-align: center;">${idx + 1}</div>
+                    <img src="${f.data.thumb || f.data.img}" onerror="this.src='https://placehold.co/50x50?text=?'">
+                    <div class="flow-info">
+                        <div class="flow-name">${f.data.name}</div>
+                        <div class="flow-tier" style="color:${tierColor}">${tierName}</div>
+                    </div>
+                    <button class="action-icon-btn edit-icon" title="Editar">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                `;
+                item.onclick = () => {
+                    previousState = { s: (states.get(f.el) || {}).s, r: (states.get(f.el) || {}).r };
+                    selectForEdit(f.el);
+                    closeFlowerList();
+                    // Keep numbers until confirm/cancel!
+                };
+            }
+            
+            listBody.appendChild(item);
+        });
+        
+        // Show numbers when list appears
+        showFlowerNumbers();
     }
+    
+    overlay.style.display = 'flex';
+};
+
+window.closeFlowerList = function() {
+    const overlay = document.getElementById('flowerListOverlay');
+    if (overlay) overlay.style.display = 'none';
+    
+    // Only hide numbers if we aren't editing a specific flower right now
+    if (!editModeActive) { 
+        hideFlowerNumbers();
+    }
+};
+
+window.removeFlowerByIdx = function(idx) {
+    const f = flowers[idx];
+    if (!f) return;
+    
+    total -= f.data.p;
+    f.el.remove();
+    flowers.splice(idx, 1);
+    states.delete(f.el);
+    
+    updateUI();
+    
+    // Refresh list if still open
+    if (document.getElementById('flowerListOverlay').style.display !== 'none') {
+        openFlowerList('delete');
+    }
+};
+
+let previousState = null;
+
+window.cancelEdit = function() {
+    if (!selected) {
+        deselectAll();
+        hideFlowerNumbers();
+        return;
+    }
+    const s = states.get(selected);
+    if (previousState && s) {
+        s.s = previousState.s;
+        s.r = previousState.r;
+        transform(s);
+    }
+    deselectAll(); // resets editModeActive too
+    hideFlowerNumbers();
+};
+
+window.confirmEdit = function() {
+    deselectAll(); // resets editModeActive
+    hideFlowerNumbers();
+};
+
+window.handleMobNext = function() {
+    step();
 };
